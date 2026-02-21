@@ -3,10 +3,18 @@ import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/core/theme/app_spacing.dart';
 import 'package:atv_remote/domain/entities/remote_command.dart';
 import 'package:atv_remote/presentation/providers/remote_provider.dart';
+import 'package:atv_remote/presentation/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void _sendCommand(WidgetRef ref, int keyCode) {
+  // Trigger haptics if enabled
+  final settings = ref.read(settingsNotifierProvider).valueOrNull;
+  if (settings?.hapticEnabled ?? true) {
+    HapticFeedback.lightImpact();
+  }
+
   ref
       .read(remoteNotifierProvider.notifier)
       .sendCommand(
@@ -31,15 +39,44 @@ class RemoteScreen extends ConsumerWidget {
             pinned: true,
             backgroundColor: AppColors.background,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                remoteState.when(
-                  data: (s) => s.device?.name ?? 'Not Connected',
-                  loading: () => 'Connecting...',
-                  error: (_, __) => 'Error',
+              title: remoteState.when(
+                data: (s) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      s.device?.name ?? 'Not Connected',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: s.isConnected
+                                ? AppColors.primary
+                                : AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          s.isConnected ? 'Connected' : 'Disconnected',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppColors.textSecondary,
+                                letterSpacing: 1,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                loading: () => const Text('Connecting...'),
+                error: (_, __) => const Text('Connection Error'),
               ),
               centerTitle: true,
             ),

@@ -6,41 +6,45 @@ import 'package:atv_remote/domain/repositories/pairing_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
 class PairingRepositoryImpl implements PairingRepository {
-  final PairingNativeDatasource _nativeDatasource;
+  final PairingNativeDataSource _nativeDataSource;
   TvDevice? _currentDevice;
 
-  PairingRepositoryImpl(this._nativeDatasource);
+  PairingRepositoryImpl(this._nativeDataSource);
 
   @override
   Stream<Either<Failure, PairingStatus>> get statusStream {
-    return _nativeDatasource.pairingStatusStream.map((event) {
+    return _nativeDataSource.pairingEventStream.map((event) {
       try {
-        final type = event['type'] as String;
+        final state = event['state'] as String;
         final device = _currentDevice;
 
-        switch (type) {
-          case 'idle':
+        switch (state) {
+          case 'IDLE':
             return const Right(PairingStatus.idle());
-          case 'connecting':
+          case 'CONNECTING':
             if (device == null) return const Right(PairingStatus.idle());
             return Right(PairingStatus.connecting(device));
-          case 'awaitingPin':
+          case 'AWAITING_PIN':
             if (device == null) return const Right(PairingStatus.idle());
             return Right(
-              PairingStatus.awaitingPin(device, event['expires'] as int? ?? 60),
-            );
-          case 'paired':
-            if (device == null) return const Right(PairingStatus.idle());
-            return Right(PairingStatus.paired(device));
-          case 'connected':
-            if (device == null) return const Right(PairingStatus.idle());
-            return Right(PairingStatus.connected(device));
-          case 'error':
-            return Left(
-              PairingFailure(
-                event['message'] as String? ?? 'Unknown pairing error',
+              PairingStatus.awaitingPin(
+                device,
+                event['expiresInSeconds'] as int? ?? 60,
               ),
             );
+          case 'SUCCESS':
+            if (device == null) return const Right(PairingStatus.idle());
+            return Right(PairingStatus.connected(device));
+          case 'FAILED':
+            final errorCode = event['errorCode'] as String?;
+            final errorMessage =
+                event['errorMessage'] as String? ?? 'Pairing failed';
+
+            final failure = _mapErrorCode(errorCode, errorMessage);
+            if (device != null) {
+              return Right(PairingStatus.connectionFailed(device, failure));
+            }
+            return Left(failure);
           default:
             return const Right(PairingStatus.idle());
         }
@@ -54,7 +58,11 @@ class PairingRepositoryImpl implements PairingRepository {
   Future<Either<Failure, void>> connectToDevice(TvDevice device) async {
     try {
       _currentDevice = device;
-      await _nativeDatasource.startPairing(device.ipAddress, device.port);
+      await _nativeDataSource.startPairing(
+        device.ipAddress,
+        device.port,
+        device.name,
+      );
       return const Right(null);
     } catch (e) {
       return Left(PairingFailure(e.toString()));
@@ -64,7 +72,7 @@ class PairingRepositoryImpl implements PairingRepository {
   @override
   Future<Either<Failure, void>> submitPin(String pin) async {
     try {
-      await _nativeDatasource.submitPin(pin);
+      await _nativeDataSource.submitPin(pin);
       return const Right(null);
     } catch (e) {
       return Left(PairingFailure(e.toString()));
@@ -74,11 +82,31 @@ class PairingRepositoryImpl implements PairingRepository {
   @override
   Future<Either<Failure, void>> disconnect() async {
     try {
-      await _nativeDatasource.disconnect();
+      await _nativeDataSource.disconnect();
       _currentDevice = null;
       return const Right(null);
     } catch (e) {
       return Left(PairingFailure(e.toString()));
+    }
+  }
+
+  Failure _mapErrorCode(String? code, String message) {
+    if (code == null) return PairingFailure(message);
+
+    switch (code) {
+      case 'UNREACHABLE':
+        return DeviceUnreachableFailure(
+          _currentDevice?.ipAddress ?? '',
+          _currentDevice?.port ?? 6466,
+        );
+      case 'WRONG_PIN':
+        return const WrongPinFailure(
+          0,
+        ); // Native doesn't seem to pass attempts left yet
+      case 'PIN_EXPIRED':
+        return const PinExpiredFailure();
+      default:
+        return PairingFailure(message);
     }
   }
 }

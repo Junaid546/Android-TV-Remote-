@@ -6,7 +6,7 @@ part of 'remote_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$remoteNotifierHash() => r'204516f2b6a470d3daf273c8e216a78659bb18ee';
+String _$remoteNotifierHash() => r'ae4a21dde31d9fcba7b4ac6328e095f29e23c269';
 
 /// See also [RemoteNotifier].
 @ProviderFor(RemoteNotifier)

@@ -22,7 +22,7 @@ class TvDeviceModelAdapter extends TypeAdapter<TvDeviceModel> {
       ..ipAddress = fields[2] as String
       ..port = fields[3] as int
       ..isPaired = fields[4] as bool
-      ..lastConnected = fields[5] as DateTime?
+      ..lastConnectedIso = fields[5] as String?
       ..certificateFingerprint = fields[6] as String?
       ..signalStrength = fields[7] as int;
   }
@@ -42,7 +42,7 @@ class TvDeviceModelAdapter extends TypeAdapter<TvDeviceModel> {
       ..writeByte(4)
       ..write(obj.isPaired)
       ..writeByte(5)
-      ..write(obj.lastConnected)
+      ..write(obj.lastConnectedIso)
       ..writeByte(6)
       ..write(obj.certificateFingerprint)
       ..writeByte(7)

@@ -2,7 +2,14 @@ import 'package:atv_remote/core/constants/channel_constants.dart';
 import 'package:atv_remote/core/errors/exceptions.dart';
 import 'package:flutter/services.dart';
 
-class PairingNativeDatasource {
+abstract interface class PairingNativeDataSource {
+  Future<void> startPairing(String ip, int port, String name);
+  Future<void> submitPin(String pin);
+  Future<void> disconnect();
+  Stream<Map<String, dynamic>> get pairingEventStream;
+}
+
+class PairingNativeDataSourceImpl implements PairingNativeDataSource {
   static const _methodChannel = MethodChannel(
     ChannelConstants.kPairingMethodChannel,
   );
@@ -10,11 +17,31 @@ class PairingNativeDatasource {
     ChannelConstants.kPairingEventChannel,
   );
 
-  Future<void> startPairing(String ip, int port) async {
+  @override
+  Stream<Map<String, dynamic>> get pairingEventStream {
+    return _eventChannel
+        .receiveBroadcastStream()
+        .map((event) {
+          return Map<String, dynamic>.from(event as Map);
+        })
+        .handleError((error) {
+          if (error is PlatformException) {
+            throw NativeChannelException(
+              error.code,
+              error.message ?? 'Pairing stream error',
+            );
+          }
+          throw error;
+        });
+  }
+
+  @override
+  Future<void> startPairing(String ip, int port, String name) async {
     try {
       await _methodChannel.invokeMethod('startPairing', {
         'ip': ip,
         'port': port,
+        'name': name,
       });
     } on PlatformException catch (e) {
       throw NativeChannelException(
@@ -24,6 +51,7 @@ class PairingNativeDatasource {
     }
   }
 
+  @override
   Future<void> submitPin(String pin) async {
     try {
       await _methodChannel.invokeMethod('submitPin', {'pin': pin});
@@ -32,17 +60,17 @@ class PairingNativeDatasource {
     }
   }
 
+  @override
   Future<void> disconnect() async {
     try {
-      await _methodChannel.invokeMethod('disconnect');
+      await _methodChannel.invokeMethod(
+        'cancelPairing',
+      ); // Match native 'cancelPairing'
     } on PlatformException catch (e) {
-      throw NativeChannelException(e.code, e.message ?? 'Failed to disconnect');
+      throw NativeChannelException(
+        e.code,
+        e.message ?? 'Failed to disconnect pairing',
+      );
     }
-  }
-
-  Stream<Map<String, dynamic>> get pairingStatusStream {
-    return _eventChannel.receiveBroadcastStream().map((event) {
-      return Map<String, dynamic>.from(event as Map);
-    });
   }
 }

@@ -1,5 +1,6 @@
 import 'package:atv_remote/data/datasources/local/hive_device_datasource.dart';
 import 'package:atv_remote/data/datasources/native/discovery_native_datasource.dart';
+import 'package:atv_remote/data/datasources/native/network_native_datasource.dart';
 import 'package:atv_remote/data/datasources/native/pairing_native_datasource.dart';
 import 'package:atv_remote/data/datasources/native/remote_native_datasource.dart';
 import 'package:atv_remote/data/repositories/device_storage_repository_impl.dart';
@@ -10,6 +11,9 @@ import 'package:atv_remote/domain/repositories/device_storage_repository.dart';
 import 'package:atv_remote/domain/repositories/discovery_repository.dart';
 import 'package:atv_remote/domain/repositories/pairing_repository.dart';
 import 'package:atv_remote/domain/repositories/remote_repository.dart';
+import 'package:atv_remote/data/repositories/settings_repository_impl.dart';
+import 'package:atv_remote/domain/repositories/settings_repository.dart';
+import 'package:atv_remote/data/datasources/local/hive_settings_datasource.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'data_providers.g.dart';
@@ -20,18 +24,23 @@ HiveDeviceDatasource hiveDeviceDatasource(HiveDeviceDatasourceRef ref) =>
     HiveDeviceDatasource();
 
 @riverpod
-DiscoveryNativeDatasource discoveryNativeDatasource(
-  DiscoveryNativeDatasourceRef ref,
-) => DiscoveryNativeDatasource();
+DiscoveryNativeDataSource discoveryNativeDataSource(
+  DiscoveryNativeDataSourceRef ref,
+) => DiscoveryNativeDataSourceImpl();
 
 @riverpod
-PairingNativeDatasource pairingNativeDatasource(
-  PairingNativeDatasourceRef ref,
-) => PairingNativeDatasource();
+PairingNativeDataSource pairingNativeDataSource(
+  PairingNativeDataSourceRef ref,
+) => PairingNativeDataSourceImpl();
 
 @riverpod
-RemoteNativeDatasource remoteNativeDatasource(RemoteNativeDatasourceRef ref) =>
-    RemoteNativeDatasource();
+RemoteNativeDataSource remoteNativeDataSource(RemoteNativeDataSourceRef ref) =>
+    RemoteNativeDataSourceImpl();
+
+@riverpod
+NetworkNativeDataSource networkNativeDataSource(
+  NetworkNativeDataSourceRef ref,
+) => NetworkNativeDataSourceImpl();
 
 // Repositories
 @riverpod
@@ -41,12 +50,20 @@ DeviceStorageRepository deviceStorageRepository(
 
 @riverpod
 DiscoveryRepository discoveryRepository(DiscoveryRepositoryRef ref) =>
-    DiscoveryRepositoryImpl(ref.watch(discoveryNativeDatasourceProvider));
+    DiscoveryRepositoryImpl(ref.watch(discoveryNativeDataSourceProvider));
 
 @riverpod
 PairingRepository pairingRepository(PairingRepositoryRef ref) =>
-    PairingRepositoryImpl(ref.watch(pairingNativeDatasourceProvider));
+    PairingRepositoryImpl(ref.watch(pairingNativeDataSourceProvider));
 
 @riverpod
 RemoteRepository remoteRepository(RemoteRepositoryRef ref) =>
-    RemoteRepositoryImpl(ref.watch(remoteNativeDatasourceProvider));
+    RemoteRepositoryImpl(ref.watch(remoteNativeDataSourceProvider));
+
+@riverpod
+HiveSettingsDatasource hiveSettingsDatasource(HiveSettingsDatasourceRef ref) =>
+    HiveSettingsDatasource();
+
+@riverpod
+SettingsRepository settingsRepository(SettingsRepositoryRef ref) =>
+    SettingsRepositoryImpl(ref.watch(hiveSettingsDatasourceProvider));

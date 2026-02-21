@@ -1,57 +1,47 @@
-import 'package:atv_remote/data/models/saved_device_model.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:atv_remote/data/models/tv_device_model.dart';
+import 'package:hive/hive.dart';
 
 class HiveDeviceDatasource {
-  static const String boxName = 'saved_devices';
-  static const String lastConnectedKey = 'last_connected_device_id';
+  static const _boxName = 'devices';
+  Box<TvDeviceModel> get _box => Hive.box<TvDeviceModel>(_boxName);
 
-  Future<Box<SavedDeviceModel>> _openBox() async {
-    return await Hive.openBox<SavedDeviceModel>(boxName);
+  Future<List<TvDeviceModel>> getAllDevices() async {
+    return _box.values.toList()..sort(
+      (a, b) => (b.lastConnectedIso ?? '').compareTo(a.lastConnectedIso ?? ''),
+    );
   }
 
-  Future<void> saveDevice(SavedDeviceModel device) async {
-    final box = await _openBox();
-    await box.put(device.id, device);
+  Future<void> saveDevice(TvDeviceModel model) async {
+    await _box.put(model.id, model);
   }
 
-  Future<SavedDeviceModel?> getDevice(String id) async {
-    final box = await _openBox();
-    return box.get(id);
+  Future<void> removeDevice(String id) async {
+    await _box.delete(id);
   }
 
-  Future<List<SavedDeviceModel>> getAllDevices() async {
-    final box = await _openBox();
-    return box.values.toList()
-      ..sort((a, b) => b.lastConnected.compareTo(a.lastConnected));
+  Future<TvDeviceModel?> getDeviceById(String id) async {
+    return _box.get(id);
   }
 
-  Future<void> deleteDevice(String id) async {
-    final box = await _openBox();
-    await box.delete(id);
+  Future<TvDeviceModel?> getLastConnected() async {
+    final all = await getAllDevices();
+    return all.isNotEmpty ? all.first : null;
   }
 
   Future<void> updateLastConnected(String id) async {
-    final box = await _openBox();
-    final device = box.get(id);
+    final device = _box.get(id);
     if (device != null) {
-      final updated = SavedDeviceModel(
-        id: device.id,
-        name: device.name,
-        ipAddress: device.ipAddress,
-        port: device.port,
-        isPaired: device.isPaired,
-        certificateFingerprint: device.certificateFingerprint,
-        lastConnected: DateTime.now(),
-      );
-      await box.put(id, updated);
-
-      final settingsBox = await Hive.openBox('settings');
-      await settingsBox.put(lastConnectedKey, id);
+      device.lastConnectedIso = DateTime.now().toIso8601String();
+      await device.save();
     }
   }
 
-  Future<String?> getLastConnectedDeviceId() async {
-    final settingsBox = await Hive.openBox('settings');
-    return settingsBox.get(lastConnectedKey) as String?;
+  Future<void> markAsPaired(String id, String? fingerprint) async {
+    final device = _box.get(id);
+    if (device != null) {
+      device.isPaired = true;
+      device.certificateFingerprint = fingerprint;
+      await device.save();
+    }
   }
 }

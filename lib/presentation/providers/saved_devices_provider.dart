@@ -8,28 +8,24 @@ part 'saved_devices_provider.g.dart';
 class SavedDevicesNotifier extends _$SavedDevicesNotifier {
   @override
   Future<List<TvDevice>> build() async {
-    final useCase = ref.watch(deviceStorageUseCasesProvider);
-    final result = await useCase.getSavedDevices();
+    final result = await ref.watch(getSavedDevicesUseCaseProvider).call();
     return result.getOrElse((l) => []);
   }
 
   Future<void> saveDevice(TvDevice device) async {
     state = const AsyncValue.loading();
-    final useCase = ref.read(deviceStorageUseCasesProvider);
-    await useCase.saveDevice(device);
+    await ref.read(saveDeviceUseCaseProvider).call(device);
     ref.invalidateSelf();
   }
 
   Future<void> removeDevice(String deviceId) async {
     state = const AsyncValue.loading();
-    final useCase = ref.read(deviceStorageUseCasesProvider);
-    await useCase.removeDevice(deviceId);
+    await ref.read(removeDeviceUseCaseProvider).call(deviceId);
     ref.invalidateSelf();
   }
 
   Future<TvDevice?> getLastConnectedDevice() async {
-    final useCase = ref.read(deviceStorageUseCasesProvider);
-    final result = await useCase.getLastConnectedDevice();
+    final result = await ref.read(getLastConnectedDeviceUseCaseProvider).call();
     return result.getOrElse((l) => null);
   }
 }

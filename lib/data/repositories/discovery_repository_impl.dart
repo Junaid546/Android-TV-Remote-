@@ -6,45 +6,39 @@ import 'package:atv_remote/domain/repositories/discovery_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
 class DiscoveryRepositoryImpl implements DiscoveryRepository {
-  final DiscoveryNativeDatasource _nativeDatasource;
-  final _devicesController =
-      StreamController<Either<Failure, List<TvDevice>>>.broadcast();
-  final Map<String, TvDevice> _discoveredDevices = {};
+  final DiscoveryNativeDataSource _nativeDataSource;
 
-  DiscoveryRepositoryImpl(this._nativeDatasource);
+  DiscoveryRepositoryImpl(this._nativeDataSource);
 
   @override
-  Stream<Either<Failure, List<TvDevice>>> get deviceStream =>
-      _devicesController.stream;
+  Stream<Either<Failure, List<TvDevice>>> get deviceStream {
+    return _nativeDataSource.discoveryStream
+        .map<Either<Failure, List<TvDevice>>>((rawList) {
+          try {
+            final devices = rawList.map((m) {
+              return TvDevice(
+                id: m['id'] as String,
+                name: m['name'] as String,
+                ipAddress: m['ip'] as String,
+                port: (m['port'] as num?)?.toInt() ?? 6466,
+                isPaired: false,
+                lastConnected: DateTime.now(),
+              );
+            }).toList();
+            return Right(devices);
+          } catch (e) {
+            return Left(UnknownFailure(e.toString()));
+          }
+        })
+        .handleError((e) {
+          return Left(UnknownFailure(e.toString()));
+        });
+  }
 
   @override
   Future<Either<Failure, void>> startDiscovery() async {
     try {
-      _discoveredDevices.clear();
-      _devicesController.add(Right(_discoveredDevices.values.toList()));
-
-      await _nativeDatasource.startDiscovery();
-
-      _nativeDatasource.discoveryStream.listen(
-        (devices) {
-          final tvDevices = devices.map((event) {
-            return TvDevice(
-              id: event['id'] as String,
-              name: event['name'] as String,
-              ipAddress: event['ip'] as String,
-              port: event['port'] as int,
-              isPaired: false,
-              lastConnected: DateTime.now(),
-            );
-          }).toList();
-
-          _devicesController.add(Right(tvDevices));
-        },
-        onError: (e) {
-          _devicesController.add(Left(NetworkFailure(e.toString())));
-        },
-      );
-
+      await _nativeDataSource.startDiscovery();
       return const Right(null);
     } catch (e) {
       return Left(NetworkFailure(e.toString()));
@@ -54,7 +48,7 @@ class DiscoveryRepositoryImpl implements DiscoveryRepository {
   @override
   Future<Either<Failure, void>> stopDiscovery() async {
     try {
-      await _nativeDatasource.stopDiscovery();
+      await _nativeDataSource.stopDiscovery();
       return const Right(null);
     } catch (e) {
       return Left(NetworkFailure(e.toString()));
@@ -67,12 +61,12 @@ class DiscoveryRepositoryImpl implements DiscoveryRepository {
     String name,
   ) async {
     try {
-      final result = await _nativeDatasource.addManualDevice(ipAddress, name);
+      final result = await _nativeDataSource.addManualDevice(ipAddress, name);
       final device = TvDevice(
         id: result['id'] as String,
         name: result['name'] as String,
         ipAddress: result['ip'] as String,
-        port: result['port'] as int,
+        port: (result['port'] as num?)?.toInt() ?? 6466,
         isPaired: false,
         lastConnected: DateTime.now(),
       );

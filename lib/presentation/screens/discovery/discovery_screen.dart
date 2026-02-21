@@ -228,8 +228,8 @@ class _ManualEntrySheetState extends ConsumerState<_ManualEntrySheet> {
         : _nameController.text;
 
     final manualResult = await ref
-        .read(discoveryUseCasesProvider)
-        .addManualDevice(_ipController.text, name);
+        .read(addManualDeviceUseCaseProvider)
+        .call(_ipController.text, name);
 
     setState(() => _isLoading = false);
 

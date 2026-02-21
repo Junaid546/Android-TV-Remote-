@@ -1,33 +1,58 @@
 import 'dart:async';
+import 'package:atv_remote/data/models/settings_model.dart';
+import 'package:atv_remote/data/models/tv_device_model.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:atv_remote/data/models/tv_device_model.dart';
-import 'package:atv_remote/data/models/saved_device_model.dart';
-import 'package:atv_remote/core/utils/logger.dart';
+import 'package:path_provider/path_provider.dart';
 
 Future<ProviderContainer> bootstrap() async {
-  try {
-    // 1. Initialize Hive
-    await Hive.initFlutter();
+  WidgetsFlutterBinding.ensureInitialized();
 
-    // 2. Register Adapters
-    Hive.registerAdapter(TvDeviceModelAdapter());
-    Hive.registerAdapter(SavedDeviceModelAdapter());
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
 
-    // 3. Open Boxes
-    await Hive.openBox<TvDeviceModel>('devices');
-    await Hive.openBox('settings');
+  final appDocDir = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(appDocDir.path);
 
-    // 4. Set orientations
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  // Register Adapters
+  Hive.registerAdapter(TvDeviceModelAdapter());
+  Hive.registerAdapter(SettingsModelAdapter());
 
-    return ProviderContainer();
-  } on HiveError catch (e, stack) {
-    logger.e('Hive initialization failed', error: e, stackTrace: stack);
-    rethrow;
-  } on PlatformException catch (e, stack) {
-    logger.e('Platform operation failed', error: e, stackTrace: stack);
-    rethrow;
+  // Open Boxes
+  await Future.wait([
+    Hive.openBox<TvDeviceModel>('devices'),
+    Hive.openBox<SettingsModel>('settings'),
+  ]);
+
+  // Create ProviderContainer with overrides and observers
+  final container = ProviderContainer(
+    overrides: [],
+    observers: [if (kDebugMode) _ProviderLogger()],
+  );
+
+  return container;
+}
+
+class _ProviderLogger extends ProviderObserver {
+  @override
+  void didUpdateProvider(
+    ProviderBase<Object?> provider,
+    Object? previousValue,
+    Object? newValue,
+    ProviderContainer container,
+  ) {
+    if (kDebugMode) {
+      debugPrint(
+        '[Riverpod] ${provider.name ?? provider.runtimeType}: $newValue',
+      );
+    }
   }
 }

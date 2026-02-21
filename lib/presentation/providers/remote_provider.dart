@@ -10,12 +10,8 @@ part 'remote_provider.g.dart';
 class RemoteNotifier extends _$RemoteNotifier {
   @override
   Stream<RemoteState> build() async* {
-    final useCase = ref.watch(remoteUseCasesProvider);
     final pairingState = ref.watch(pairingNotifierProvider);
     final device = pairingState.valueOrNull?.maybeWhen(
-      idle: () => null,
-      discoveryStarted: () => null,
-      devicesFound: (_) => null,
       connecting: (d) => d,
       awaitingPin: (d, _) => d,
       pinVerified: (d) => d,
@@ -28,15 +24,18 @@ class RemoteNotifier extends _$RemoteNotifier {
       orElse: () => null,
     );
 
-    yield* useCase.connectionAlive.map(
-      (alive) => RemoteState(
-        device: device,
-        isConnected: alive.getOrElse((l) => false),
-      ),
-    );
+    yield* ref
+        .watch(remoteConnectionAliveStreamUseCaseProvider)
+        .call()
+        .map(
+          (result) => RemoteState(
+            device: device,
+            isConnected: result.getOrElse((l) => false),
+          ),
+        );
   }
 
   Future<void> sendCommand(RemoteCommand command) async {
-    await ref.read(remoteUseCasesProvider).sendCommand(command);
+    await ref.read(sendCommandUseCaseProvider).call(command);
   }
 }

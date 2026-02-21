@@ -6,7 +6,7 @@ part of 'discovery_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$discoveryNotifierHash() => r'0d5eddc82db05800de2263ac78114025e7a7748f';
+String _$discoveryNotifierHash() => r'3ff057fb68c939bbedab685952ec7e1ba55ed7b4';
 
 /// See also [DiscoveryNotifier].
 @ProviderFor(DiscoveryNotifier)

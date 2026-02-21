@@ -9,21 +9,21 @@ part 'pairing_provider.g.dart';
 class PairingNotifier extends _$PairingNotifier {
   @override
   Stream<PairingStatus> build() async* {
-    final useCase = ref.watch(pairingUseCasesProvider);
-    yield* useCase.statusStream.map(
-      (event) => event.getOrElse((l) => const PairingStatus.idle()),
-    );
+    yield* ref
+        .watch(pairingStatusStreamUseCaseProvider)
+        .call()
+        .map((event) => event.getOrElse((l) => const PairingStatus.idle()));
   }
 
   Future<void> connectToDevice(TvDevice device) async {
-    await ref.read(pairingUseCasesProvider).connectToDevice(device);
+    await ref.read(connectToDeviceUseCaseProvider).call(device);
   }
 
   Future<void> submitPin(String pin) async {
-    await ref.read(pairingUseCasesProvider).submitPin(pin);
+    await ref.read(submitPinUseCaseProvider).call(pin);
   }
 
   Future<void> disconnect() async {
-    await ref.read(pairingUseCasesProvider).disconnect();
+    await ref.read(disconnectUseCaseProvider).call();
   }
 }

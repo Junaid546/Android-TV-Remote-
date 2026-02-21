@@ -7,7 +7,7 @@ part of 'saved_devices_provider.dart';
 // **************************************************************************
 
 String _$savedDevicesNotifierHash() =>
-    r'023f2a11b5b353f0ab7cae3af112d793113439ce';
+    r'48591abeaa3605a228dbb6a1fe3ee833ae098aec';
 
 /// See also [SavedDevicesNotifier].
 @ProviderFor(SavedDevicesNotifier)

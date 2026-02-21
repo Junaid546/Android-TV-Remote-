@@ -1,6 +1,7 @@
 import 'package:atv_remote/core/constants/app_constants.dart';
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/core/theme/app_spacing.dart';
+import 'package:atv_remote/presentation/providers/settings_provider.dart';
 import 'package:atv_remote/presentation/providers/saved_devices_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -75,10 +76,49 @@ class SettingsScreen extends ConsumerWidget {
 
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.s24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: AppSpacing.s24),
+                  _buildSectionHeader(context, 'PREFERENCES'),
+                  const SizedBox(height: AppSpacing.s16),
+                  ref
+                      .watch(settingsNotifierProvider)
+                      .when(
+                        data: (settings) => Column(
+                          children: [
+                            _buildPreferenceTile(
+                              context,
+                              Icons.vibration_rounded,
+                              'Haptic Feedback',
+                              'Vibrate on button press',
+                              Switch(
+                                value: settings.hapticEnabled,
+                                onChanged: (val) => ref
+                                    .read(settingsNotifierProvider.notifier)
+                                    .toggleHaptic(val),
+                              ),
+                            ),
+                            _buildPreferenceTile(
+                              context,
+                              Icons.dark_mode_rounded,
+                              'Dark Mode',
+                              'Use dark theme throughout',
+                              Switch(
+                                value: settings.themeMode == 'dark',
+                                onChanged: (val) => ref
+                                    .read(settingsNotifierProvider.notifier)
+                                    .setThemeMode(val ? 'dark' : 'light'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        loading: () =>
+                            const Center(child: LinearProgressIndicator()),
+                        error: (e, _) => Text('Error loading preferences: $e'),
+                      ),
+
                   const SizedBox(height: AppSpacing.s24),
                   _buildSectionHeader(context, 'APP INFORMATION'),
                   const SizedBox(height: AppSpacing.s24),
@@ -116,6 +156,51 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreferenceTile(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String subtitle,
+    Widget trailing,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.s16),
+      padding: const EdgeInsets.all(AppSpacing.s16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.textSecondary, size: 20),
+          const SizedBox(width: AppSpacing.s16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          trailing,
         ],
       ),
     );
