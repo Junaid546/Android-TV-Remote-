@@ -1,0 +1,21 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  plugins:
+    - custom_lint
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+linter:
+  rules:
+    - avoid_print
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - avoid_dynamic_calls
+    - always_declare_return_types
+    - prefer_single_quotes
+    - sort_child_properties_last
+    - unawaited_futures
+    - unsafe_html
+    - use_build_context_synchronously

@@ -1,0 +1,1 @@
+extension ContextExtensions on Object {}
