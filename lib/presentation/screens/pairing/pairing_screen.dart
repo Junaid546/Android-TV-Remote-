@@ -1,15 +1,18 @@
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/core/theme/app_spacing.dart';
 import 'package:atv_remote/domain/entities/pairing_status.dart';
-import 'package:atv_remote/presentation/providers/pairing_provider.dart';
+import 'package:atv_remote/presentation/providers/connection_provider.dart';
 import 'package:atv_remote/presentation/providers/saved_devices_provider.dart';
+import 'package:atv_remote/presentation/providers/use_case_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class PairingScreen extends ConsumerStatefulWidget {
-  const PairingScreen({super.key});
+  final String deviceId;
+
+  const PairingScreen({super.key, required this.deviceId});
 
   @override
   ConsumerState<PairingScreen> createState() => _PairingScreenState();
@@ -28,20 +31,18 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final statusAsync = ref.watch(pairingNotifierProvider);
+    final status = ref.watch(connectionNotifierProvider);
 
     // Listen for success to navigate and save
-    ref.listen(pairingNotifierProvider, (previous, next) {
-      next.whenData((status) {
-        if (status is Paired) {
-          // Save the device locally
-          ref
-              .read(savedDevicesNotifierProvider.notifier)
-              .saveDevice(status.device);
-          // Navigate to Remote
-          context.go('/remote');
-        }
-      });
+    ref.listen(connectionNotifierProvider, (previous, next) {
+      if (next is Paired) {
+        // Save the device locally using use case directly or refresh provider
+        ref.read(saveDeviceUseCaseProvider)(next.device).then((_) {
+          ref.read(savedDevicesNotifierProvider.notifier).refresh();
+        });
+        // Navigate to Remote
+        context.go('/remote');
+      }
     });
 
     return Scaffold(
@@ -50,17 +51,13 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () {
-            ref.read(pairingNotifierProvider.notifier).disconnect();
+            ref.read(connectionNotifierProvider.notifier).disconnect();
             context.pop();
           },
           icon: const Icon(Icons.close_rounded),
         ),
       ),
-      body: statusAsync.when(
-        data: (status) => _buildStatusBody(context, status),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error: $e')),
-      ),
+      body: _buildStatusBody(context, status),
     );
   }
 
@@ -88,7 +85,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
+            ).textTheme.bodyLarge?.copyWith(color: AppColors.muted),
           ),
 
           const SizedBox(height: AppSpacing.s48),
@@ -110,9 +107,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
               decoration: InputDecoration(
                 counterText: '',
                 hintText: '000000',
-                hintStyle: TextStyle(
-                  color: AppColors.textDisabled.withAlpha(50),
-                ),
+                hintStyle: TextStyle(color: AppColors.muted.withAlpha(50)),
               ),
               onChanged: (value) {
                 if (value.length == 6) {
@@ -209,6 +204,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
 
   void _submitPin(String pin) {
     if (pin.length < 4) return;
-    ref.read(pairingNotifierProvider.notifier).submitPin(pin);
+    ref.read(connectionNotifierProvider.notifier).submitPin(pin);
   }
 }

@@ -6,7 +6,8 @@ part of 'tv_device.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_TvDevice _$$_TvDeviceFromJson(Map<String, dynamic> json) => _$_TvDevice(
+_$TvDeviceImpl _$$TvDeviceImplFromJson(Map<String, dynamic> json) =>
+    _$TvDeviceImpl(
       id: json['id'] as String,
       name: json['name'] as String,
       ipAddress: json['ipAddress'] as String,
@@ -19,7 +20,7 @@ _$_TvDevice _$$_TvDeviceFromJson(Map<String, dynamic> json) => _$_TvDevice(
       signalStrength: (json['signalStrength'] as num?)?.toInt() ?? 0,
     );
 
-Map<String, dynamic> _$$_TvDeviceToJson(_$_TvDevice instance) =>
+Map<String, dynamic> _$$TvDeviceImplToJson(_$TvDeviceImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,

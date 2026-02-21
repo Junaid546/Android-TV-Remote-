@@ -26,4 +26,9 @@ class KeyCodes {
     'KEYCODE_ENTER': 66,
     'KEYCODE_DEL': 67,
   };
+
+  static int? fromName(String name) {
+    if (codes.containsKey(name)) return codes[name];
+    return int.tryParse(name);
+  }
 }

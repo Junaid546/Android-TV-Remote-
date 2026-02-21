@@ -7,12 +7,12 @@ part of 'use_case_providers.dart';
 // **************************************************************************
 
 String _$getSavedDevicesUseCaseHash() =>
-    r'33c3b39bcb72e4f91162c0a46993971b50eef877';
+    r'f08e0d5a7ed3ee132e27400c91793d9a83ad5ff0';
 
 /// See also [getSavedDevicesUseCase].
 @ProviderFor(getSavedDevicesUseCase)
 final getSavedDevicesUseCaseProvider =
-    AutoDisposeProvider<GetSavedDevicesUseCase>.internal(
+    Provider<GetSavedDevicesUseCase>.internal(
   getSavedDevicesUseCase,
   name: r'getSavedDevicesUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -22,14 +22,12 @@ final getSavedDevicesUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef GetSavedDevicesUseCaseRef
-    = AutoDisposeProviderRef<GetSavedDevicesUseCase>;
-String _$saveDeviceUseCaseHash() => r'f4d94617a42268a5c861096006afeb9a5d508fd9';
+typedef GetSavedDevicesUseCaseRef = ProviderRef<GetSavedDevicesUseCase>;
+String _$saveDeviceUseCaseHash() => r'151564e7f16f8afc23d9e1bdd9ce57e9012240e2';
 
 /// See also [saveDeviceUseCase].
 @ProviderFor(saveDeviceUseCase)
-final saveDeviceUseCaseProvider =
-    AutoDisposeProvider<SaveDeviceUseCase>.internal(
+final saveDeviceUseCaseProvider = Provider<SaveDeviceUseCase>.internal(
   saveDeviceUseCase,
   name: r'saveDeviceUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -39,14 +37,13 @@ final saveDeviceUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef SaveDeviceUseCaseRef = AutoDisposeProviderRef<SaveDeviceUseCase>;
+typedef SaveDeviceUseCaseRef = ProviderRef<SaveDeviceUseCase>;
 String _$removeDeviceUseCaseHash() =>
-    r'5f33e4c753aae892df23f874c4e707adc37e5979';
+    r'a7312c539fd1cb4328b1eebfce4ff2c8832ca889';
 
 /// See also [removeDeviceUseCase].
 @ProviderFor(removeDeviceUseCase)
-final removeDeviceUseCaseProvider =
-    AutoDisposeProvider<RemoveDeviceUseCase>.internal(
+final removeDeviceUseCaseProvider = Provider<RemoveDeviceUseCase>.internal(
   removeDeviceUseCase,
   name: r'removeDeviceUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -56,14 +53,14 @@ final removeDeviceUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef RemoveDeviceUseCaseRef = AutoDisposeProviderRef<RemoveDeviceUseCase>;
+typedef RemoveDeviceUseCaseRef = ProviderRef<RemoveDeviceUseCase>;
 String _$getLastConnectedDeviceUseCaseHash() =>
-    r'1f896e7d6e382841e3f113e0756c380de3276d34';
+    r'c97253bbd0a1a7393b755536a3ccdc70f57911f9';
 
 /// See also [getLastConnectedDeviceUseCase].
 @ProviderFor(getLastConnectedDeviceUseCase)
 final getLastConnectedDeviceUseCaseProvider =
-    AutoDisposeProvider<GetLastConnectedDeviceUseCase>.internal(
+    Provider<GetLastConnectedDeviceUseCase>.internal(
   getLastConnectedDeviceUseCase,
   name: r'getLastConnectedDeviceUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -74,14 +71,13 @@ final getLastConnectedDeviceUseCaseProvider =
 );
 
 typedef GetLastConnectedDeviceUseCaseRef
-    = AutoDisposeProviderRef<GetLastConnectedDeviceUseCase>;
+    = ProviderRef<GetLastConnectedDeviceUseCase>;
 String _$updateDeviceUseCaseHash() =>
-    r'88097294e0d8e4f06a91415f85f39df8cbd2cfe9';
+    r'92a4b3f9595ca2b95796668c0b2601e935161919';
 
 /// See also [updateDeviceUseCase].
 @ProviderFor(updateDeviceUseCase)
-final updateDeviceUseCaseProvider =
-    AutoDisposeProvider<UpdateDeviceUseCase>.internal(
+final updateDeviceUseCaseProvider = Provider<UpdateDeviceUseCase>.internal(
   updateDeviceUseCase,
   name: r'updateDeviceUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -91,14 +87,13 @@ final updateDeviceUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef UpdateDeviceUseCaseRef = AutoDisposeProviderRef<UpdateDeviceUseCase>;
+typedef UpdateDeviceUseCaseRef = ProviderRef<UpdateDeviceUseCase>;
 String _$startDiscoveryUseCaseHash() =>
-    r'2d2f18245edd88dedc01ce29625aebead7b01667';
+    r'f0aaa59326f943b9c5c6c6db150d659cef63ebfd';
 
 /// See also [startDiscoveryUseCase].
 @ProviderFor(startDiscoveryUseCase)
-final startDiscoveryUseCaseProvider =
-    AutoDisposeProvider<StartDiscoveryUseCase>.internal(
+final startDiscoveryUseCaseProvider = Provider<StartDiscoveryUseCase>.internal(
   startDiscoveryUseCase,
   name: r'startDiscoveryUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -108,15 +103,13 @@ final startDiscoveryUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef StartDiscoveryUseCaseRef
-    = AutoDisposeProviderRef<StartDiscoveryUseCase>;
+typedef StartDiscoveryUseCaseRef = ProviderRef<StartDiscoveryUseCase>;
 String _$stopDiscoveryUseCaseHash() =>
-    r'931d14ae29ece1dccf4f5895445de625381e078c';
+    r'87face82625b861590f0b32e4195d3c1bc8174eb';
 
 /// See also [stopDiscoveryUseCase].
 @ProviderFor(stopDiscoveryUseCase)
-final stopDiscoveryUseCaseProvider =
-    AutoDisposeProvider<StopDiscoveryUseCase>.internal(
+final stopDiscoveryUseCaseProvider = Provider<StopDiscoveryUseCase>.internal(
   stopDiscoveryUseCase,
   name: r'stopDiscoveryUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -126,14 +119,14 @@ final stopDiscoveryUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef StopDiscoveryUseCaseRef = AutoDisposeProviderRef<StopDiscoveryUseCase>;
+typedef StopDiscoveryUseCaseRef = ProviderRef<StopDiscoveryUseCase>;
 String _$addManualDeviceUseCaseHash() =>
-    r'98ee74f113db9693a0f32a808c8e28d9ac9be593';
+    r'e78ec71919c918a86de909bf4f13db912a483083';
 
 /// See also [addManualDeviceUseCase].
 @ProviderFor(addManualDeviceUseCase)
 final addManualDeviceUseCaseProvider =
-    AutoDisposeProvider<AddManualDeviceUseCase>.internal(
+    Provider<AddManualDeviceUseCase>.internal(
   addManualDeviceUseCase,
   name: r'addManualDeviceUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -143,15 +136,14 @@ final addManualDeviceUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef AddManualDeviceUseCaseRef
-    = AutoDisposeProviderRef<AddManualDeviceUseCase>;
+typedef AddManualDeviceUseCaseRef = ProviderRef<AddManualDeviceUseCase>;
 String _$discoveryDeviceStreamUseCaseHash() =>
-    r'6a7468cf6eb1924ed70068e87edd7acf56bce300';
+    r'85922b2cea3f1d2376c107b46f6cf8fc2fec58b5';
 
 /// See also [discoveryDeviceStreamUseCase].
 @ProviderFor(discoveryDeviceStreamUseCase)
 final discoveryDeviceStreamUseCaseProvider =
-    AutoDisposeProvider<DiscoveryDeviceStreamUseCase>.internal(
+    Provider<DiscoveryDeviceStreamUseCase>.internal(
   discoveryDeviceStreamUseCase,
   name: r'discoveryDeviceStreamUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -162,14 +154,14 @@ final discoveryDeviceStreamUseCaseProvider =
 );
 
 typedef DiscoveryDeviceStreamUseCaseRef
-    = AutoDisposeProviderRef<DiscoveryDeviceStreamUseCase>;
+    = ProviderRef<DiscoveryDeviceStreamUseCase>;
 String _$connectToDeviceUseCaseHash() =>
-    r'aae69c41c344dc9aa0e39d22c6325ff3094fb8bf';
+    r'4d279a1e4a8a404b3ed13c4544e047fc8b0be0c1';
 
 /// See also [connectToDeviceUseCase].
 @ProviderFor(connectToDeviceUseCase)
 final connectToDeviceUseCaseProvider =
-    AutoDisposeProvider<ConnectToDeviceUseCase>.internal(
+    Provider<ConnectToDeviceUseCase>.internal(
   connectToDeviceUseCase,
   name: r'connectToDeviceUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -179,13 +171,12 @@ final connectToDeviceUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef ConnectToDeviceUseCaseRef
-    = AutoDisposeProviderRef<ConnectToDeviceUseCase>;
-String _$submitPinUseCaseHash() => r'1ba329202a3403d28c60491514115de5af017cad';
+typedef ConnectToDeviceUseCaseRef = ProviderRef<ConnectToDeviceUseCase>;
+String _$submitPinUseCaseHash() => r'f1566bdb6abaac48748fe28ee1b6358b2debc8f5';
 
 /// See also [submitPinUseCase].
 @ProviderFor(submitPinUseCase)
-final submitPinUseCaseProvider = AutoDisposeProvider<SubmitPinUseCase>.internal(
+final submitPinUseCaseProvider = Provider<SubmitPinUseCase>.internal(
   submitPinUseCase,
   name: r'submitPinUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -195,13 +186,12 @@ final submitPinUseCaseProvider = AutoDisposeProvider<SubmitPinUseCase>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef SubmitPinUseCaseRef = AutoDisposeProviderRef<SubmitPinUseCase>;
-String _$disconnectUseCaseHash() => r'ad80c6c7987e3ce15f782d658ab13ebaa80c8fb9';
+typedef SubmitPinUseCaseRef = ProviderRef<SubmitPinUseCase>;
+String _$disconnectUseCaseHash() => r'7e49fee997dd521c5719e06c5ef831f559298a57';
 
 /// See also [disconnectUseCase].
 @ProviderFor(disconnectUseCase)
-final disconnectUseCaseProvider =
-    AutoDisposeProvider<DisconnectUseCase>.internal(
+final disconnectUseCaseProvider = Provider<DisconnectUseCase>.internal(
   disconnectUseCase,
   name: r'disconnectUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -211,14 +201,14 @@ final disconnectUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef DisconnectUseCaseRef = AutoDisposeProviderRef<DisconnectUseCase>;
+typedef DisconnectUseCaseRef = ProviderRef<DisconnectUseCase>;
 String _$pairingStatusStreamUseCaseHash() =>
-    r'a9e7b01a062a065b3099c7f0b17ef00a60c38a06';
+    r'7950f5bfa2754307854a27598f89bb3553d5bbd1';
 
 /// See also [pairingStatusStreamUseCase].
 @ProviderFor(pairingStatusStreamUseCase)
 final pairingStatusStreamUseCaseProvider =
-    AutoDisposeProvider<PairingStatusStreamUseCase>.internal(
+    Provider<PairingStatusStreamUseCase>.internal(
   pairingStatusStreamUseCase,
   name: r'pairingStatusStreamUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -228,15 +218,13 @@ final pairingStatusStreamUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef PairingStatusStreamUseCaseRef
-    = AutoDisposeProviderRef<PairingStatusStreamUseCase>;
+typedef PairingStatusStreamUseCaseRef = ProviderRef<PairingStatusStreamUseCase>;
 String _$sendCommandUseCaseHash() =>
-    r'3d6776d231840df472bc957d94369fa51a34ccef';
+    r'd57c6d99eb194cfc35a366a2e2c73bb3ea8e073e';
 
 /// See also [sendCommandUseCase].
 @ProviderFor(sendCommandUseCase)
-final sendCommandUseCaseProvider =
-    AutoDisposeProvider<SendCommandUseCase>.internal(
+final sendCommandUseCaseProvider = Provider<SendCommandUseCase>.internal(
   sendCommandUseCase,
   name: r'sendCommandUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -246,14 +234,13 @@ final sendCommandUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef SendCommandUseCaseRef = AutoDisposeProviderRef<SendCommandUseCase>;
+typedef SendCommandUseCaseRef = ProviderRef<SendCommandUseCase>;
 String _$connectRemoteUseCaseHash() =>
-    r'2bbdfceb3d055ac6f1912bb20851ca2b89fe79d6';
+    r'0f769d1f081edf49b7af14b7ad57eb048e3bc213';
 
 /// See also [connectRemoteUseCase].
 @ProviderFor(connectRemoteUseCase)
-final connectRemoteUseCaseProvider =
-    AutoDisposeProvider<ConnectRemoteUseCase>.internal(
+final connectRemoteUseCaseProvider = Provider<ConnectRemoteUseCase>.internal(
   connectRemoteUseCase,
   name: r'connectRemoteUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -263,14 +250,14 @@ final connectRemoteUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef ConnectRemoteUseCaseRef = AutoDisposeProviderRef<ConnectRemoteUseCase>;
+typedef ConnectRemoteUseCaseRef = ProviderRef<ConnectRemoteUseCase>;
 String _$disconnectRemoteUseCaseHash() =>
-    r'c3fe232587731fb29ed10c6a8aab67bc6dfce08c';
+    r'3600a70a4b78e511bc5b8734bc09726bd95b0bd1';
 
 /// See also [disconnectRemoteUseCase].
 @ProviderFor(disconnectRemoteUseCase)
 final disconnectRemoteUseCaseProvider =
-    AutoDisposeProvider<DisconnectRemoteUseCase>.internal(
+    Provider<DisconnectRemoteUseCase>.internal(
   disconnectRemoteUseCase,
   name: r'disconnectRemoteUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -280,15 +267,14 @@ final disconnectRemoteUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef DisconnectRemoteUseCaseRef
-    = AutoDisposeProviderRef<DisconnectRemoteUseCase>;
+typedef DisconnectRemoteUseCaseRef = ProviderRef<DisconnectRemoteUseCase>;
 String _$remoteConnectionAliveStreamUseCaseHash() =>
-    r'2b2476f089a87b28233a02e399f202f55a121df4';
+    r'54b72b4e166677001b6c99048fe2241ac173dd2e';
 
 /// See also [remoteConnectionAliveStreamUseCase].
 @ProviderFor(remoteConnectionAliveStreamUseCase)
 final remoteConnectionAliveStreamUseCaseProvider =
-    AutoDisposeProvider<RemoteConnectionAliveStreamUseCase>.internal(
+    Provider<RemoteConnectionAliveStreamUseCase>.internal(
   remoteConnectionAliveStreamUseCase,
   name: r'remoteConnectionAliveStreamUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -299,14 +285,13 @@ final remoteConnectionAliveStreamUseCaseProvider =
 );
 
 typedef RemoteConnectionAliveStreamUseCaseRef
-    = AutoDisposeProviderRef<RemoteConnectionAliveStreamUseCase>;
+    = ProviderRef<RemoteConnectionAliveStreamUseCase>;
 String _$getThemeModeUseCaseHash() =>
-    r'9919214ef5daed6f304dbcb05a8785df55482862';
+    r'44873de7f37ec1f63da7a56da443fb944215587c';
 
 /// See also [getThemeModeUseCase].
 @ProviderFor(getThemeModeUseCase)
-final getThemeModeUseCaseProvider =
-    AutoDisposeProvider<GetThemeModeUseCase>.internal(
+final getThemeModeUseCaseProvider = Provider<GetThemeModeUseCase>.internal(
   getThemeModeUseCase,
   name: r'getThemeModeUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -316,14 +301,13 @@ final getThemeModeUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef GetThemeModeUseCaseRef = AutoDisposeProviderRef<GetThemeModeUseCase>;
+typedef GetThemeModeUseCaseRef = ProviderRef<GetThemeModeUseCase>;
 String _$setThemeModeUseCaseHash() =>
-    r'f212bd69dfc2c3b3115c459b79c36ee93b9af544';
+    r'51596ed1be5e04138f91676d4032e2e3c3c5a15b';
 
 /// See also [setThemeModeUseCase].
 @ProviderFor(setThemeModeUseCase)
-final setThemeModeUseCaseProvider =
-    AutoDisposeProvider<SetThemeModeUseCase>.internal(
+final setThemeModeUseCaseProvider = Provider<SetThemeModeUseCase>.internal(
   setThemeModeUseCase,
   name: r'setThemeModeUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -333,14 +317,14 @@ final setThemeModeUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef SetThemeModeUseCaseRef = AutoDisposeProviderRef<SetThemeModeUseCase>;
+typedef SetThemeModeUseCaseRef = ProviderRef<SetThemeModeUseCase>;
 String _$isHapticEnabledUseCaseHash() =>
-    r'ec726233db21d642f36372bb648091121fbb249a';
+    r'481ef9a3492a1476e0c5113f98f95025ecacef65';
 
 /// See also [isHapticEnabledUseCase].
 @ProviderFor(isHapticEnabledUseCase)
 final isHapticEnabledUseCaseProvider =
-    AutoDisposeProvider<IsHapticEnabledUseCase>.internal(
+    Provider<IsHapticEnabledUseCase>.internal(
   isHapticEnabledUseCase,
   name: r'isHapticEnabledUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -350,15 +334,14 @@ final isHapticEnabledUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef IsHapticEnabledUseCaseRef
-    = AutoDisposeProviderRef<IsHapticEnabledUseCase>;
+typedef IsHapticEnabledUseCaseRef = ProviderRef<IsHapticEnabledUseCase>;
 String _$setHapticEnabledUseCaseHash() =>
-    r'167a8494dba40f04e17e49ecb0ae93a51a0a1b80';
+    r'031c3624fc3ce4569c609cc241c97439e564bfe4';
 
 /// See also [setHapticEnabledUseCase].
 @ProviderFor(setHapticEnabledUseCase)
 final setHapticEnabledUseCaseProvider =
-    AutoDisposeProvider<SetHapticEnabledUseCase>.internal(
+    Provider<SetHapticEnabledUseCase>.internal(
   setHapticEnabledUseCase,
   name: r'setHapticEnabledUseCaseProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -368,7 +351,6 @@ final setHapticEnabledUseCaseProvider =
   allTransitiveDependencies: null,
 );
 
-typedef SetHapticEnabledUseCaseRef
-    = AutoDisposeProviderRef<SetHapticEnabledUseCase>;
+typedef SetHapticEnabledUseCaseRef = ProviderRef<SetHapticEnabledUseCase>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

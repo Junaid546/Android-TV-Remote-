@@ -1,26 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'pairing_provider.dart';
+part of 'splash_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$pairingNotifierHash() => r'11313b34460035891251302db4407c04d920cb91';
+String _$splashNotifierHash() => r'099d9792aaa197662f0f852dfa72c146d4788ce2';
 
-/// See also [PairingNotifier].
-@ProviderFor(PairingNotifier)
-final pairingNotifierProvider =
-    AutoDisposeStreamNotifierProvider<PairingNotifier, PairingStatus>.internal(
-  PairingNotifier.new,
-  name: r'pairingNotifierProvider',
+/// See also [SplashNotifier].
+@ProviderFor(SplashNotifier)
+final splashNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<SplashNotifier, SplashResult>.internal(
+  SplashNotifier.new,
+  name: r'splashNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$pairingNotifierHash,
+      : _$splashNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$PairingNotifier = AutoDisposeStreamNotifier<PairingStatus>;
+typedef _$SplashNotifier = AutoDisposeAsyncNotifier<SplashResult>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

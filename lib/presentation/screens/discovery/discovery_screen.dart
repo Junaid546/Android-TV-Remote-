@@ -275,7 +275,7 @@ class _ScanningHeader extends StatelessWidget {
         Text(
           'Scanning for Android TV devices...',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppColors.textSecondary,
+            color: AppColors.muted,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -341,10 +341,7 @@ class _DeviceListCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.textDisabled,
-              ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.muted),
             ],
           ),
         ),
@@ -363,14 +360,14 @@ class _EmptyDiscoveryState extends StatelessWidget {
           Icon(
             Icons.wifi_find_rounded,
             size: 80,
-            color: AppColors.textDisabled.withAlpha(50),
+            color: AppColors.muted.withAlpha(50),
           ),
           const SizedBox(height: AppSpacing.s24),
           Text(
             'No devices found yet',
             style: Theme.of(
               context,
-            ).textTheme.titleLarge?.copyWith(color: AppColors.textSecondary),
+            ).textTheme.titleLarge?.copyWith(color: AppColors.muted),
           ),
           const SizedBox(height: AppSpacing.s8),
           Padding(
@@ -380,7 +377,7 @@ class _EmptyDiscoveryState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textDisabled),
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.muted),
             ),
           ),
         ],

@@ -12,7 +12,7 @@ part of 'remote_command.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$RemoteCommand {
@@ -81,20 +81,20 @@ class _$RemoteCommandCopyWithImpl<$Res, $Val extends RemoteCommand>
 }
 
 /// @nodoc
-abstract class _$$KeyCommandCopyWith<$Res> {
-  factory _$$KeyCommandCopyWith(
-          _$KeyCommand value, $Res Function(_$KeyCommand) then) =
-      __$$KeyCommandCopyWithImpl<$Res>;
+abstract class _$$KeyCommandImplCopyWith<$Res> {
+  factory _$$KeyCommandImplCopyWith(
+          _$KeyCommandImpl value, $Res Function(_$KeyCommandImpl) then) =
+      __$$KeyCommandImplCopyWithImpl<$Res>;
   @useResult
   $Res call({int keyCode, KeyAction action});
 }
 
 /// @nodoc
-class __$$KeyCommandCopyWithImpl<$Res>
-    extends _$RemoteCommandCopyWithImpl<$Res, _$KeyCommand>
-    implements _$$KeyCommandCopyWith<$Res> {
-  __$$KeyCommandCopyWithImpl(
-      _$KeyCommand _value, $Res Function(_$KeyCommand) _then)
+class __$$KeyCommandImplCopyWithImpl<$Res>
+    extends _$RemoteCommandCopyWithImpl<$Res, _$KeyCommandImpl>
+    implements _$$KeyCommandImplCopyWith<$Res> {
+  __$$KeyCommandImplCopyWithImpl(
+      _$KeyCommandImpl _value, $Res Function(_$KeyCommandImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -103,7 +103,7 @@ class __$$KeyCommandCopyWithImpl<$Res>
     Object? keyCode = null,
     Object? action = null,
   }) {
-    return _then(_$KeyCommand(
+    return _then(_$KeyCommandImpl(
       keyCode: null == keyCode
           ? _value.keyCode
           : keyCode // ignore: cast_nullable_to_non_nullable
@@ -118,8 +118,8 @@ class __$$KeyCommandCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$KeyCommand implements KeyCommand {
-  const _$KeyCommand({required this.keyCode, required this.action});
+class _$KeyCommandImpl implements KeyCommand {
+  const _$KeyCommandImpl({required this.keyCode, required this.action});
 
   @override
   final int keyCode;
@@ -132,10 +132,10 @@ class _$KeyCommand implements KeyCommand {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$KeyCommand &&
+            other is _$KeyCommandImpl &&
             (identical(other.keyCode, keyCode) || other.keyCode == keyCode) &&
             (identical(other.action, action) || other.action == action));
   }
@@ -146,8 +146,8 @@ class _$KeyCommand implements KeyCommand {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$KeyCommandCopyWith<_$KeyCommand> get copyWith =>
-      __$$KeyCommandCopyWithImpl<_$KeyCommand>(this, _$identity);
+  _$$KeyCommandImplCopyWith<_$KeyCommandImpl> get copyWith =>
+      __$$KeyCommandImplCopyWithImpl<_$KeyCommandImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -221,30 +221,30 @@ class _$KeyCommand implements KeyCommand {
 abstract class KeyCommand implements RemoteCommand {
   const factory KeyCommand(
       {required final int keyCode,
-      required final KeyAction action}) = _$KeyCommand;
+      required final KeyAction action}) = _$KeyCommandImpl;
 
   int get keyCode;
   KeyAction get action;
   @JsonKey(ignore: true)
-  _$$KeyCommandCopyWith<_$KeyCommand> get copyWith =>
+  _$$KeyCommandImplCopyWith<_$KeyCommandImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$TextCommandCopyWith<$Res> {
-  factory _$$TextCommandCopyWith(
-          _$TextCommand value, $Res Function(_$TextCommand) then) =
-      __$$TextCommandCopyWithImpl<$Res>;
+abstract class _$$TextCommandImplCopyWith<$Res> {
+  factory _$$TextCommandImplCopyWith(
+          _$TextCommandImpl value, $Res Function(_$TextCommandImpl) then) =
+      __$$TextCommandImplCopyWithImpl<$Res>;
   @useResult
   $Res call({String text});
 }
 
 /// @nodoc
-class __$$TextCommandCopyWithImpl<$Res>
-    extends _$RemoteCommandCopyWithImpl<$Res, _$TextCommand>
-    implements _$$TextCommandCopyWith<$Res> {
-  __$$TextCommandCopyWithImpl(
-      _$TextCommand _value, $Res Function(_$TextCommand) _then)
+class __$$TextCommandImplCopyWithImpl<$Res>
+    extends _$RemoteCommandCopyWithImpl<$Res, _$TextCommandImpl>
+    implements _$$TextCommandImplCopyWith<$Res> {
+  __$$TextCommandImplCopyWithImpl(
+      _$TextCommandImpl _value, $Res Function(_$TextCommandImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -252,7 +252,7 @@ class __$$TextCommandCopyWithImpl<$Res>
   $Res call({
     Object? text = null,
   }) {
-    return _then(_$TextCommand(
+    return _then(_$TextCommandImpl(
       text: null == text
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
@@ -263,8 +263,8 @@ class __$$TextCommandCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$TextCommand implements TextCommand {
-  const _$TextCommand({required this.text});
+class _$TextCommandImpl implements TextCommand {
+  const _$TextCommandImpl({required this.text});
 
   @override
   final String text;
@@ -275,10 +275,10 @@ class _$TextCommand implements TextCommand {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$TextCommand &&
+            other is _$TextCommandImpl &&
             (identical(other.text, text) || other.text == text));
   }
 
@@ -288,8 +288,8 @@ class _$TextCommand implements TextCommand {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$TextCommandCopyWith<_$TextCommand> get copyWith =>
-      __$$TextCommandCopyWithImpl<_$TextCommand>(this, _$identity);
+  _$$TextCommandImplCopyWith<_$TextCommandImpl> get copyWith =>
+      __$$TextCommandImplCopyWithImpl<_$TextCommandImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -361,34 +361,34 @@ class _$TextCommand implements TextCommand {
 }
 
 abstract class TextCommand implements RemoteCommand {
-  const factory TextCommand({required final String text}) = _$TextCommand;
+  const factory TextCommand({required final String text}) = _$TextCommandImpl;
 
   String get text;
   @JsonKey(ignore: true)
-  _$$TextCommandCopyWith<_$TextCommand> get copyWith =>
+  _$$TextCommandImplCopyWith<_$TextCommandImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$WakeCommandCopyWith<$Res> {
-  factory _$$WakeCommandCopyWith(
-          _$WakeCommand value, $Res Function(_$WakeCommand) then) =
-      __$$WakeCommandCopyWithImpl<$Res>;
+abstract class _$$WakeCommandImplCopyWith<$Res> {
+  factory _$$WakeCommandImplCopyWith(
+          _$WakeCommandImpl value, $Res Function(_$WakeCommandImpl) then) =
+      __$$WakeCommandImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$WakeCommandCopyWithImpl<$Res>
-    extends _$RemoteCommandCopyWithImpl<$Res, _$WakeCommand>
-    implements _$$WakeCommandCopyWith<$Res> {
-  __$$WakeCommandCopyWithImpl(
-      _$WakeCommand _value, $Res Function(_$WakeCommand) _then)
+class __$$WakeCommandImplCopyWithImpl<$Res>
+    extends _$RemoteCommandCopyWithImpl<$Res, _$WakeCommandImpl>
+    implements _$$WakeCommandImplCopyWith<$Res> {
+  __$$WakeCommandImplCopyWithImpl(
+      _$WakeCommandImpl _value, $Res Function(_$WakeCommandImpl) _then)
       : super(_value, _then);
 }
 
 /// @nodoc
 
-class _$WakeCommand implements WakeCommand {
-  const _$WakeCommand();
+class _$WakeCommandImpl implements WakeCommand {
+  const _$WakeCommandImpl();
 
   @override
   String toString() {
@@ -396,9 +396,9 @@ class _$WakeCommand implements WakeCommand {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$WakeCommand);
+        (other.runtimeType == runtimeType && other is _$WakeCommandImpl);
   }
 
   @override
@@ -474,5 +474,5 @@ class _$WakeCommand implements WakeCommand {
 }
 
 abstract class WakeCommand implements RemoteCommand {
-  const factory WakeCommand() = _$WakeCommand;
+  const factory WakeCommand() = _$WakeCommandImpl;
 }

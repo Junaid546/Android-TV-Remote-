@@ -12,7 +12,7 @@ part of 'tv_device.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 TvDevice _$TvDeviceFromJson(Map<String, dynamic> json) {
   return _TvDevice.fromJson(json);
@@ -111,10 +111,11 @@ class _$TvDeviceCopyWithImpl<$Res, $Val extends TvDevice>
 }
 
 /// @nodoc
-abstract class _$$_TvDeviceCopyWith<$Res> implements $TvDeviceCopyWith<$Res> {
-  factory _$$_TvDeviceCopyWith(
-          _$_TvDevice value, $Res Function(_$_TvDevice) then) =
-      __$$_TvDeviceCopyWithImpl<$Res>;
+abstract class _$$TvDeviceImplCopyWith<$Res>
+    implements $TvDeviceCopyWith<$Res> {
+  factory _$$TvDeviceImplCopyWith(
+          _$TvDeviceImpl value, $Res Function(_$TvDeviceImpl) then) =
+      __$$TvDeviceImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -129,11 +130,11 @@ abstract class _$$_TvDeviceCopyWith<$Res> implements $TvDeviceCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_TvDeviceCopyWithImpl<$Res>
-    extends _$TvDeviceCopyWithImpl<$Res, _$_TvDevice>
-    implements _$$_TvDeviceCopyWith<$Res> {
-  __$$_TvDeviceCopyWithImpl(
-      _$_TvDevice _value, $Res Function(_$_TvDevice) _then)
+class __$$TvDeviceImplCopyWithImpl<$Res>
+    extends _$TvDeviceCopyWithImpl<$Res, _$TvDeviceImpl>
+    implements _$$TvDeviceImplCopyWith<$Res> {
+  __$$TvDeviceImplCopyWithImpl(
+      _$TvDeviceImpl _value, $Res Function(_$TvDeviceImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -148,7 +149,7 @@ class __$$_TvDeviceCopyWithImpl<$Res>
     Object? certificateFingerprint = freezed,
     Object? signalStrength = null,
   }) {
-    return _then(_$_TvDevice(
+    return _then(_$TvDeviceImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -187,8 +188,8 @@ class __$$_TvDeviceCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_TvDevice implements _TvDevice {
-  const _$_TvDevice(
+class _$TvDeviceImpl implements _TvDevice {
+  const _$TvDeviceImpl(
       {required this.id,
       required this.name,
       required this.ipAddress,
@@ -198,8 +199,8 @@ class _$_TvDevice implements _TvDevice {
       this.certificateFingerprint,
       this.signalStrength = 0});
 
-  factory _$_TvDevice.fromJson(Map<String, dynamic> json) =>
-      _$$_TvDeviceFromJson(json);
+  factory _$TvDeviceImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TvDeviceImplFromJson(json);
 
   @override
   final String id;
@@ -227,10 +228,10 @@ class _$_TvDevice implements _TvDevice {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_TvDevice &&
+            other is _$TvDeviceImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.ipAddress, ipAddress) ||
@@ -254,12 +255,12 @@ class _$_TvDevice implements _TvDevice {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_TvDeviceCopyWith<_$_TvDevice> get copyWith =>
-      __$$_TvDeviceCopyWithImpl<_$_TvDevice>(this, _$identity);
+  _$$TvDeviceImplCopyWith<_$TvDeviceImpl> get copyWith =>
+      __$$TvDeviceImplCopyWithImpl<_$TvDeviceImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_TvDeviceToJson(
+    return _$$TvDeviceImplToJson(
       this,
     );
   }
@@ -274,9 +275,10 @@ abstract class _TvDevice implements TvDevice {
       final bool isPaired,
       final DateTime? lastConnected,
       final String? certificateFingerprint,
-      final int signalStrength}) = _$_TvDevice;
+      final int signalStrength}) = _$TvDeviceImpl;
 
-  factory _TvDevice.fromJson(Map<String, dynamic> json) = _$_TvDevice.fromJson;
+  factory _TvDevice.fromJson(Map<String, dynamic> json) =
+      _$TvDeviceImpl.fromJson;
 
   @override
   String get id;
@@ -296,6 +298,6 @@ abstract class _TvDevice implements TvDevice {
   int get signalStrength;
   @override
   @JsonKey(ignore: true)
-  _$$_TvDeviceCopyWith<_$_TvDevice> get copyWith =>
+  _$$TvDeviceImplCopyWith<_$TvDeviceImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

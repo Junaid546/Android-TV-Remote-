@@ -1,97 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:atv_remote/core/theme/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-class AppTypography {
-  const AppTypography._();
+abstract final class AppTypography {
+  static const _satoshi = 'Satoshi';
 
-  static TextTheme get textTheme => GoogleFonts.outfitTextTheme(
-    const TextTheme(
-      displayLarge: TextStyle(
-        fontSize: 56,
-        fontWeight: FontWeight.w900,
-        color: AppColors.textPrimary,
-        letterSpacing: -1.5,
-      ),
-      displayMedium: TextStyle(
-        fontSize: 45,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textPrimary,
-        letterSpacing: -0.5,
-      ),
-      displaySmall: TextStyle(
-        fontSize: 36,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-      headlineLarge: TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-      headlineSmall: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-      titleLarge: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
-        color: AppColors.textPrimary,
-        letterSpacing: 0.15,
-      ),
-      titleSmall: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: AppColors.textPrimary,
-        letterSpacing: 0.1,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textSecondary,
-        letterSpacing: 0.5,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textSecondary,
-        letterSpacing: 0.25,
-      ),
-      bodySmall: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textSecondary,
-        letterSpacing: 0.4,
-      ),
-      labelLarge: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-        letterSpacing: 1.1,
-      ),
-      labelMedium: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textSecondary,
-        letterSpacing: 1.25,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w500,
-        color: AppColors.textSecondary,
-        letterSpacing: 1.5,
-      ),
-    ),
+  static const displayLarge = TextStyle(
+    fontFamily: _satoshi,
+    fontWeight: FontWeight.w700,
+    fontSize: 32,
+    color: AppColors.onBackground,
+    letterSpacing: -0.5,
+  );
+  static const displayMedium = TextStyle(
+    fontFamily: _satoshi,
+    fontWeight: FontWeight.w700,
+    fontSize: 24,
+    color: AppColors.onBackground,
+    letterSpacing: -0.3,
+  );
+  static const titleLarge = TextStyle(
+    fontFamily: _satoshi,
+    fontWeight: FontWeight.w600,
+    fontSize: 20,
+    color: AppColors.onBackground,
+  );
+  static const titleMedium = TextStyle(
+    fontFamily: _satoshi,
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
+    color: AppColors.onBackground,
+  );
+  static const bodyLarge = TextStyle(
+    fontFamily: _satoshi,
+    fontWeight: FontWeight.w400,
+    fontSize: 16,
+    color: AppColors.onBackground,
+    height: 1.5,
+  );
+  static const bodyMedium = TextStyle(
+    fontFamily: _satoshi,
+    fontWeight: FontWeight.w400,
+    fontSize: 14,
+    color: AppColors.muted,
+    height: 1.4,
+  );
+  static const labelLarge = TextStyle(
+    fontFamily: _satoshi,
+    fontWeight: FontWeight.w600,
+    fontSize: 13,
+    color: AppColors.onBackground,
+    letterSpacing: 0.3,
+  );
+  static const caption = TextStyle(
+    fontFamily: _satoshi,
+    fontWeight: FontWeight.w400,
+    fontSize: 11,
+    color: AppColors.muted,
+    letterSpacing: 0.5,
   );
 }

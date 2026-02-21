@@ -12,7 +12,7 @@ part of 'pairing_status.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$PairingStatus {
@@ -140,23 +140,24 @@ class _$PairingStatusCopyWithImpl<$Res, $Val extends PairingStatus>
 }
 
 /// @nodoc
-abstract class _$$IdleCopyWith<$Res> {
-  factory _$$IdleCopyWith(_$Idle value, $Res Function(_$Idle) then) =
-      __$$IdleCopyWithImpl<$Res>;
+abstract class _$$IdleImplCopyWith<$Res> {
+  factory _$$IdleImplCopyWith(
+          _$IdleImpl value, $Res Function(_$IdleImpl) then) =
+      __$$IdleImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$IdleCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$Idle>
-    implements _$$IdleCopyWith<$Res> {
-  __$$IdleCopyWithImpl(_$Idle _value, $Res Function(_$Idle) _then)
+class __$$IdleImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$IdleImpl>
+    implements _$$IdleImplCopyWith<$Res> {
+  __$$IdleImplCopyWithImpl(_$IdleImpl _value, $Res Function(_$IdleImpl) _then)
       : super(_value, _then);
 }
 
 /// @nodoc
 
-class _$Idle implements Idle {
-  const _$Idle();
+class _$IdleImpl implements Idle {
+  const _$IdleImpl();
 
   @override
   String toString() {
@@ -164,9 +165,9 @@ class _$Idle implements Idle {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$Idle);
+        (other.runtimeType == runtimeType && other is _$IdleImpl);
   }
 
   @override
@@ -301,29 +302,29 @@ class _$Idle implements Idle {
 }
 
 abstract class Idle implements PairingStatus {
-  const factory Idle() = _$Idle;
+  const factory Idle() = _$IdleImpl;
 }
 
 /// @nodoc
-abstract class _$$DiscoveryStartedCopyWith<$Res> {
-  factory _$$DiscoveryStartedCopyWith(
-          _$DiscoveryStarted value, $Res Function(_$DiscoveryStarted) then) =
-      __$$DiscoveryStartedCopyWithImpl<$Res>;
+abstract class _$$DiscoveryStartedImplCopyWith<$Res> {
+  factory _$$DiscoveryStartedImplCopyWith(_$DiscoveryStartedImpl value,
+          $Res Function(_$DiscoveryStartedImpl) then) =
+      __$$DiscoveryStartedImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$DiscoveryStartedCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$DiscoveryStarted>
-    implements _$$DiscoveryStartedCopyWith<$Res> {
-  __$$DiscoveryStartedCopyWithImpl(
-      _$DiscoveryStarted _value, $Res Function(_$DiscoveryStarted) _then)
+class __$$DiscoveryStartedImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$DiscoveryStartedImpl>
+    implements _$$DiscoveryStartedImplCopyWith<$Res> {
+  __$$DiscoveryStartedImplCopyWithImpl(_$DiscoveryStartedImpl _value,
+      $Res Function(_$DiscoveryStartedImpl) _then)
       : super(_value, _then);
 }
 
 /// @nodoc
 
-class _$DiscoveryStarted implements DiscoveryStarted {
-  const _$DiscoveryStarted();
+class _$DiscoveryStartedImpl implements DiscoveryStarted {
+  const _$DiscoveryStartedImpl();
 
   @override
   String toString() {
@@ -331,9 +332,9 @@ class _$DiscoveryStarted implements DiscoveryStarted {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$DiscoveryStarted);
+        (other.runtimeType == runtimeType && other is _$DiscoveryStartedImpl);
   }
 
   @override
@@ -468,24 +469,24 @@ class _$DiscoveryStarted implements DiscoveryStarted {
 }
 
 abstract class DiscoveryStarted implements PairingStatus {
-  const factory DiscoveryStarted() = _$DiscoveryStarted;
+  const factory DiscoveryStarted() = _$DiscoveryStartedImpl;
 }
 
 /// @nodoc
-abstract class _$$DevicesFoundCopyWith<$Res> {
-  factory _$$DevicesFoundCopyWith(
-          _$DevicesFound value, $Res Function(_$DevicesFound) then) =
-      __$$DevicesFoundCopyWithImpl<$Res>;
+abstract class _$$DevicesFoundImplCopyWith<$Res> {
+  factory _$$DevicesFoundImplCopyWith(
+          _$DevicesFoundImpl value, $Res Function(_$DevicesFoundImpl) then) =
+      __$$DevicesFoundImplCopyWithImpl<$Res>;
   @useResult
   $Res call({List<TvDevice> devices});
 }
 
 /// @nodoc
-class __$$DevicesFoundCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$DevicesFound>
-    implements _$$DevicesFoundCopyWith<$Res> {
-  __$$DevicesFoundCopyWithImpl(
-      _$DevicesFound _value, $Res Function(_$DevicesFound) _then)
+class __$$DevicesFoundImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$DevicesFoundImpl>
+    implements _$$DevicesFoundImplCopyWith<$Res> {
+  __$$DevicesFoundImplCopyWithImpl(
+      _$DevicesFoundImpl _value, $Res Function(_$DevicesFoundImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -493,7 +494,7 @@ class __$$DevicesFoundCopyWithImpl<$Res>
   $Res call({
     Object? devices = null,
   }) {
-    return _then(_$DevicesFound(
+    return _then(_$DevicesFoundImpl(
       null == devices
           ? _value._devices
           : devices // ignore: cast_nullable_to_non_nullable
@@ -504,8 +505,8 @@ class __$$DevicesFoundCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$DevicesFound implements DevicesFound {
-  const _$DevicesFound(final List<TvDevice> devices) : _devices = devices;
+class _$DevicesFoundImpl implements DevicesFound {
+  const _$DevicesFoundImpl(final List<TvDevice> devices) : _devices = devices;
 
   final List<TvDevice> _devices;
   @override
@@ -521,10 +522,10 @@ class _$DevicesFound implements DevicesFound {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$DevicesFound &&
+            other is _$DevicesFoundImpl &&
             const DeepCollectionEquality().equals(other._devices, _devices));
   }
 
@@ -535,8 +536,8 @@ class _$DevicesFound implements DevicesFound {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$DevicesFoundCopyWith<_$DevicesFound> get copyWith =>
-      __$$DevicesFoundCopyWithImpl<_$DevicesFound>(this, _$identity);
+  _$$DevicesFoundImplCopyWith<_$DevicesFoundImpl> get copyWith =>
+      __$$DevicesFoundImplCopyWithImpl<_$DevicesFoundImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -667,19 +668,19 @@ class _$DevicesFound implements DevicesFound {
 }
 
 abstract class DevicesFound implements PairingStatus {
-  const factory DevicesFound(final List<TvDevice> devices) = _$DevicesFound;
+  const factory DevicesFound(final List<TvDevice> devices) = _$DevicesFoundImpl;
 
   List<TvDevice> get devices;
   @JsonKey(ignore: true)
-  _$$DevicesFoundCopyWith<_$DevicesFound> get copyWith =>
+  _$$DevicesFoundImplCopyWith<_$DevicesFoundImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ConnectingCopyWith<$Res> {
-  factory _$$ConnectingCopyWith(
-          _$Connecting value, $Res Function(_$Connecting) then) =
-      __$$ConnectingCopyWithImpl<$Res>;
+abstract class _$$ConnectingImplCopyWith<$Res> {
+  factory _$$ConnectingImplCopyWith(
+          _$ConnectingImpl value, $Res Function(_$ConnectingImpl) then) =
+      __$$ConnectingImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -687,11 +688,11 @@ abstract class _$$ConnectingCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$ConnectingCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$Connecting>
-    implements _$$ConnectingCopyWith<$Res> {
-  __$$ConnectingCopyWithImpl(
-      _$Connecting _value, $Res Function(_$Connecting) _then)
+class __$$ConnectingImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$ConnectingImpl>
+    implements _$$ConnectingImplCopyWith<$Res> {
+  __$$ConnectingImplCopyWithImpl(
+      _$ConnectingImpl _value, $Res Function(_$ConnectingImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -699,7 +700,7 @@ class __$$ConnectingCopyWithImpl<$Res>
   $Res call({
     Object? device = null,
   }) {
-    return _then(_$Connecting(
+    return _then(_$ConnectingImpl(
       null == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -718,8 +719,8 @@ class __$$ConnectingCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Connecting implements Connecting {
-  const _$Connecting(this.device);
+class _$ConnectingImpl implements Connecting {
+  const _$ConnectingImpl(this.device);
 
   @override
   final TvDevice device;
@@ -730,10 +731,10 @@ class _$Connecting implements Connecting {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Connecting &&
+            other is _$ConnectingImpl &&
             (identical(other.device, device) || other.device == device));
   }
 
@@ -743,8 +744,8 @@ class _$Connecting implements Connecting {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ConnectingCopyWith<_$Connecting> get copyWith =>
-      __$$ConnectingCopyWithImpl<_$Connecting>(this, _$identity);
+  _$$ConnectingImplCopyWith<_$ConnectingImpl> get copyWith =>
+      __$$ConnectingImplCopyWithImpl<_$ConnectingImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -875,19 +876,19 @@ class _$Connecting implements Connecting {
 }
 
 abstract class Connecting implements PairingStatus {
-  const factory Connecting(final TvDevice device) = _$Connecting;
+  const factory Connecting(final TvDevice device) = _$ConnectingImpl;
 
   TvDevice get device;
   @JsonKey(ignore: true)
-  _$$ConnectingCopyWith<_$Connecting> get copyWith =>
+  _$$ConnectingImplCopyWith<_$ConnectingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$AwaitingPinCopyWith<$Res> {
-  factory _$$AwaitingPinCopyWith(
-          _$AwaitingPin value, $Res Function(_$AwaitingPin) then) =
-      __$$AwaitingPinCopyWithImpl<$Res>;
+abstract class _$$AwaitingPinImplCopyWith<$Res> {
+  factory _$$AwaitingPinImplCopyWith(
+          _$AwaitingPinImpl value, $Res Function(_$AwaitingPinImpl) then) =
+      __$$AwaitingPinImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device, int expiresInSeconds});
 
@@ -895,11 +896,11 @@ abstract class _$$AwaitingPinCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$AwaitingPinCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$AwaitingPin>
-    implements _$$AwaitingPinCopyWith<$Res> {
-  __$$AwaitingPinCopyWithImpl(
-      _$AwaitingPin _value, $Res Function(_$AwaitingPin) _then)
+class __$$AwaitingPinImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$AwaitingPinImpl>
+    implements _$$AwaitingPinImplCopyWith<$Res> {
+  __$$AwaitingPinImplCopyWithImpl(
+      _$AwaitingPinImpl _value, $Res Function(_$AwaitingPinImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -908,7 +909,7 @@ class __$$AwaitingPinCopyWithImpl<$Res>
     Object? device = null,
     Object? expiresInSeconds = null,
   }) {
-    return _then(_$AwaitingPin(
+    return _then(_$AwaitingPinImpl(
       null == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -931,8 +932,8 @@ class __$$AwaitingPinCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$AwaitingPin implements AwaitingPin {
-  const _$AwaitingPin(this.device, this.expiresInSeconds);
+class _$AwaitingPinImpl implements AwaitingPin {
+  const _$AwaitingPinImpl(this.device, this.expiresInSeconds);
 
   @override
   final TvDevice device;
@@ -945,10 +946,10 @@ class _$AwaitingPin implements AwaitingPin {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$AwaitingPin &&
+            other is _$AwaitingPinImpl &&
             (identical(other.device, device) || other.device == device) &&
             (identical(other.expiresInSeconds, expiresInSeconds) ||
                 other.expiresInSeconds == expiresInSeconds));
@@ -960,8 +961,8 @@ class _$AwaitingPin implements AwaitingPin {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$AwaitingPinCopyWith<_$AwaitingPin> get copyWith =>
-      __$$AwaitingPinCopyWithImpl<_$AwaitingPin>(this, _$identity);
+  _$$AwaitingPinImplCopyWith<_$AwaitingPinImpl> get copyWith =>
+      __$$AwaitingPinImplCopyWithImpl<_$AwaitingPinImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1093,20 +1094,20 @@ class _$AwaitingPin implements AwaitingPin {
 
 abstract class AwaitingPin implements PairingStatus {
   const factory AwaitingPin(final TvDevice device, final int expiresInSeconds) =
-      _$AwaitingPin;
+      _$AwaitingPinImpl;
 
   TvDevice get device;
   int get expiresInSeconds;
   @JsonKey(ignore: true)
-  _$$AwaitingPinCopyWith<_$AwaitingPin> get copyWith =>
+  _$$AwaitingPinImplCopyWith<_$AwaitingPinImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PinVerifiedCopyWith<$Res> {
-  factory _$$PinVerifiedCopyWith(
-          _$PinVerified value, $Res Function(_$PinVerified) then) =
-      __$$PinVerifiedCopyWithImpl<$Res>;
+abstract class _$$PinVerifiedImplCopyWith<$Res> {
+  factory _$$PinVerifiedImplCopyWith(
+          _$PinVerifiedImpl value, $Res Function(_$PinVerifiedImpl) then) =
+      __$$PinVerifiedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -1114,11 +1115,11 @@ abstract class _$$PinVerifiedCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$PinVerifiedCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$PinVerified>
-    implements _$$PinVerifiedCopyWith<$Res> {
-  __$$PinVerifiedCopyWithImpl(
-      _$PinVerified _value, $Res Function(_$PinVerified) _then)
+class __$$PinVerifiedImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$PinVerifiedImpl>
+    implements _$$PinVerifiedImplCopyWith<$Res> {
+  __$$PinVerifiedImplCopyWithImpl(
+      _$PinVerifiedImpl _value, $Res Function(_$PinVerifiedImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -1126,7 +1127,7 @@ class __$$PinVerifiedCopyWithImpl<$Res>
   $Res call({
     Object? device = null,
   }) {
-    return _then(_$PinVerified(
+    return _then(_$PinVerifiedImpl(
       null == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -1145,8 +1146,8 @@ class __$$PinVerifiedCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PinVerified implements PinVerified {
-  const _$PinVerified(this.device);
+class _$PinVerifiedImpl implements PinVerified {
+  const _$PinVerifiedImpl(this.device);
 
   @override
   final TvDevice device;
@@ -1157,10 +1158,10 @@ class _$PinVerified implements PinVerified {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PinVerified &&
+            other is _$PinVerifiedImpl &&
             (identical(other.device, device) || other.device == device));
   }
 
@@ -1170,8 +1171,8 @@ class _$PinVerified implements PinVerified {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PinVerifiedCopyWith<_$PinVerified> get copyWith =>
-      __$$PinVerifiedCopyWithImpl<_$PinVerified>(this, _$identity);
+  _$$PinVerifiedImplCopyWith<_$PinVerifiedImpl> get copyWith =>
+      __$$PinVerifiedImplCopyWithImpl<_$PinVerifiedImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1302,18 +1303,19 @@ class _$PinVerified implements PinVerified {
 }
 
 abstract class PinVerified implements PairingStatus {
-  const factory PinVerified(final TvDevice device) = _$PinVerified;
+  const factory PinVerified(final TvDevice device) = _$PinVerifiedImpl;
 
   TvDevice get device;
   @JsonKey(ignore: true)
-  _$$PinVerifiedCopyWith<_$PinVerified> get copyWith =>
+  _$$PinVerifiedImplCopyWith<_$PinVerifiedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PairedCopyWith<$Res> {
-  factory _$$PairedCopyWith(_$Paired value, $Res Function(_$Paired) then) =
-      __$$PairedCopyWithImpl<$Res>;
+abstract class _$$PairedImplCopyWith<$Res> {
+  factory _$$PairedImplCopyWith(
+          _$PairedImpl value, $Res Function(_$PairedImpl) then) =
+      __$$PairedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -1321,10 +1323,11 @@ abstract class _$$PairedCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$PairedCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$Paired>
-    implements _$$PairedCopyWith<$Res> {
-  __$$PairedCopyWithImpl(_$Paired _value, $Res Function(_$Paired) _then)
+class __$$PairedImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$PairedImpl>
+    implements _$$PairedImplCopyWith<$Res> {
+  __$$PairedImplCopyWithImpl(
+      _$PairedImpl _value, $Res Function(_$PairedImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -1332,7 +1335,7 @@ class __$$PairedCopyWithImpl<$Res>
   $Res call({
     Object? device = null,
   }) {
-    return _then(_$Paired(
+    return _then(_$PairedImpl(
       null == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -1351,8 +1354,8 @@ class __$$PairedCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Paired implements Paired {
-  const _$Paired(this.device);
+class _$PairedImpl implements Paired {
+  const _$PairedImpl(this.device);
 
   @override
   final TvDevice device;
@@ -1363,10 +1366,10 @@ class _$Paired implements Paired {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Paired &&
+            other is _$PairedImpl &&
             (identical(other.device, device) || other.device == device));
   }
 
@@ -1376,8 +1379,8 @@ class _$Paired implements Paired {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PairedCopyWith<_$Paired> get copyWith =>
-      __$$PairedCopyWithImpl<_$Paired>(this, _$identity);
+  _$$PairedImplCopyWith<_$PairedImpl> get copyWith =>
+      __$$PairedImplCopyWithImpl<_$PairedImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1508,19 +1511,19 @@ class _$Paired implements Paired {
 }
 
 abstract class Paired implements PairingStatus {
-  const factory Paired(final TvDevice device) = _$Paired;
+  const factory Paired(final TvDevice device) = _$PairedImpl;
 
   TvDevice get device;
   @JsonKey(ignore: true)
-  _$$PairedCopyWith<_$Paired> get copyWith =>
+  _$$PairedImplCopyWith<_$PairedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ConnectedCopyWith<$Res> {
-  factory _$$ConnectedCopyWith(
-          _$Connected value, $Res Function(_$Connected) then) =
-      __$$ConnectedCopyWithImpl<$Res>;
+abstract class _$$ConnectedImplCopyWith<$Res> {
+  factory _$$ConnectedImplCopyWith(
+          _$ConnectedImpl value, $Res Function(_$ConnectedImpl) then) =
+      __$$ConnectedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -1528,11 +1531,11 @@ abstract class _$$ConnectedCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$ConnectedCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$Connected>
-    implements _$$ConnectedCopyWith<$Res> {
-  __$$ConnectedCopyWithImpl(
-      _$Connected _value, $Res Function(_$Connected) _then)
+class __$$ConnectedImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$ConnectedImpl>
+    implements _$$ConnectedImplCopyWith<$Res> {
+  __$$ConnectedImplCopyWithImpl(
+      _$ConnectedImpl _value, $Res Function(_$ConnectedImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -1540,7 +1543,7 @@ class __$$ConnectedCopyWithImpl<$Res>
   $Res call({
     Object? device = null,
   }) {
-    return _then(_$Connected(
+    return _then(_$ConnectedImpl(
       null == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -1559,8 +1562,8 @@ class __$$ConnectedCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Connected implements Connected {
-  const _$Connected(this.device);
+class _$ConnectedImpl implements Connected {
+  const _$ConnectedImpl(this.device);
 
   @override
   final TvDevice device;
@@ -1571,10 +1574,10 @@ class _$Connected implements Connected {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Connected &&
+            other is _$ConnectedImpl &&
             (identical(other.device, device) || other.device == device));
   }
 
@@ -1584,8 +1587,8 @@ class _$Connected implements Connected {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ConnectedCopyWith<_$Connected> get copyWith =>
-      __$$ConnectedCopyWithImpl<_$Connected>(this, _$identity);
+  _$$ConnectedImplCopyWith<_$ConnectedImpl> get copyWith =>
+      __$$ConnectedImplCopyWithImpl<_$ConnectedImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1716,19 +1719,19 @@ class _$Connected implements Connected {
 }
 
 abstract class Connected implements PairingStatus {
-  const factory Connected(final TvDevice device) = _$Connected;
+  const factory Connected(final TvDevice device) = _$ConnectedImpl;
 
   TvDevice get device;
   @JsonKey(ignore: true)
-  _$$ConnectedCopyWith<_$Connected> get copyWith =>
+  _$$ConnectedImplCopyWith<_$ConnectedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ReconnectingCopyWith<$Res> {
-  factory _$$ReconnectingCopyWith(
-          _$Reconnecting value, $Res Function(_$Reconnecting) then) =
-      __$$ReconnectingCopyWithImpl<$Res>;
+abstract class _$$ReconnectingImplCopyWith<$Res> {
+  factory _$$ReconnectingImplCopyWith(
+          _$ReconnectingImpl value, $Res Function(_$ReconnectingImpl) then) =
+      __$$ReconnectingImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device, int attempt});
 
@@ -1736,11 +1739,11 @@ abstract class _$$ReconnectingCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$ReconnectingCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$Reconnecting>
-    implements _$$ReconnectingCopyWith<$Res> {
-  __$$ReconnectingCopyWithImpl(
-      _$Reconnecting _value, $Res Function(_$Reconnecting) _then)
+class __$$ReconnectingImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$ReconnectingImpl>
+    implements _$$ReconnectingImplCopyWith<$Res> {
+  __$$ReconnectingImplCopyWithImpl(
+      _$ReconnectingImpl _value, $Res Function(_$ReconnectingImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -1749,7 +1752,7 @@ class __$$ReconnectingCopyWithImpl<$Res>
     Object? device = null,
     Object? attempt = null,
   }) {
-    return _then(_$Reconnecting(
+    return _then(_$ReconnectingImpl(
       null == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -1772,8 +1775,8 @@ class __$$ReconnectingCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Reconnecting implements Reconnecting {
-  const _$Reconnecting(this.device, this.attempt);
+class _$ReconnectingImpl implements Reconnecting {
+  const _$ReconnectingImpl(this.device, this.attempt);
 
   @override
   final TvDevice device;
@@ -1786,10 +1789,10 @@ class _$Reconnecting implements Reconnecting {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Reconnecting &&
+            other is _$ReconnectingImpl &&
             (identical(other.device, device) || other.device == device) &&
             (identical(other.attempt, attempt) || other.attempt == attempt));
   }
@@ -1800,8 +1803,8 @@ class _$Reconnecting implements Reconnecting {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ReconnectingCopyWith<_$Reconnecting> get copyWith =>
-      __$$ReconnectingCopyWithImpl<_$Reconnecting>(this, _$identity);
+  _$$ReconnectingImplCopyWith<_$ReconnectingImpl> get copyWith =>
+      __$$ReconnectingImplCopyWithImpl<_$ReconnectingImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1933,20 +1936,20 @@ class _$Reconnecting implements Reconnecting {
 
 abstract class Reconnecting implements PairingStatus {
   const factory Reconnecting(final TvDevice device, final int attempt) =
-      _$Reconnecting;
+      _$ReconnectingImpl;
 
   TvDevice get device;
   int get attempt;
   @JsonKey(ignore: true)
-  _$$ReconnectingCopyWith<_$Reconnecting> get copyWith =>
+  _$$ReconnectingImplCopyWith<_$ReconnectingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$DisconnectedCopyWith<$Res> {
-  factory _$$DisconnectedCopyWith(
-          _$Disconnected value, $Res Function(_$Disconnected) then) =
-      __$$DisconnectedCopyWithImpl<$Res>;
+abstract class _$$DisconnectedImplCopyWith<$Res> {
+  factory _$$DisconnectedImplCopyWith(
+          _$DisconnectedImpl value, $Res Function(_$DisconnectedImpl) then) =
+      __$$DisconnectedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice? lastDevice, String reason});
 
@@ -1954,11 +1957,11 @@ abstract class _$$DisconnectedCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$DisconnectedCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$Disconnected>
-    implements _$$DisconnectedCopyWith<$Res> {
-  __$$DisconnectedCopyWithImpl(
-      _$Disconnected _value, $Res Function(_$Disconnected) _then)
+class __$$DisconnectedImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$DisconnectedImpl>
+    implements _$$DisconnectedImplCopyWith<$Res> {
+  __$$DisconnectedImplCopyWithImpl(
+      _$DisconnectedImpl _value, $Res Function(_$DisconnectedImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -1967,7 +1970,7 @@ class __$$DisconnectedCopyWithImpl<$Res>
     Object? lastDevice = freezed,
     Object? reason = null,
   }) {
-    return _then(_$Disconnected(
+    return _then(_$DisconnectedImpl(
       freezed == lastDevice
           ? _value.lastDevice
           : lastDevice // ignore: cast_nullable_to_non_nullable
@@ -1994,8 +1997,8 @@ class __$$DisconnectedCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$Disconnected implements Disconnected {
-  const _$Disconnected(this.lastDevice, this.reason);
+class _$DisconnectedImpl implements Disconnected {
+  const _$DisconnectedImpl(this.lastDevice, this.reason);
 
   @override
   final TvDevice? lastDevice;
@@ -2008,10 +2011,10 @@ class _$Disconnected implements Disconnected {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Disconnected &&
+            other is _$DisconnectedImpl &&
             (identical(other.lastDevice, lastDevice) ||
                 other.lastDevice == lastDevice) &&
             (identical(other.reason, reason) || other.reason == reason));
@@ -2023,8 +2026,8 @@ class _$Disconnected implements Disconnected {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$DisconnectedCopyWith<_$Disconnected> get copyWith =>
-      __$$DisconnectedCopyWithImpl<_$Disconnected>(this, _$identity);
+  _$$DisconnectedImplCopyWith<_$DisconnectedImpl> get copyWith =>
+      __$$DisconnectedImplCopyWithImpl<_$DisconnectedImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2156,20 +2159,20 @@ class _$Disconnected implements Disconnected {
 
 abstract class Disconnected implements PairingStatus {
   const factory Disconnected(final TvDevice? lastDevice, final String reason) =
-      _$Disconnected;
+      _$DisconnectedImpl;
 
   TvDevice? get lastDevice;
   String get reason;
   @JsonKey(ignore: true)
-  _$$DisconnectedCopyWith<_$Disconnected> get copyWith =>
+  _$$DisconnectedImplCopyWith<_$DisconnectedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ConnectionFailedCopyWith<$Res> {
-  factory _$$ConnectionFailedCopyWith(
-          _$ConnectionFailed value, $Res Function(_$ConnectionFailed) then) =
-      __$$ConnectionFailedCopyWithImpl<$Res>;
+abstract class _$$ConnectionFailedImplCopyWith<$Res> {
+  factory _$$ConnectionFailedImplCopyWith(_$ConnectionFailedImpl value,
+          $Res Function(_$ConnectionFailedImpl) then) =
+      __$$ConnectionFailedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device, Failure failure});
 
@@ -2177,11 +2180,11 @@ abstract class _$$ConnectionFailedCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$ConnectionFailedCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$ConnectionFailed>
-    implements _$$ConnectionFailedCopyWith<$Res> {
-  __$$ConnectionFailedCopyWithImpl(
-      _$ConnectionFailed _value, $Res Function(_$ConnectionFailed) _then)
+class __$$ConnectionFailedImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$ConnectionFailedImpl>
+    implements _$$ConnectionFailedImplCopyWith<$Res> {
+  __$$ConnectionFailedImplCopyWithImpl(_$ConnectionFailedImpl _value,
+      $Res Function(_$ConnectionFailedImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -2190,7 +2193,7 @@ class __$$ConnectionFailedCopyWithImpl<$Res>
     Object? device = null,
     Object? failure = null,
   }) {
-    return _then(_$ConnectionFailed(
+    return _then(_$ConnectionFailedImpl(
       null == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -2213,8 +2216,8 @@ class __$$ConnectionFailedCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$ConnectionFailed implements ConnectionFailed {
-  const _$ConnectionFailed(this.device, this.failure);
+class _$ConnectionFailedImpl implements ConnectionFailed {
+  const _$ConnectionFailedImpl(this.device, this.failure);
 
   @override
   final TvDevice device;
@@ -2227,10 +2230,10 @@ class _$ConnectionFailed implements ConnectionFailed {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ConnectionFailed &&
+            other is _$ConnectionFailedImpl &&
             (identical(other.device, device) || other.device == device) &&
             (identical(other.failure, failure) || other.failure == failure));
   }
@@ -2241,8 +2244,9 @@ class _$ConnectionFailed implements ConnectionFailed {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ConnectionFailedCopyWith<_$ConnectionFailed> get copyWith =>
-      __$$ConnectionFailedCopyWithImpl<_$ConnectionFailed>(this, _$identity);
+  _$$ConnectionFailedImplCopyWith<_$ConnectionFailedImpl> get copyWith =>
+      __$$ConnectionFailedImplCopyWithImpl<_$ConnectionFailedImpl>(
+          this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2374,20 +2378,20 @@ class _$ConnectionFailed implements ConnectionFailed {
 
 abstract class ConnectionFailed implements PairingStatus {
   const factory ConnectionFailed(final TvDevice device, final Failure failure) =
-      _$ConnectionFailed;
+      _$ConnectionFailedImpl;
 
   TvDevice get device;
   Failure get failure;
   @JsonKey(ignore: true)
-  _$$ConnectionFailedCopyWith<_$ConnectionFailed> get copyWith =>
+  _$$ConnectionFailedImplCopyWith<_$ConnectionFailedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PinErrorCopyWith<$Res> {
-  factory _$$PinErrorCopyWith(
-          _$PinError value, $Res Function(_$PinError) then) =
-      __$$PinErrorCopyWithImpl<$Res>;
+abstract class _$$PinErrorImplCopyWith<$Res> {
+  factory _$$PinErrorImplCopyWith(
+          _$PinErrorImpl value, $Res Function(_$PinErrorImpl) then) =
+      __$$PinErrorImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device, int attemptsLeft, String message});
 
@@ -2395,10 +2399,11 @@ abstract class _$$PinErrorCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$PinErrorCopyWithImpl<$Res>
-    extends _$PairingStatusCopyWithImpl<$Res, _$PinError>
-    implements _$$PinErrorCopyWith<$Res> {
-  __$$PinErrorCopyWithImpl(_$PinError _value, $Res Function(_$PinError) _then)
+class __$$PinErrorImplCopyWithImpl<$Res>
+    extends _$PairingStatusCopyWithImpl<$Res, _$PinErrorImpl>
+    implements _$$PinErrorImplCopyWith<$Res> {
+  __$$PinErrorImplCopyWithImpl(
+      _$PinErrorImpl _value, $Res Function(_$PinErrorImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -2408,7 +2413,7 @@ class __$$PinErrorCopyWithImpl<$Res>
     Object? attemptsLeft = null,
     Object? message = null,
   }) {
-    return _then(_$PinError(
+    return _then(_$PinErrorImpl(
       null == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -2435,8 +2440,8 @@ class __$$PinErrorCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$PinError implements PinError {
-  const _$PinError(this.device, this.attemptsLeft, this.message);
+class _$PinErrorImpl implements PinError {
+  const _$PinErrorImpl(this.device, this.attemptsLeft, this.message);
 
   @override
   final TvDevice device;
@@ -2451,10 +2456,10 @@ class _$PinError implements PinError {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PinError &&
+            other is _$PinErrorImpl &&
             (identical(other.device, device) || other.device == device) &&
             (identical(other.attemptsLeft, attemptsLeft) ||
                 other.attemptsLeft == attemptsLeft) &&
@@ -2467,8 +2472,8 @@ class _$PinError implements PinError {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$PinErrorCopyWith<_$PinError> get copyWith =>
-      __$$PinErrorCopyWithImpl<_$PinError>(this, _$identity);
+  _$$PinErrorImplCopyWith<_$PinErrorImpl> get copyWith =>
+      __$$PinErrorImplCopyWithImpl<_$PinErrorImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -2601,12 +2606,12 @@ class _$PinError implements PinError {
 abstract class PinError implements PairingStatus {
   const factory PinError(
           final TvDevice device, final int attemptsLeft, final String message) =
-      _$PinError;
+      _$PinErrorImpl;
 
   TvDevice get device;
   int get attemptsLeft;
   String get message;
   @JsonKey(ignore: true)
-  _$$PinErrorCopyWith<_$PinError> get copyWith =>
+  _$$PinErrorImplCopyWith<_$PinErrorImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

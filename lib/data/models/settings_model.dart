@@ -18,4 +18,16 @@ class SettingsModel extends HiveObject {
     this.themeMode = 'dark',
     this.appVersion = '',
   });
+
+  SettingsModel copyWith({
+    bool? hapticEnabled,
+    String? themeMode,
+    String? appVersion,
+  }) {
+    return SettingsModel(
+      hapticEnabled: hapticEnabled ?? this.hapticEnabled,
+      themeMode: themeMode ?? this.themeMode,
+      appVersion: appVersion ?? this.appVersion,
+    );
+  }
 }

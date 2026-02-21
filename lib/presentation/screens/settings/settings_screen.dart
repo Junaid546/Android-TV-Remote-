@@ -44,7 +44,7 @@ class SettingsScreen extends ConsumerWidget {
                         padding: EdgeInsets.all(AppSpacing.s48),
                         child: Text(
                           'No saved devices found.',
-                          style: TextStyle(color: AppColors.textDisabled),
+                          style: TextStyle(color: AppColors.muted),
                         ),
                       ),
                     ),
@@ -83,43 +83,42 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.s24),
                   _buildSectionHeader(context, 'PREFERENCES'),
                   const SizedBox(height: AppSpacing.s16),
-                  ref
-                      .watch(settingsNotifierProvider)
-                      .when(
-                        data: (settings) => Column(
-                          children: [
-                            _buildPreferenceTile(
-                              context,
-                              Icons.vibration_rounded,
-                              'Haptic Feedback',
-                              'Vibrate on button press',
-                              Switch(
-                                value: settings.hapticEnabled,
-                                onChanged: (val) => ref
-                                    .read(settingsNotifierProvider.notifier)
-                                    .toggleHaptic(val),
-                              ),
+                  Builder(
+                    builder: (context) {
+                      final settings = ref.watch(settingsNotifierProvider);
+                      return Column(
+                        children: [
+                          _buildPreferenceTile(
+                            context,
+                            Icons.vibration_rounded,
+                            'Haptic Feedback',
+                            'Vibrate on button press',
+                            Switch(
+                              value: settings.hapticEnabled,
+                              onChanged: (val) => ref
+                                  .read(settingsNotifierProvider.notifier)
+                                  .toggleHaptic(),
                             ),
-                            _buildPreferenceTile(
-                              context,
-                              Icons.dark_mode_rounded,
-                              'Dark Mode',
-                              'Use dark theme throughout',
-                              Switch(
-                                value: settings.themeMode == 'dark',
-                                onChanged: (val) => ref
-                                    .read(settingsNotifierProvider.notifier)
-                                    .setThemeMode(val ? 'dark' : 'light'),
-                              ),
+                          ),
+                          _buildPreferenceTile(
+                            context,
+                            Icons.dark_mode_rounded,
+                            'Dark Mode',
+                            'Use dark theme throughout',
+                            Switch(
+                              value: settings.themeMode == 'dark',
+                              onChanged: (val) => ref
+                                  .read(settingsNotifierProvider.notifier)
+                                  .toggleTheme(),
                             ),
-                          ],
-                        ),
-                        loading: () =>
-                            const Center(child: LinearProgressIndicator()),
-                        error: (e, _) => Text('Error loading preferences: $e'),
-                      ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: AppSpacing.s24),
+
                   _buildSectionHeader(context, 'APP INFORMATION'),
                   const SizedBox(height: AppSpacing.s24),
                   _buildInfoTile(
@@ -146,7 +145,7 @@ class SettingsScreen extends ConsumerWidget {
                     child: Text(
                       AppConstants.kAppName.toUpperCase(),
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.textDisabled,
+                        color: AppColors.muted,
                         letterSpacing: 4,
                       ),
                     ),
@@ -177,7 +176,7 @@ class SettingsScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.textSecondary, size: 20),
+          Icon(icon, color: AppColors.muted, size: 20),
           const SizedBox(width: AppSpacing.s16),
           Expanded(
             child: Column(
@@ -186,16 +185,13 @@ class SettingsScreen extends ConsumerWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: AppColors.textPrimary,
+                    color: AppColors.onBackground,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
               ],
             ),
@@ -232,14 +228,14 @@ class SettingsScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.textSecondary, size: 20),
+          Icon(icon, color: AppColors.muted, size: 20),
           const SizedBox(width: AppSpacing.s16),
-          Text(title, style: const TextStyle(color: AppColors.textSecondary)),
+          Text(title, style: const TextStyle(color: AppColors.muted)),
           const Spacer(),
           Text(
             value,
             style: const TextStyle(
-              color: AppColors.textPrimary,
+              color: AppColors.onBackground,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -292,10 +288,7 @@ class _DeviceSettingsCard extends StatelessWidget {
                 ),
                 Text(
                   ipAddress,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
               ],
             ),

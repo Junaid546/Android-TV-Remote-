@@ -7,7 +7,7 @@ part of 'saved_devices_provider.dart';
 // **************************************************************************
 
 String _$savedDevicesNotifierHash() =>
-    r'48591abeaa3605a228dbb6a1fe3ee833ae098aec';
+    r'7b07983147123d5a59e0ea0087f1c298676ae3b9';
 
 /// See also [SavedDevicesNotifier].
 @ProviderFor(SavedDevicesNotifier)
@@ -24,4 +24,4 @@ final savedDevicesNotifierProvider = AutoDisposeAsyncNotifierProvider<
 
 typedef _$SavedDevicesNotifier = AutoDisposeAsyncNotifier<List<TvDevice>>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

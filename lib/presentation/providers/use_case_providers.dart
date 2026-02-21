@@ -3,105 +3,101 @@ import 'package:atv_remote/domain/usecases/discovery_use_cases.dart';
 import 'package:atv_remote/domain/usecases/pairing_use_cases.dart';
 import 'package:atv_remote/domain/usecases/remote_use_cases.dart';
 import 'package:atv_remote/domain/usecases/settings_use_cases.dart';
-import 'package:atv_remote/presentation/providers/data_providers.dart';
+import 'package:atv_remote/presentation/providers/repository_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'use_case_providers.g.dart';
 
 // Device Storage Use Cases
-@riverpod
-GetSavedDevicesUseCase getSavedDevicesUseCase(GetSavedDevicesUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+GetSavedDevicesUseCase getSavedDevicesUseCase(Ref ref) =>
     GetSavedDevicesUseCase(ref.watch(deviceStorageRepositoryProvider));
 
-@riverpod
-SaveDeviceUseCase saveDeviceUseCase(SaveDeviceUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+SaveDeviceUseCase saveDeviceUseCase(Ref ref) =>
     SaveDeviceUseCase(ref.watch(deviceStorageRepositoryProvider));
 
-@riverpod
-RemoveDeviceUseCase removeDeviceUseCase(RemoveDeviceUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+RemoveDeviceUseCase removeDeviceUseCase(Ref ref) =>
     RemoveDeviceUseCase(ref.watch(deviceStorageRepositoryProvider));
 
-@riverpod
-GetLastConnectedDeviceUseCase getLastConnectedDeviceUseCase(
-  GetLastConnectedDeviceUseCaseRef ref,
-) => GetLastConnectedDeviceUseCase(ref.watch(deviceStorageRepositoryProvider));
+@Riverpod(keepAlive: true)
+GetLastConnectedDeviceUseCase getLastConnectedDeviceUseCase(Ref ref) =>
+    GetLastConnectedDeviceUseCase(ref.watch(deviceStorageRepositoryProvider));
 
-@riverpod
-UpdateDeviceUseCase updateDeviceUseCase(UpdateDeviceUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+UpdateDeviceUseCase updateDeviceUseCase(Ref ref) =>
     UpdateDeviceUseCase(ref.watch(deviceStorageRepositoryProvider));
 
 // Discovery Use Cases
-@riverpod
-StartDiscoveryUseCase startDiscoveryUseCase(StartDiscoveryUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+StartDiscoveryUseCase startDiscoveryUseCase(Ref ref) =>
     StartDiscoveryUseCase(ref.watch(discoveryRepositoryProvider));
 
-@riverpod
-StopDiscoveryUseCase stopDiscoveryUseCase(StopDiscoveryUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+StopDiscoveryUseCase stopDiscoveryUseCase(Ref ref) =>
     StopDiscoveryUseCase(ref.watch(discoveryRepositoryProvider));
 
-@riverpod
-AddManualDeviceUseCase addManualDeviceUseCase(AddManualDeviceUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+AddManualDeviceUseCase addManualDeviceUseCase(Ref ref) =>
     AddManualDeviceUseCase(ref.watch(discoveryRepositoryProvider));
 
-@riverpod
-DiscoveryDeviceStreamUseCase discoveryDeviceStreamUseCase(
-  DiscoveryDeviceStreamUseCaseRef ref,
-) => DiscoveryDeviceStreamUseCase(ref.watch(discoveryRepositoryProvider));
+@Riverpod(keepAlive: true)
+DiscoveryDeviceStreamUseCase discoveryDeviceStreamUseCase(Ref ref) =>
+    DiscoveryDeviceStreamUseCase(ref.watch(discoveryRepositoryProvider));
 
 // Pairing Use Cases
-@riverpod
-ConnectToDeviceUseCase connectToDeviceUseCase(ConnectToDeviceUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+ConnectToDeviceUseCase connectToDeviceUseCase(Ref ref) =>
     ConnectToDeviceUseCase(
       ref.watch(pairingRepositoryProvider),
       ref.watch(deviceStorageRepositoryProvider),
     );
 
-@riverpod
-SubmitPinUseCase submitPinUseCase(SubmitPinUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+SubmitPinUseCase submitPinUseCase(Ref ref) =>
     SubmitPinUseCase(ref.watch(pairingRepositoryProvider));
 
-@riverpod
-DisconnectUseCase disconnectUseCase(DisconnectUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+DisconnectUseCase disconnectUseCase(Ref ref) =>
     DisconnectUseCase(ref.watch(pairingRepositoryProvider));
 
-@riverpod
-PairingStatusStreamUseCase pairingStatusStreamUseCase(
-  PairingStatusStreamUseCaseRef ref,
-) => PairingStatusStreamUseCase(ref.watch(pairingRepositoryProvider));
+@Riverpod(keepAlive: true)
+PairingStatusStreamUseCase pairingStatusStreamUseCase(Ref ref) =>
+    PairingStatusStreamUseCase(ref.watch(pairingRepositoryProvider));
 
 // Remote Use Cases
-@riverpod
-SendCommandUseCase sendCommandUseCase(SendCommandUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+SendCommandUseCase sendCommandUseCase(Ref ref) =>
     SendCommandUseCase(ref.watch(remoteRepositoryProvider));
 
-@riverpod
-ConnectRemoteUseCase connectRemoteUseCase(ConnectRemoteUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+ConnectRemoteUseCase connectRemoteUseCase(Ref ref) =>
     ConnectRemoteUseCase(ref.watch(remoteRepositoryProvider));
 
-@riverpod
-DisconnectRemoteUseCase disconnectRemoteUseCase(
-  DisconnectRemoteUseCaseRef ref,
-) => DisconnectRemoteUseCase(ref.watch(remoteRepositoryProvider));
+@Riverpod(keepAlive: true)
+DisconnectRemoteUseCase disconnectRemoteUseCase(Ref ref) =>
+    DisconnectRemoteUseCase(ref.watch(remoteRepositoryProvider));
 
-@riverpod
+@Riverpod(keepAlive: true)
 RemoteConnectionAliveStreamUseCase remoteConnectionAliveStreamUseCase(
-  RemoteConnectionAliveStreamUseCaseRef ref,
+  Ref ref,
 ) => RemoteConnectionAliveStreamUseCase(ref.watch(remoteRepositoryProvider));
 
 // Settings Use Cases
-@riverpod
-GetThemeModeUseCase getThemeModeUseCase(GetThemeModeUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+GetThemeModeUseCase getThemeModeUseCase(Ref ref) =>
     GetThemeModeUseCase(ref.watch(settingsRepositoryProvider));
 
-@riverpod
-SetThemeModeUseCase setThemeModeUseCase(SetThemeModeUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+SetThemeModeUseCase setThemeModeUseCase(Ref ref) =>
     SetThemeModeUseCase(ref.watch(settingsRepositoryProvider));
 
-@riverpod
-IsHapticEnabledUseCase isHapticEnabledUseCase(IsHapticEnabledUseCaseRef ref) =>
+@Riverpod(keepAlive: true)
+IsHapticEnabledUseCase isHapticEnabledUseCase(Ref ref) =>
     IsHapticEnabledUseCase(ref.watch(settingsRepositoryProvider));
 
-@riverpod
-SetHapticEnabledUseCase setHapticEnabledUseCase(
-  SetHapticEnabledUseCaseRef ref,
-) => SetHapticEnabledUseCase(ref.watch(settingsRepositoryProvider));
+@Riverpod(keepAlive: true)
+SetHapticEnabledUseCase setHapticEnabledUseCase(Ref ref) =>
+    SetHapticEnabledUseCase(ref.watch(settingsRepositoryProvider));

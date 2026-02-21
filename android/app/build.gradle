@@ -1,9 +1,9 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
+    id "com.android.application"
+    id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.protobuf") version "0.9.4"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.protobuf" version "0.9.4"
 }
 
 android {
@@ -17,7 +17,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -35,14 +35,14 @@ android {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.debug
         }
     }
 
     sourceSets {
-        getByName("main") {
-            proto {
-                srcDir("src/main/proto")
+        main {
+            java {
+                srcDir 'src/main/proto'
             }
         }
     }
@@ -53,8 +53,8 @@ flutter {
 }
 
 dependencies {
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    implementation("com.google.protobuf:protobuf-javalite:3.25.3")
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+    implementation "com.google.protobuf:protobuf-javalite:3.25.3"
 }
 
 protobuf {
@@ -62,10 +62,10 @@ protobuf {
         artifact = "com.google.protobuf:protoc:3.25.3"
     }
     generateProtoTasks {
-        all().forEach { task ->
+        all().each { task ->
             task.builtins {
-                id("java") {
-                    option("lite")
+                java {
+                    option 'lite'
                 }
             }
         }

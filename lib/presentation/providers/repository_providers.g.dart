@@ -1,35 +1,18 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'data_providers.dart';
+part of 'repository_providers.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$hiveDeviceDatasourceHash() =>
-    r'a2629762c6e3def1791a295e69be46815d17a38d';
-
-/// See also [hiveDeviceDatasource].
-@ProviderFor(hiveDeviceDatasource)
-final hiveDeviceDatasourceProvider =
-    AutoDisposeProvider<HiveDeviceDatasource>.internal(
-  hiveDeviceDatasource,
-  name: r'hiveDeviceDatasourceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$hiveDeviceDatasourceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef HiveDeviceDatasourceRef = AutoDisposeProviderRef<HiveDeviceDatasource>;
 String _$discoveryNativeDataSourceHash() =>
-    r'4df8f2db49fe2c0815a738ee1901ed122dcbeafe';
+    r'8a0cd153f32eaa5a16d2f5be5a44a2d1139523f5';
 
 /// See also [discoveryNativeDataSource].
 @ProviderFor(discoveryNativeDataSource)
 final discoveryNativeDataSourceProvider =
-    AutoDisposeProvider<DiscoveryNativeDataSource>.internal(
+    Provider<DiscoveryNativeDataSource>.internal(
   discoveryNativeDataSource,
   name: r'discoveryNativeDataSourceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -39,15 +22,14 @@ final discoveryNativeDataSourceProvider =
   allTransitiveDependencies: null,
 );
 
-typedef DiscoveryNativeDataSourceRef
-    = AutoDisposeProviderRef<DiscoveryNativeDataSource>;
+typedef DiscoveryNativeDataSourceRef = ProviderRef<DiscoveryNativeDataSource>;
 String _$pairingNativeDataSourceHash() =>
-    r'c9c0ceeb0af8b538d0f30535a04289cc5549acd3';
+    r'b7410605b7c488aae53aebb96ccb97f767ced1a5';
 
 /// See also [pairingNativeDataSource].
 @ProviderFor(pairingNativeDataSource)
 final pairingNativeDataSourceProvider =
-    AutoDisposeProvider<PairingNativeDataSource>.internal(
+    Provider<PairingNativeDataSource>.internal(
   pairingNativeDataSource,
   name: r'pairingNativeDataSourceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -57,15 +39,14 @@ final pairingNativeDataSourceProvider =
   allTransitiveDependencies: null,
 );
 
-typedef PairingNativeDataSourceRef
-    = AutoDisposeProviderRef<PairingNativeDataSource>;
+typedef PairingNativeDataSourceRef = ProviderRef<PairingNativeDataSource>;
 String _$remoteNativeDataSourceHash() =>
-    r'7f9697f908b09cd0b0b3c8994fd9cf32be334100';
+    r'e42e3c74a1e0a6f38fb5987da64d11f844341901';
 
 /// See also [remoteNativeDataSource].
 @ProviderFor(remoteNativeDataSource)
 final remoteNativeDataSourceProvider =
-    AutoDisposeProvider<RemoteNativeDataSource>.internal(
+    Provider<RemoteNativeDataSource>.internal(
   remoteNativeDataSource,
   name: r'remoteNativeDataSourceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -75,15 +56,30 @@ final remoteNativeDataSourceProvider =
   allTransitiveDependencies: null,
 );
 
-typedef RemoteNativeDataSourceRef
-    = AutoDisposeProviderRef<RemoteNativeDataSource>;
+typedef RemoteNativeDataSourceRef = ProviderRef<RemoteNativeDataSource>;
+String _$hiveDeviceDatasourceHash() =>
+    r'3b70b64436391a53b5366e4fc313eee0fdff1f95';
+
+/// See also [hiveDeviceDatasource].
+@ProviderFor(hiveDeviceDatasource)
+final hiveDeviceDatasourceProvider = Provider<HiveDeviceDatasource>.internal(
+  hiveDeviceDatasource,
+  name: r'hiveDeviceDatasourceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$hiveDeviceDatasourceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef HiveDeviceDatasourceRef = ProviderRef<HiveDeviceDatasource>;
 String _$networkNativeDataSourceHash() =>
-    r'79241a59c0fdb98415f645ba3e6aa92673a6be04';
+    r'f082f7eef46bf171ccd7add42ffa0f16df5c1844';
 
 /// See also [networkNativeDataSource].
 @ProviderFor(networkNativeDataSource)
 final networkNativeDataSourceProvider =
-    AutoDisposeProvider<NetworkNativeDataSource>.internal(
+    Provider<NetworkNativeDataSource>.internal(
   networkNativeDataSource,
   name: r'networkNativeDataSourceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -93,81 +89,14 @@ final networkNativeDataSourceProvider =
   allTransitiveDependencies: null,
 );
 
-typedef NetworkNativeDataSourceRef
-    = AutoDisposeProviderRef<NetworkNativeDataSource>;
-String _$deviceStorageRepositoryHash() =>
-    r'8843b50f51c70b61a5b3f5ed1abd1136fe9e49e5';
-
-/// See also [deviceStorageRepository].
-@ProviderFor(deviceStorageRepository)
-final deviceStorageRepositoryProvider =
-    AutoDisposeProvider<DeviceStorageRepository>.internal(
-  deviceStorageRepository,
-  name: r'deviceStorageRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$deviceStorageRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef DeviceStorageRepositoryRef
-    = AutoDisposeProviderRef<DeviceStorageRepository>;
-String _$discoveryRepositoryHash() =>
-    r'1f39a1b95649a88dbb398a7f282c712f494020b8';
-
-/// See also [discoveryRepository].
-@ProviderFor(discoveryRepository)
-final discoveryRepositoryProvider =
-    AutoDisposeProvider<DiscoveryRepository>.internal(
-  discoveryRepository,
-  name: r'discoveryRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$discoveryRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef DiscoveryRepositoryRef = AutoDisposeProviderRef<DiscoveryRepository>;
-String _$pairingRepositoryHash() => r'a9fa17399ffd8406579b4da91999250b58deb641';
-
-/// See also [pairingRepository].
-@ProviderFor(pairingRepository)
-final pairingRepositoryProvider =
-    AutoDisposeProvider<PairingRepository>.internal(
-  pairingRepository,
-  name: r'pairingRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$pairingRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef PairingRepositoryRef = AutoDisposeProviderRef<PairingRepository>;
-String _$remoteRepositoryHash() => r'e5894bce11afec06c97cd5f502dd9a5f99b4b19c';
-
-/// See also [remoteRepository].
-@ProviderFor(remoteRepository)
-final remoteRepositoryProvider = AutoDisposeProvider<RemoteRepository>.internal(
-  remoteRepository,
-  name: r'remoteRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$remoteRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef RemoteRepositoryRef = AutoDisposeProviderRef<RemoteRepository>;
+typedef NetworkNativeDataSourceRef = ProviderRef<NetworkNativeDataSource>;
 String _$hiveSettingsDatasourceHash() =>
-    r'115dd6b26f60b2427c96bff9d0d8c34c43881913';
+    r'b052c500dd31629ba0e5fb4a86f41fc09366735f';
 
 /// See also [hiveSettingsDatasource].
 @ProviderFor(hiveSettingsDatasource)
 final hiveSettingsDatasourceProvider =
-    AutoDisposeProvider<HiveSettingsDatasource>.internal(
+    Provider<HiveSettingsDatasource>.internal(
   hiveSettingsDatasource,
   name: r'hiveSettingsDatasourceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -177,15 +106,76 @@ final hiveSettingsDatasourceProvider =
   allTransitiveDependencies: null,
 );
 
-typedef HiveSettingsDatasourceRef
-    = AutoDisposeProviderRef<HiveSettingsDatasource>;
+typedef HiveSettingsDatasourceRef = ProviderRef<HiveSettingsDatasource>;
+String _$deviceStorageRepositoryHash() =>
+    r'd6426e35579472369200f257b16065c9fd629f86';
+
+/// See also [deviceStorageRepository].
+@ProviderFor(deviceStorageRepository)
+final deviceStorageRepositoryProvider =
+    Provider<DeviceStorageRepository>.internal(
+  deviceStorageRepository,
+  name: r'deviceStorageRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$deviceStorageRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef DeviceStorageRepositoryRef = ProviderRef<DeviceStorageRepository>;
+String _$discoveryRepositoryHash() =>
+    r'b622e076358fd060eb50aca8a8abf141e9ce7ee4';
+
+/// See also [discoveryRepository].
+@ProviderFor(discoveryRepository)
+final discoveryRepositoryProvider = Provider<DiscoveryRepository>.internal(
+  discoveryRepository,
+  name: r'discoveryRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$discoveryRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef DiscoveryRepositoryRef = ProviderRef<DiscoveryRepository>;
+String _$pairingRepositoryHash() => r'a540437e7acec1c2db7d8200fe22048e034ea797';
+
+/// See also [pairingRepository].
+@ProviderFor(pairingRepository)
+final pairingRepositoryProvider = Provider<PairingRepository>.internal(
+  pairingRepository,
+  name: r'pairingRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$pairingRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef PairingRepositoryRef = ProviderRef<PairingRepository>;
+String _$remoteRepositoryHash() => r'dec674882994290998f55544e78ab301eb4b4a1b';
+
+/// See also [remoteRepository].
+@ProviderFor(remoteRepository)
+final remoteRepositoryProvider = Provider<RemoteRepository>.internal(
+  remoteRepository,
+  name: r'remoteRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$remoteRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef RemoteRepositoryRef = ProviderRef<RemoteRepository>;
 String _$settingsRepositoryHash() =>
-    r'e664aac0cef5b2b38bdff79616e803738b7b0cda';
+    r'4835af561dd9c9784a1128092d49a3a2a500cc10';
 
 /// See also [settingsRepository].
 @ProviderFor(settingsRepository)
-final settingsRepositoryProvider =
-    AutoDisposeProvider<SettingsRepository>.internal(
+final settingsRepositoryProvider = Provider<SettingsRepository>.internal(
   settingsRepository,
   name: r'settingsRepositoryProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -195,6 +185,6 @@ final settingsRepositoryProvider =
   allTransitiveDependencies: null,
 );
 
-typedef SettingsRepositoryRef = AutoDisposeProviderRef<SettingsRepository>;
+typedef SettingsRepositoryRef = ProviderRef<SettingsRepository>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

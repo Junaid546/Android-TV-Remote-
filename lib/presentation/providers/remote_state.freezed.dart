@@ -12,7 +12,7 @@ part of 'remote_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$RemoteState {
@@ -89,11 +89,11 @@ class _$RemoteStateCopyWithImpl<$Res, $Val extends RemoteState>
 }
 
 /// @nodoc
-abstract class _$$_RemoteStateCopyWith<$Res>
+abstract class _$$RemoteStateImplCopyWith<$Res>
     implements $RemoteStateCopyWith<$Res> {
-  factory _$$_RemoteStateCopyWith(
-          _$_RemoteState value, $Res Function(_$_RemoteState) then) =
-      __$$_RemoteStateCopyWithImpl<$Res>;
+  factory _$$RemoteStateImplCopyWith(
+          _$RemoteStateImpl value, $Res Function(_$RemoteStateImpl) then) =
+      __$$RemoteStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({TvDevice? device, bool isConnected, bool isMuted, double volume});
@@ -103,11 +103,11 @@ abstract class _$$_RemoteStateCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_RemoteStateCopyWithImpl<$Res>
-    extends _$RemoteStateCopyWithImpl<$Res, _$_RemoteState>
-    implements _$$_RemoteStateCopyWith<$Res> {
-  __$$_RemoteStateCopyWithImpl(
-      _$_RemoteState _value, $Res Function(_$_RemoteState) _then)
+class __$$RemoteStateImplCopyWithImpl<$Res>
+    extends _$RemoteStateCopyWithImpl<$Res, _$RemoteStateImpl>
+    implements _$$RemoteStateImplCopyWith<$Res> {
+  __$$RemoteStateImplCopyWithImpl(
+      _$RemoteStateImpl _value, $Res Function(_$RemoteStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -118,7 +118,7 @@ class __$$_RemoteStateCopyWithImpl<$Res>
     Object? isMuted = null,
     Object? volume = null,
   }) {
-    return _then(_$_RemoteState(
+    return _then(_$RemoteStateImpl(
       device: freezed == device
           ? _value.device
           : device // ignore: cast_nullable_to_non_nullable
@@ -141,8 +141,8 @@ class __$$_RemoteStateCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_RemoteState implements _RemoteState {
-  const _$_RemoteState(
+class _$RemoteStateImpl implements _RemoteState {
+  const _$RemoteStateImpl(
       {this.device,
       this.isConnected = false,
       this.isMuted = false,
@@ -166,10 +166,10 @@ class _$_RemoteState implements _RemoteState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_RemoteState &&
+            other is _$RemoteStateImpl &&
             (identical(other.device, device) || other.device == device) &&
             (identical(other.isConnected, isConnected) ||
                 other.isConnected == isConnected) &&
@@ -184,8 +184,8 @@ class _$_RemoteState implements _RemoteState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_RemoteStateCopyWith<_$_RemoteState> get copyWith =>
-      __$$_RemoteStateCopyWithImpl<_$_RemoteState>(this, _$identity);
+  _$$RemoteStateImplCopyWith<_$RemoteStateImpl> get copyWith =>
+      __$$RemoteStateImplCopyWithImpl<_$RemoteStateImpl>(this, _$identity);
 }
 
 abstract class _RemoteState implements RemoteState {
@@ -193,7 +193,7 @@ abstract class _RemoteState implements RemoteState {
       {final TvDevice? device,
       final bool isConnected,
       final bool isMuted,
-      final double volume}) = _$_RemoteState;
+      final double volume}) = _$RemoteStateImpl;
 
   @override
   TvDevice? get device;
@@ -205,6 +205,6 @@ abstract class _RemoteState implements RemoteState {
   double get volume;
   @override
   @JsonKey(ignore: true)
-  _$$_RemoteStateCopyWith<_$_RemoteState> get copyWith =>
+  _$$RemoteStateImplCopyWith<_$RemoteStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

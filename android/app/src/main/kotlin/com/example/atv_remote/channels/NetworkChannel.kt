@@ -5,6 +5,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
@@ -30,6 +32,7 @@ class NetworkChannel(
         EventChannel(binaryMessenger, EVENT_CHANNEL_NAME).setStreamHandler(
             object : EventChannel.StreamHandler {
                 private var networkCallback: ConnectivityManager.NetworkCallback? = null
+                private val mainHandler = Handler(Looper.getMainLooper())
 
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
                     Log.d(tag, "NetworkChannel: onListen")
@@ -37,19 +40,25 @@ class NetworkChannel(
                         as ConnectivityManager
 
                     // Emit current state immediately so Flutter doesn't wait for a change
-                    sink?.success(cm.currentConnectivityMap())
+                    mainHandler.post {
+                        sink?.success(cm.currentConnectivityMap())
+                    }
 
                     val callback = object : ConnectivityManager.NetworkCallback() {
                         override fun onAvailable(network: Network) {
                             val caps = cm.getNetworkCapabilities(network)
                             val type = caps?.networkType() ?: "other"
                             Log.d(tag, "Network available: $type")
-                            sink?.success(mapOf("connected" to true, "type" to type))
+                            mainHandler.post {
+                                sink?.success(mapOf("connected" to true, "type" to type))
+                            }
                         }
 
                         override fun onLost(network: Network) {
                             Log.d(tag, "Network lost")
-                            sink?.success(mapOf("connected" to false, "type" to "none"))
+                            mainHandler.post {
+                                sink?.success(mapOf("connected" to false, "type" to "none"))
+                            }
                         }
 
                         override fun onCapabilitiesChanged(
@@ -57,7 +66,9 @@ class NetworkChannel(
                             caps: NetworkCapabilities
                         ) {
                             val type = caps.networkType()
-                            sink?.success(mapOf("connected" to true, "type" to type))
+                            mainHandler.post {
+                                sink?.success(mapOf("connected" to true, "type" to type))
+                            }
                         }
                     }
 
