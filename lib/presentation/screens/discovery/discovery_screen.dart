@@ -2,14 +2,21 @@ import 'dart:async';
 
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/core/theme/app_spacing.dart';
+import 'package:atv_remote/core/utils/haptic_service.dart';
+import 'package:atv_remote/domain/entities/pairing_status.dart';
 import 'package:atv_remote/domain/entities/tv_device.dart';
+import 'package:atv_remote/presentation/providers/connection_provider.dart';
 import 'package:atv_remote/presentation/providers/discovery_provider.dart';
-import 'package:atv_remote/presentation/providers/pairing_provider.dart';
-import 'package:atv_remote/presentation/providers/use_case_providers.dart';
+import 'package:atv_remote/presentation/providers/network_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Discovery Screen (main screen widget)
+// ─────────────────────────────────────────────────────────────────────────────
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
   const DiscoveryScreen({super.key});
@@ -19,103 +26,314 @@ class DiscoveryScreen extends ConsumerStatefulWidget {
 }
 
 class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
+  OverlayEntry? _connectingOverlay;
+  Timer? _timeoutTimer;
+  bool _timedOut = false;
+
   @override
   void initState() {
     super.initState();
-    // Start discovery automatically when entering the screen
-    Future.microtask(
-      () => ref.read(discoveryNotifierProvider.notifier).startDiscovery(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(discoveryNotifierProvider.notifier).startDiscovery();
+      _scheduleTimeout();
+    });
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay();
+    _timeoutTimer?.cancel();
+    ref.read(discoveryNotifierProvider.notifier).stopDiscovery();
+    super.dispose();
+  }
+
+  void _scheduleTimeout() {
+    _timeoutTimer?.cancel();
+    _timedOut = false;
+    _timeoutTimer = Timer(const Duration(seconds: 30), () {
+      if (!mounted) return;
+      final devices =
+          ref.read(discoveryNotifierProvider).valueOrNull ?? const [];
+      if (devices.isEmpty) {
+        setState(() => _timedOut = true);
+      }
+    });
+  }
+
+  void _showOverlay(BuildContext context) {
+    _removeOverlay();
+    final entry = OverlayEntry(builder: (_) => const _ConnectingOverlay());
+    _connectingOverlay = entry;
+    Overlay.of(context).insert(entry);
+  }
+
+  void _removeOverlay() {
+    _connectingOverlay?.remove();
+    _connectingOverlay = null;
+  }
+
+  Future<void> _pullToRefresh() async {
+    _timeoutTimer?.cancel();
+    setState(() => _timedOut = false);
+    await ref.read(discoveryNotifierProvider.notifier).stopDiscovery();
+    await ref.read(discoveryNotifierProvider.notifier).startDiscovery();
+    _scheduleTimeout();
   }
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
+
+    // ── WiFi guard ──
+    ref.listen<AsyncValue<bool>>(wifiStatusProvider, (_, next) {
+      next.whenData((connected) {
+        if (!connected && mounted) {
+          context.go('/network-error?returnTo=/discovery');
+        }
+      });
+    });
+
+    // ── Connection state reactions ──
+    ref.listen<PairingStatus>(connectionNotifierProvider, (_, next) {
+      next.maybeWhen(
+        connecting: (_) => _showOverlay(context),
+        awaitingPin: (device, _) {
+          _removeOverlay();
+          if (mounted) {
+            context.push('/pairing?deviceId=${device.id}');
+          }
+        },
+        connected: (_) {
+          _removeOverlay();
+          if (mounted) context.go('/remote');
+        },
+        connectionFailed: (device, failure) {
+          _removeOverlay();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: AppColors.surface,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                content: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppColors.primary,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Could not connect to ${device.name}',
+                        style: const TextStyle(
+                          fontFamily: 'Satoshi',
+                          fontSize: 13,
+                          color: AppColors.onBackground,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        },
+        idle: () => _removeOverlay(),
+        orElse: () {},
+      );
+    });
+
     final discoveryState = ref.watch(discoveryNotifierProvider);
+    final isLoading = discoveryState.isLoading;
+    final devices = discoveryState.valueOrNull ?? const [];
+    final hasDevices = devices.isNotEmpty;
+    final showEmpty = _timedOut && !hasDevices && !isLoading;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // Premium Header
-          SliverAppBar.large(
-            backgroundColor: AppColors.background,
-            title: Text(
-              'Discovery',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            actions: [
-              IconButton(
-                onPressed: () => ref
-                    .read(discoveryNotifierProvider.notifier)
-                    .startDiscovery(),
-                icon: const Icon(
-                  Icons.refresh_rounded,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.s8),
-            ],
-          ),
+      backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // ── Top bar ──
+            _TopBar(),
 
-          // Scanning Indicator
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.s24),
-              child: _ScanningHeader(),
+            // ── Scan header (radar + status text) ──
+            _ScanHeaderSection(
+              isLoading: isLoading,
+              deviceCount: devices.length,
+              timedOut: showEmpty,
             ),
-          ),
 
-          // Device List
-          discoveryState.when(
-            data: (devices) {
-              if (devices.isEmpty) {
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _EmptyDiscoveryState(),
-                );
-              }
-              return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final device = devices[index];
-                    return _DeviceListCard(device: device);
-                  }, childCount: devices.length),
-                ),
-              );
-            },
-            loading: () => const SliverFillRemaining(
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+            // ── Device list / empty state ──
+            Expanded(
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                backgroundColor: AppColors.surface,
+                onRefresh: _pullToRefresh,
+                child: showEmpty
+                    ? _EmptyState(onTryAgain: _pullToRefresh)
+                    : _DeviceList(devices: devices, isLoading: isLoading),
               ),
             ),
-            error: (error, stack) => SliverFillRemaining(
-              child: Center(child: Text('Error: $error')),
+
+            // ── Manual IP button ──
+            _ManualIpButton(),
+
+            // ── Bottom nav ──
+            const _BottomNavBar(currentIndex: 0),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Top bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TopBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s20,
+        vertical: AppSpacing.s12,
+      ),
+      child: Row(
+        children: [
+          // Logo + app name
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.tv_rounded, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: AppSpacing.s8),
+          const Text(
+            'Remote',
+            style: TextStyle(
+              fontFamily: 'Satoshi',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.onBackground,
+              letterSpacing: -0.2,
             ),
           ),
+          const Spacer(),
+          // Settings button
+          _IconActionButton(
+            icon: Icons.settings_outlined,
+            onTap: (context) => context.push('/settings'),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-          // Manual Entry Button
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s24,
-                vertical: AppSpacing.s48,
-              ),
-              child: OutlinedButton.icon(
-                onPressed: () => _showManualEntryModal(context),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Add Device Manually'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.all(AppSpacing.s20),
-                  side: BorderSide(
-                    color: AppColors.primary.withAlpha(50),
-                    width: 1.5,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
+class _IconActionButton extends StatefulWidget {
+  final IconData icon;
+  final void Function(BuildContext context) onTap;
+
+  const _IconActionButton({required this.icon, required this.onTap});
+
+  @override
+  State<_IconActionButton> createState() => _IconActionButtonState();
+}
+
+class _IconActionButtonState extends State<_IconActionButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap(context);
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: _pressed
+              ? AppColors.surface
+              : AppColors.surface.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border, width: 0.8),
+        ),
+        child: Icon(
+          widget.icon,
+          color: _pressed ? AppColors.primary : AppColors.muted,
+          size: 20,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Scan header – animation + status text
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ScanHeaderSection extends StatelessWidget {
+  final bool isLoading;
+  final int deviceCount;
+  final bool timedOut;
+
+  const _ScanHeaderSection({
+    required this.isLoading,
+    required this.deviceCount,
+    required this.timedOut,
+  });
+
+  String get _statusText {
+    if (timedOut) return 'No TVs found';
+    if (deviceCount > 0) {
+      return deviceCount == 1 ? '1 TV found' : '$deviceCount TVs found';
+    }
+    return 'Scanning for TVs...';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _ScanAnimationWidget(
+            isScanning: isLoading || (!timedOut && deviceCount == 0),
+            stopped: timedOut || deviceCount > 0,
+            success: deviceCount > 0,
+          ),
+          const SizedBox(height: AppSpacing.s16),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Text(
+              _statusText,
+              key: ValueKey(_statusText),
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: AppColors.muted.withValues(alpha: 0.85),
+                letterSpacing: 0.2,
               ),
             ),
           ),
@@ -123,160 +341,614 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
       ),
     );
   }
-
-  void _showManualEntryModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _ManualEntrySheet(),
-    );
-  }
 }
 
-class _ManualEntrySheet extends ConsumerStatefulWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// Radar scan animation widget
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ScanAnimationWidget extends ConsumerStatefulWidget {
+  final bool isScanning;
+  final bool stopped;
+  final bool success;
+
+  const _ScanAnimationWidget({
+    required this.isScanning,
+    required this.stopped,
+    required this.success,
+  });
+
   @override
-  ConsumerState<_ManualEntrySheet> createState() => _ManualEntrySheetState();
+  ConsumerState<_ScanAnimationWidget> createState() =>
+      _ScanAnimationWidgetState();
 }
 
-class _ManualEntrySheetState extends ConsumerState<_ManualEntrySheet> {
-  final _ipController = TextEditingController();
-  final _nameController = TextEditingController();
-  bool _isLoading = false;
+class _ScanAnimationWidgetState extends ConsumerState<_ScanAnimationWidget>
+    with TickerProviderStateMixin {
+  late final List<AnimationController> _ringControllers;
+  late final List<Animation<double>> _ringAnimations;
+  late final AnimationController _fadeOutCtrl;
+  late final AnimationController _resultCtrl;
+
+  static const _ringDelays = [
+    Duration.zero,
+    Duration(milliseconds: 666),
+    Duration(milliseconds: 1333),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _ringControllers = List.generate(
+      3,
+      (i) => AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 2000),
+      ),
+    );
+
+    _ringAnimations = _ringControllers.map((ctrl) {
+      return Tween<double>(
+        begin: 0,
+        end: 1,
+      ).animate(CurvedAnimation(parent: ctrl, curve: Curves.easeOut));
+    }).toList();
+
+    _fadeOutCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+      value: 1.0,
+    );
+
+    _resultCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _startRings();
+  }
+
+  Future<void> _startRings() async {
+    for (int i = 0; i < 3; i++) {
+      await Future.delayed(_ringDelays[i]);
+      if (mounted) {
+        unawaited(_ringControllers[i].repeat());
+      }
+    }
+  }
+
+  Future<void> _stopRings() async {
+    await _fadeOutCtrl.animateTo(0.0);
+    for (final c in _ringControllers) {
+      c.stop();
+    }
+    if (mounted) unawaited(_resultCtrl.forward());
+  }
+
+  @override
+  void didUpdateWidget(_ScanAnimationWidget old) {
+    super.didUpdateWidget(old);
+    if (!old.stopped && widget.stopped) {
+      _stopRings();
+    } else if (old.stopped && !widget.stopped) {
+      // restart
+      _fadeOutCtrl.value = 1.0;
+      _resultCtrl.reset();
+      _startRings();
+    }
+  }
 
   @override
   void dispose() {
-    _ipController.dispose();
-    _nameController.dispose();
+    for (final c in _ringControllers) {
+      c.dispose();
+    }
+    _fadeOutCtrl.dispose();
+    _resultCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Add Device Manually',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            Text(
-              'Enter the IP address of your Android TV.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: AppSpacing.s32),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                hintText: 'Device Name (e.g. Living Room TV)',
-                prefixIcon: Icon(Icons.label_rounded),
-              ),
-              textInputAction: TextInputAction.next,
-            ),
-            const SizedBox(height: AppSpacing.s16),
-            TextField(
-              controller: _ipController,
-              decoration: const InputDecoration(
-                hintText: 'IP Address (e.g. 192.168.1.50)',
-                prefixIcon: Icon(Icons.network_wifi_rounded),
-              ),
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.done,
-            ),
-            const SizedBox(height: AppSpacing.s32),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _handleSubmit,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.black,
+    return SizedBox(
+      width: 80,
+      height: 80,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Rings
+          FadeTransition(
+            opacity: _fadeOutCtrl,
+            child: Stack(
+              alignment: Alignment.center,
+              children: List.generate(3, (i) {
+                return AnimatedBuilder(
+                  animation: _ringAnimations[i],
+                  builder: (_, _) {
+                    final t = _ringAnimations[i].value;
+                    final radius = 8 + (72 * t);
+                    final opacity = (0.6 * (1 - t)).clamp(0.0, 0.6);
+                    return CustomPaint(
+                      painter: _RingPainter(
+                        radius: radius,
+                        opacity: opacity,
+                        color: AppColors.primary,
                       ),
-                    )
-                  : const Text('Connect'),
+                      size: const Size(80, 80),
+                    );
+                  },
+                );
+              }),
             ),
-            const SizedBox(height: AppSpacing.s16),
-          ],
-        ),
+          ),
+          // Center dot
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          // Result icon (check/X) when stopped
+          FadeTransition(
+            opacity: _resultCtrl,
+            child: ScaleTransition(
+              scale: CurvedAnimation(
+                parent: _resultCtrl,
+                curve: Curves.easeOutBack,
+              ),
+              child: widget.success
+                  ? const Icon(
+                      Icons.check_circle_rounded,
+                      color: AppColors.primary,
+                      size: 32,
+                    )
+                  : widget.stopped
+                  ? Icon(
+                      Icons.tv_off_rounded,
+                      color: AppColors.muted.withValues(alpha: 0.6),
+                      size: 32,
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Future<void> _handleSubmit() async {
-    if (_ipController.text.isEmpty) return;
+class _RingPainter extends CustomPainter {
+  final double radius;
+  final double opacity;
+  final Color color;
 
-    setState(() => _isLoading = true);
+  _RingPainter({
+    required this.radius,
+    required this.opacity,
+    required this.color,
+  });
 
-    final name = _nameController.text.isEmpty
-        ? 'Android TV'
-        : _nameController.text;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final paint = Paint()
+      ..color = color.withValues(alpha: opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawCircle(center, radius, paint);
+  }
 
-    final manualResult = await ref
-        .read(addManualDeviceUseCaseProvider)
-        .call(_ipController.text, name);
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.radius != radius || old.opacity != opacity;
+}
 
-    setState(() => _isLoading = false);
+// ─────────────────────────────────────────────────────────────────────────────
+// Device list
+// ─────────────────────────────────────────────────────────────────────────────
 
-    manualResult.fold(
-      (l) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l.toString()))),
-      (device) async {
-        Navigator.pop(context);
-        await ref
-            .read(pairingNotifierProvider.notifier)
-            .connectToDevice(device);
-        if (mounted) {
-          unawaited(context.push('/pairing'));
-        }
+class _DeviceList extends StatelessWidget {
+  final List<TvDevice> devices;
+  final bool isLoading;
+
+  const _DeviceList({required this.devices, required this.isLoading});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading && devices.isEmpty) {
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s20,
+          vertical: AppSpacing.s8,
+        ),
+        itemCount: 3,
+        itemBuilder: (_, _) => const _SkeletonTile(),
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(
+        left: AppSpacing.s20,
+        right: AppSpacing.s20,
+        top: AppSpacing.s8,
+        bottom: 16,
+      ),
+      itemCount: devices.length,
+      itemBuilder: (context, index) {
+        return _DeviceTile(device: devices[index], index: index);
       },
     );
   }
 }
 
-class _ScanningHeader extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// Device tile
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _DeviceTile extends ConsumerWidget {
+  final TvDevice device;
+  final int index;
+
+  const _DeviceTile({required this.device, required this.index});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasPreviousConnected =
+        device.lastConnected != null && !device.isPaired;
+
+    return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+          child: GestureDetector(
+            onTap: () async {
+              unawaited(HapticService.light());
+              await ref
+                  .read(connectionNotifierProvider.notifier)
+                  .connectToDevice(device);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: device.isPaired
+                      ? AppColors.primary.withValues(alpha: 0.3)
+                      : AppColors.border,
+                  width: 0.8,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s16,
+                  vertical: AppSpacing.s16,
+                ),
+                child: Row(
+                  children: [
+                    // ── Icon container ──
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        gradient: device.isPaired
+                            ? const LinearGradient(
+                                colors: AppColors.glowGradient,
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                        color: device.isPaired
+                            ? null
+                            : AppColors.surfaceElevated,
+                      ),
+                      child: Icon(
+                        Icons.tv_rounded,
+                        color: device.isPaired
+                            ? Colors.white
+                            : AppColors.muted.withValues(alpha: 0.7),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.s12),
+
+                    // ── Name + IP ──
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            device.name,
+                            style: const TextStyle(
+                              fontFamily: 'Satoshi',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.onBackground,
+                              letterSpacing: -0.1,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(
+                                device.ipAddress,
+                                style: TextStyle(
+                                  fontFamily: 'Satoshi',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColors.muted.withValues(
+                                    alpha: 0.75,
+                                  ),
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.s8),
+                              // Signal dots
+                              _SignalDots(strength: device.signalStrength),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.s8),
+
+                    // ── Status badge ──
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (device.isPaired)
+                          const _StatusBadge(label: 'Paired', filled: true)
+                        else if (hasPreviousConnected)
+                          const _StatusBadge(
+                            label: 'Previously connected',
+                            filled: false,
+                          ),
+                        const SizedBox(height: 4),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.muted,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        )
+        .animate(delay: Duration(milliseconds: index * 50))
+        .fadeIn(duration: 350.ms)
+        .slideY(begin: 0.15, end: 0, curve: Curves.easeOut);
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final bool filled;
+
+  const _StatusBadge({required this.label, required this.filled});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: filled ? AppColors.primary : Colors.transparent,
+        borderRadius: BorderRadius.circular(100),
+        border: filled
+            ? null
+            : Border.all(
+                color: AppColors.muted.withValues(alpha: 0.4),
+                width: 0.8,
+              ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'Satoshi',
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: filled ? Colors.white : AppColors.muted,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+}
+
+class _SignalDots extends StatelessWidget {
+  final int strength; // 0–4
+
+  const _SignalDots({required this.strength});
+
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
-        Container(
-              width: 12,
-              height: 12,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
+      children: List.generate(4, (i) {
+        final filled = i < strength;
+        return Container(
+          margin: const EdgeInsets.only(right: 2),
+          width: 4,
+          height: 4,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: filled
+                ? AppColors.primary.withValues(alpha: 0.9)
+                : AppColors.muted.withValues(alpha: 0.25),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Skeleton tile shimmer
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SkeletonTile extends StatelessWidget {
+  const _SkeletonTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      child: Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border, width: 0.8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s16,
+            vertical: AppSpacing.s16,
+          ),
+          child: Row(
+            children: [
+              // Icon skeleton
+              Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceElevated,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  )
+                  .animate(onPlay: (c) => c.repeat())
+                  .shimmer(
+                    duration: 1400.ms,
+                    color: AppColors.muted.withValues(alpha: 0.08),
+                  ),
+              const SizedBox(width: AppSpacing.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                          height: 12,
+                          width: 120,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceElevated,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        )
+                        .animate(onPlay: (c) => c.repeat())
+                        .shimmer(
+                          duration: 1400.ms,
+                          delay: 200.ms,
+                          color: AppColors.muted.withValues(alpha: 0.08),
+                        ),
+                    const SizedBox(height: 6),
+                    Container(
+                          height: 10,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceElevated,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        )
+                        .animate(onPlay: (c) => c.repeat())
+                        .shimmer(
+                          duration: 1400.ms,
+                          delay: 400.ms,
+                          color: AppColors.muted.withValues(alpha: 0.08),
+                        ),
+                  ],
+                ),
               ),
-            )
-            .animate(onPlay: (controller) => controller.repeat())
-            .scale(
-              begin: const Offset(1, 1),
-              end: const Offset(2, 2),
-              duration: 1000.ms,
-              curve: Curves.easeOut,
-            )
-            .fadeOut(duration: 1000.ms),
-        const SizedBox(width: AppSpacing.s16),
-        Text(
-          'Scanning for Android TV devices...',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppColors.muted,
-            fontWeight: FontWeight.w500,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty state (timeout, no devices)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _EmptyState extends StatelessWidget {
+  final VoidCallback onTryAgain;
+
+  const _EmptyState({required this.onTryAgain});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.35,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                    Icons.tv_off_rounded,
+                    size: 60,
+                    color: AppColors.muted.withValues(alpha: 0.4),
+                  )
+                  .animate()
+                  .fadeIn(duration: 500.ms)
+                  .scaleXY(begin: 0.8, curve: Curves.easeOutBack),
+              const SizedBox(height: AppSpacing.s20),
+              const Text(
+                'No TVs found',
+                style: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onBackground,
+                  letterSpacing: -0.2,
+                ),
+              ).animate(delay: 100.ms).fadeIn(duration: 400.ms),
+              const SizedBox(height: AppSpacing.s8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 48),
+                child: Text(
+                  'Make sure your TV is on and connected to the same WiFi network.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.muted.withValues(alpha: 0.75),
+                    height: 1.6,
+                  ),
+                ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
+              ),
+              const SizedBox(height: AppSpacing.s24),
+              OutlinedButton(
+                onPressed: onTryAgain,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary, width: 1.2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s24,
+                    vertical: AppSpacing.s12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Try Again',
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
+            ],
           ),
         ),
       ],
@@ -284,104 +956,476 @@ class _ScanningHeader extends StatelessWidget {
   }
 }
 
-class _DeviceListCard extends ConsumerWidget {
-  final TvDevice device;
+// ─────────────────────────────────────────────────────────────────────────────
+// Manual IP button
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const _DeviceListCard({required this.device});
-
+class _ManualIpButton extends StatelessWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.s16),
-      child: InkWell(
-        onTap: () async {
-          // Initiate pairing and navigate
-          await ref
-              .read(pairingNotifierProvider.notifier)
-              .connectToDevice(device);
-          if (context.mounted) {
-            unawaited(context.push('/pairing'));
-          }
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.s20),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.tv_rounded,
-                  color: AppColors.primary,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.s20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      device.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      device.ipAddress,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(letterSpacing: 0.5),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.muted),
-            ],
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s8, top: AppSpacing.s4),
+      child: TextButton.icon(
+        onPressed: () => _showManualIpSheet(context),
+        icon: const Icon(
+          Icons.keyboard_rounded,
+          color: AppColors.muted,
+          size: 18,
+        ),
+        label: const Text(
+          'Enter IP manually',
+          style: TextStyle(
+            fontFamily: 'Satoshi',
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.muted,
           ),
         ),
+        style: TextButton.styleFrom(
+          splashFactory: InkRipple.splashFactory,
+          overlayColor: AppColors.primary.withValues(alpha: 0.08),
+        ),
       ),
-    ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0);
+    );
+  }
+
+  void _showManualIpSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _ManualIpBottomSheet(),
+    );
   }
 }
 
-class _EmptyDiscoveryState extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// Manual IP bottom sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ManualIpBottomSheet extends ConsumerStatefulWidget {
+  const _ManualIpBottomSheet();
+
+  @override
+  ConsumerState<_ManualIpBottomSheet> createState() =>
+      _ManualIpBottomSheetState();
+}
+
+class _ManualIpBottomSheetState extends ConsumerState<_ManualIpBottomSheet> {
+  final _ipCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController();
+  String? _ipError;
+  bool _isLoading = false;
+
+  static const _ipPattern =
+      r'^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$';
+
+  @override
+  void dispose() {
+    _ipCtrl.dispose();
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  bool _validateIp(String ip) {
+    return RegExp(_ipPattern).hasMatch(ip);
+  }
+
+  Future<void> _handleConnect() async {
+    final ip = _ipCtrl.text.trim();
+
+    if (!_validateIp(ip)) {
+      setState(() => _ipError = 'Enter a valid IP address (e.g. 192.168.1.50)');
+      return;
+    }
+    setState(() {
+      _ipError = null;
+      _isLoading = true;
+    });
+
+    final name = _nameCtrl.text.trim().isEmpty
+        ? 'Android TV'
+        : _nameCtrl.text.trim();
+
+    await ref
+        .read(discoveryNotifierProvider.notifier)
+        .addManualDevice(ip, name);
+
+    if (!mounted) return;
+
+    final error = ref.read(discoveryErrorProvider);
+    setState(() => _isLoading = false);
+
+    if (error != null) {
+      setState(() => _ipError = error.toString());
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.wifi_find_rounded,
-            size: 80,
-            color: AppColors.muted.withAlpha(50),
-          ),
-          const SizedBox(height: AppSpacing.s24),
-          Text(
-            'No devices found yet',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: AppColors.muted),
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48),
-            child: Text(
-              'Make sure your Android TV is on the same Wi-Fi network.',
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.muted),
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.s24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: AppSpacing.s20),
+                decoration: BoxDecoration(
+                  color: AppColors.muted.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
             ),
-          ),
-        ],
+
+            // Title
+            const Text(
+              'Enter TV IP Address',
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onBackground,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s4),
+
+            // Subtitle
+            Text(
+              'Find IP: TV Settings → About → Status → IP address',
+              style: TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: AppColors.muted.withValues(alpha: 0.7),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s24),
+
+            // IP field
+            TextField(
+              controller: _ipCtrl,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [_IpAddressFormatter()],
+              style: const TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onBackground,
+                letterSpacing: 0.5,
+              ),
+              decoration: InputDecoration(
+                hintText: '192.168.1.X',
+                hintStyle: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.muted.withValues(alpha: 0.4),
+                  letterSpacing: 0.5,
+                ),
+                errorText: _ipError,
+                errorStyle: const TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 12,
+                  color: AppColors.error,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.border,
+                    width: 0.8,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 1.5,
+                  ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.error,
+                    width: 1.0,
+                  ),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.error,
+                    width: 1.5,
+                  ),
+                ),
+                filled: true,
+                fillColor: AppColors.surfaceElevated,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s16,
+                  vertical: AppSpacing.s16,
+                ),
+              ),
+              onChanged: (_) {
+                if (_ipError != null) setState(() => _ipError = null);
+              },
+            ),
+
+            const SizedBox(height: AppSpacing.s12),
+
+            // Device name field
+            TextField(
+              controller: _nameCtrl,
+              style: const TextStyle(
+                fontFamily: 'Satoshi',
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: AppColors.onBackground,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Living Room TV (optional)',
+                hintStyle: TextStyle(
+                  fontFamily: 'Satoshi',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.muted.withValues(alpha: 0.4),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.border,
+                    width: 0.8,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 1.5,
+                  ),
+                ),
+                filled: true,
+                fillColor: AppColors.surfaceElevated,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s16,
+                  vertical: AppSpacing.s16,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.s20),
+
+            // Connect button
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleConnect,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  disabledBackgroundColor: AppColors.primary.withValues(
+                    alpha: 0.5,
+                  ),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : const Text(
+                        'Connect',
+                        style: TextStyle(
+                          fontFamily: 'Satoshi',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.s8),
+          ],
+        ),
       ),
     );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IP address input formatter
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _IpAddressFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    // Allow only digits and dots, max 15 chars  (e.g. "255.255.255.255")
+    if (text.length > 15) return oldValue;
+    final cleaned = text.replaceAll(RegExp(r'[^0-9.]'), '');
+    if (cleaned == text) return newValue;
+    return newValue.copyWith(text: cleaned);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bottom navigation bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _BottomNavBar extends StatelessWidget {
+  final int currentIndex;
+
+  const _BottomNavBar({required this.currentIndex});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.border, width: 0.6)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: NavigationBar(
+          height: 64,
+          backgroundColor: Colors.transparent,
+          indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+          selectedIndex: currentIndex,
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          onDestinationSelected: (i) {
+            if (i == currentIndex) return;
+            switch (i) {
+              case 0:
+                context.go('/discovery');
+              case 2:
+                context.go('/remote');
+              case 3:
+                context.push('/settings');
+            }
+          },
+          destinations: [
+            NavigationDestination(
+              icon: Icon(
+                Icons.wifi_find_rounded,
+                color: AppColors.muted.withValues(alpha: 0.6),
+              ),
+              selectedIcon: const Icon(
+                Icons.wifi_find_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Remote',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.grid_view_rounded,
+                color: AppColors.muted.withValues(alpha: 0.6),
+              ),
+              selectedIcon: const Icon(
+                Icons.grid_view_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Apps',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.live_tv_rounded,
+                color: AppColors.muted.withValues(alpha: 0.6),
+              ),
+              selectedIcon: const Icon(
+                Icons.live_tv_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Channel',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.settings_outlined,
+                color: AppColors.muted.withValues(alpha: 0.6),
+              ),
+              selectedIcon: const Icon(
+                Icons.settings_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Settings',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Connecting overlay
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ConnectingOverlay extends StatelessWidget {
+  const _ConnectingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+          color: AppColors.background.withValues(alpha: 0.85),
+          child: const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
+                    strokeWidth: 3,
+                  ),
+                ),
+                SizedBox(height: AppSpacing.s16),
+                Text(
+                  'Connecting…',
+                  style: TextStyle(
+                    fontFamily: 'Satoshi',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.onBackground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 200.ms)
+        .scaleXY(begin: 0.96, curve: Curves.easeOut);
   }
 }
