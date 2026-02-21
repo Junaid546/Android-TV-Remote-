@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option java_package = "com.tvremote.app.proto";
+option java_outer_classname = "RemoteProto";
+option java_multiple_files = false;
+option optimize_for = LITE_RUNTIME;
+
+message RemoteMessage {
+  oneof union {
+    RemoteKeyInject remote_key_inject = 1;
+    RemotePingRequest remote_ping_request = 7;
+    RemotePingResponse remote_ping_response = 8;
+  }
+}
+
+message RemoteKeyInject {
+  RemoteKeyCode key_code = 1;
+  RemoteDirection direction = 2;
+}
+
+enum RemoteKeyCode {
+  KEYCODE_UNKNOWN = 0;
+  KEYCODE_DPAD_UP = 19;
+  KEYCODE_DPAD_DOWN = 20;
+  KEYCODE_DPAD_LEFT = 21;
+  KEYCODE_DPAD_RIGHT = 22;
+  KEYCODE_DPAD_CENTER = 23;
+  KEYCODE_BACK = 4;
+  KEYCODE_HOME = 3;
+  KEYCODE_VOLUME_UP = 24;
+  KEYCODE_VOLUME_DOWN = 25;
+  KEYCODE_VOLUME_MUTE = 164;
+  KEYCODE_POWER = 26;
+  KEYCODE_CHANNEL_UP = 166;
+  KEYCODE_CHANNEL_DOWN = 167;
+  KEYCODE_MEDIA_PLAY_PAUSE = 85;
+  KEYCODE_MEDIA_REWIND = 89;
+  KEYCODE_MEDIA_FAST_FORWARD = 90;
+}
+
+enum RemoteDirection {
+  REMOTE_DIRECTION_UNKNOWN = 0;
+  REMOTE_DIRECTION_DOWN = 1;
+  REMOTE_DIRECTION_UP = 2;
+}
+
+message RemotePingRequest {
+  int32 val1 = 1;
+}
+
+message RemotePingResponse {
+  int32 val1 = 1;
+}

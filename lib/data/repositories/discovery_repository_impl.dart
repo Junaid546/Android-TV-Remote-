@@ -26,18 +26,19 @@ class DiscoveryRepositoryImpl implements DiscoveryRepository {
       await _nativeDatasource.startDiscovery();
 
       _nativeDatasource.discoveryStream.listen(
-        (event) {
-          final device = TvDevice(
-            id: event['id'] as String,
-            name: event['name'] as String,
-            ipAddress: event['ip'] as String,
-            port: event['port'] as int,
-            isPaired: false,
-            lastConnected: DateTime.now(),
-          );
+        (devices) {
+          final tvDevices = devices.map((event) {
+            return TvDevice(
+              id: event['id'] as String,
+              name: event['name'] as String,
+              ipAddress: event['ip'] as String,
+              port: event['port'] as int,
+              isPaired: false,
+              lastConnected: DateTime.now(),
+            );
+          }).toList();
 
-          _discoveredDevices[device.id] = device;
-          _devicesController.add(Right(_discoveredDevices.values.toList()));
+          _devicesController.add(Right(tvDevices));
         },
         onError: (e) {
           _devicesController.add(Left(NetworkFailure(e.toString())));
@@ -65,14 +66,19 @@ class DiscoveryRepositoryImpl implements DiscoveryRepository {
     String ipAddress,
     String name,
   ) async {
-    final device = TvDevice(
-      id: 'manual_$ipAddress',
-      name: name,
-      ipAddress: ipAddress,
-      port: 6466, // Default remote port
-      isPaired: false,
-      lastConnected: DateTime.now(),
-    );
-    return Right(device);
+    try {
+      final result = await _nativeDatasource.addManualDevice(ipAddress, name);
+      final device = TvDevice(
+        id: result['id'] as String,
+        name: result['name'] as String,
+        ipAddress: result['ip'] as String,
+        port: result['port'] as int,
+        isPaired: false,
+        lastConnected: DateTime.now(),
+      );
+      return Right(device);
+    } catch (e) {
+      return Left(NetworkFailure(e.toString()));
+    }
   }
 }

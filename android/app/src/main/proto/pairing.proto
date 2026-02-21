@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option java_package = "com.tvremote.app.proto";
+option java_outer_classname = "PairingProto";
+option java_multiple_files = false;
+option optimize_for = LITE_RUNTIME;
+
+message PairingRequest {
+  string service_name = 1;
+  string client_name = 2;
+}
+
+message PairingOption {
+  RoleType preferred_role = 1;
+  repeated PairingEncoding input_encodings = 2;
+}
+
+enum RoleType {
+  ROLE_TYPE_UNKNOWN = 0;
+  ROLE_TYPE_INPUT = 1;
+  ROLE_TYPE_OUTPUT = 2;
+}
+
+message PairingEncoding {
+  EncodingType type = 1;
+  uint32 symbol_length = 2;
+}
+
+enum EncodingType {
+  ENCODING_TYPE_UNKNOWN = 0;
+  ENCODING_TYPE_ALPHANUMERIC = 1;
+  ENCODING_TYPE_NUMERIC = 2;
+  ENCODING_TYPE_HEXADECIMAL = 3;
+  ENCODING_TYPE_QRCODE = 4;
+}
+
+message PairingSecret {
+  bytes secret = 1;
+}
+
+message PairingMessage {
+  Status status = 1;
+  oneof payload {
+    PairingRequest pairing_request = 10;
+    PairingOption pairing_option = 11;
+    PairingSecret pairing_secret = 12;
+  }
+}
+
+message Status {
+  RpcStatus code = 1;
+}
+
+enum RpcStatus {
+  STATUS_UNKNOWN = 0;
+  STATUS_OK = 200;
+  STATUS_ERROR = 400;
+  STATUS_BAD_SECRET = 401;
+}

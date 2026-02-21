@@ -32,9 +32,27 @@ class DiscoveryNativeDatasource {
     }
   }
 
-  Stream<Map<String, dynamic>> get discoveryStream {
+  Stream<List<Map<String, dynamic>>> get discoveryStream {
     return _eventChannel.receiveBroadcastStream().map((event) {
-      return Map<String, dynamic>.from(event as Map);
+      final list = event as List<dynamic>;
+      return list
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
     });
+  }
+
+  Future<Map<String, dynamic>> addManualDevice(String ip, String name) async {
+    try {
+      final result = await _methodChannel.invokeMethod('addManualDevice', {
+        'ip': ip,
+        'name': name,
+      });
+      return Map<String, dynamic>.from(result as Map);
+    } on PlatformException catch (e) {
+      throw NativeChannelException(
+        e.code,
+        e.message ?? 'Failed to add manual device',
+      );
+    }
   }
 }
