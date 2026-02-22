@@ -1,9 +1,15 @@
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/core/theme/app_spacing.dart';
+import 'package:atv_remote/core/utils/haptic_service.dart';
+import 'package:atv_remote/core/utils/failure_mapper.dart';
+import 'package:atv_remote/core/errors/failures.dart';
 import 'package:atv_remote/domain/entities/pairing_status.dart';
 import 'package:atv_remote/presentation/providers/connection_provider.dart';
 import 'package:atv_remote/presentation/providers/saved_devices_provider.dart';
 import 'package:atv_remote/presentation/providers/use_case_providers.dart';
+import 'package:atv_remote/presentation/screens/pairing/pairing_screen_notifier.dart';
+import 'package:atv_remote/presentation/screens/pairing/widgets/pin_countdown_timer.dart';
+import 'package:atv_remote/presentation/screens/pairing/widgets/pin_input_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,32 +27,91 @@ class PairingScreen extends ConsumerStatefulWidget {
 class _PairingScreenState extends ConsumerState<PairingScreen> {
   final _pinController = TextEditingController();
   final _focusNode = FocusNode();
+  final _shakeNotifier = ValueNotifier<bool>(false);
 
   @override
   void dispose() {
     _pinController.dispose();
     _focusNode.dispose();
+    _shakeNotifier.dispose();
     super.dispose();
+  }
+
+  void _triggerShake() async {
+    _shakeNotifier.value = true;
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) _shakeNotifier.value = false;
   }
 
   @override
   Widget build(BuildContext context) {
     final status = ref.watch(connectionNotifierProvider);
+    final pairingState = ref.watch(pairingScreenNotifierProvider);
 
-    // Listen for success to navigate and save
     ref.listen(connectionNotifierProvider, (previous, next) {
-      if (next is Paired) {
-        // Save the device locally using use case directly or refresh provider
+      if (next is Connected) {
+        context.go('/remote');
+      } else if (next is Paired) {
         ref.read(saveDeviceUseCaseProvider)(next.device).then((_) {
           ref.read(savedDevicesNotifierProvider.notifier).refresh();
         });
-        // Navigate to Remote
-        context.go('/remote');
+      } else if (next is PinError) {
+        ref
+            .read(pairingScreenNotifierProvider.notifier)
+            .handleError(WrongPinFailure(next.attemptsLeft));
+        _pinController.clear();
+        _triggerShake();
+      } else if (next is ConnectionFailed) {
+        // Show error, context.pop() after 2s
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              next.failure.userMessage,
+            ), // Assuming failure.userMessage uses mapper
+            backgroundColor: AppColors.error,
+          ),
+        );
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            // ignore: use_build_context_synchronously
+            context.pop();
+          }
+        });
+      } else if (next is Disconnected && next.reason.contains('expired')) {
+        context.pop();
+      } else if (next is PinExpiredFailure) {
+        // Handles failure
+        context.pop();
       }
     });
 
+    // Update text controller if state was cleared
+    if (pairingState.pin.isEmpty && _pinController.text.isNotEmpty) {
+      _pinController.clear();
+    }
+
+    String appBarTitle = 'Pair Device';
+    String? deviceName;
+    String? deviceIp;
+
+    status.maybeWhen(
+      awaitingPin: (device, _) {
+        deviceName = device.name;
+        deviceIp = device.ipAddress;
+        appBarTitle = 'Pair with ${device.name}';
+      },
+      connecting: (device) {
+        deviceName = device.name;
+        deviceIp = device.ipAddress;
+        appBarTitle = 'Connecting...';
+      },
+      orElse: () {},
+    );
+
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
+        title: Text(appBarTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -54,156 +119,189 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
             ref.read(connectionNotifierProvider.notifier).disconnect();
             context.pop();
           },
-          icon: const Icon(Icons.close_rounded),
+          icon: const Icon(Icons.arrow_back_rounded),
         ),
       ),
-      body: _buildStatusBody(context, status),
-    );
-  }
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: AppSpacing.s32),
 
-  Widget _buildStatusBody(BuildContext context, PairingStatus status) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.s32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icon/Status Illustration
-          _buildStatusIcon(status),
-          const SizedBox(height: AppSpacing.s48),
+                // 1. TV Name area
+                Container(
+                      padding: const EdgeInsets.all(AppSpacing.s24),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(25), // ~10% opacity
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.tv_rounded,
+                        size: 64,
+                        color: AppColors.primary,
+                      ),
+                    )
+                    .animate(
+                      onPlay: (controller) => controller.repeat(reverse: true),
+                    )
+                    .scale(
+                      begin: const Offset(1, 1),
+                      end: const Offset(1.05, 1.05),
+                      duration: 2.seconds,
+                    ),
 
-          // Message
-          Text(
-            _getStatusMessage(status),
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                const SizedBox(height: AppSpacing.s24),
+                if (deviceName != null) ...[
+                  Text(
+                    deviceName!,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    deviceIp ?? '',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+
+                const SizedBox(height: AppSpacing.s48),
+
+                // 2. Instruction text
+                Text(
+                  'A PIN is displayed on your TV screen.',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Enter the PIN below to pair.',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: AppSpacing.s48),
+
+                // 3 & 4. PIN Input Row Stack
+                ValueListenableBuilder<bool>(
+                  valueListenable: _shakeNotifier,
+                  builder: (context, shouldShake, child) {
+                    Widget row = Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        PinInputRow(
+                          pin: pairingState.pin,
+                          hasError: pairingState.errorMessage != null,
+                        ),
+                        Opacity(
+                          opacity: 0.0,
+                          child: TextField(
+                            controller: _pinController,
+                            focusNode: _focusNode,
+                            autofocus: true,
+                            showCursor: false,
+                            keyboardType: TextInputType.number,
+                            maxLength: 6,
+                            onChanged: (value) {
+                              ref
+                                  .read(pairingScreenNotifierProvider.notifier)
+                                  .updatePin(value);
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+
+                    if (shouldShake) {
+                      row = row
+                          .animate(
+                            onPlay: (controller) => controller.forward(from: 0),
+                          )
+                          .shakeX(hz: 8, amount: 8, duration: 500.ms);
+                    }
+                    return row;
+                  },
+                ),
+
+                const SizedBox(height: AppSpacing.s16),
+
+                // 5. Error state
+                if (pairingState.errorMessage != null)
+                  Text(
+                    pairingState.errorMessage!,
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ).animate().fadeIn().slideY(),
+
+                const SizedBox(height: AppSpacing.s48),
+
+                // 6. PIN Expiry Timer
+                const PinCountdownTimer(),
+
+                const SizedBox(height: AppSpacing.s48),
+
+                // 7. "Confirm" button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed:
+                        pairingState.pin.length == 6 &&
+                            !pairingState.isSubmitting
+                        ? () {
+                            HapticService.medium();
+                            ref
+                                .read(pairingScreenNotifierProvider.notifier)
+                                .submitPin();
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      disabledBackgroundColor: AppColors.primary.withAlpha(50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    child: pairingState.isSubmitting
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                        : const Text(
+                            'Confirm',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s32),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.s16),
-          Text(
-            _getStatusSubtitle(status),
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(color: AppColors.muted),
-          ),
-
-          const SizedBox(height: AppSpacing.s48),
-
-          // Interaction Area (e.g. PIN input)
-          if (status is AwaitingPin) ...[
-            TextField(
-              controller: _pinController,
-              focusNode: _focusNode,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 20,
-              ),
-              maxLength: 6,
-              decoration: InputDecoration(
-                counterText: '',
-                hintText: '000000',
-                hintStyle: TextStyle(color: AppColors.muted.withAlpha(50)),
-              ),
-              onChanged: (value) {
-                if (value.length == 6) {
-                  _submitPin(value);
-                }
-              },
-            ),
-            const SizedBox(height: AppSpacing.s32),
-            ElevatedButton(
-              onPressed: () => _submitPin(_pinController.text),
-              child: const Text('Pair Device'),
-            ),
-          ],
-
-          if (status is ConnectionFailed || status is PinError) ...[
-            ElevatedButton(
-              onPressed: () {
-                _pinController.clear();
-                // We might need to restart connecting, but the notifier logic depends on how it's implemented.
-                // For now, go back to discovery.
-                context.pop();
-              },
-              child: const Text('Try Again'),
-            ),
-          ],
-
-          if (status is Connecting) ...[
-            const CircularProgressIndicator(color: AppColors.primary),
-          ],
-        ],
+        ),
       ),
     );
-  }
-
-  Widget _buildStatusIcon(PairingStatus status) {
-    IconData iconData = Icons.bluetooth_searching_rounded;
-    Color color = AppColors.primary;
-
-    if (status is AwaitingPin) {
-      iconData = Icons.pin_rounded;
-    } else if (status is Paired || status is Connected) {
-      iconData = Icons.done_all_rounded;
-      color = AppColors.success;
-    } else if (status is ConnectionFailed || status is PinError) {
-      iconData = Icons.error_outline_rounded;
-      color = AppColors.error;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(iconData, size: 80, color: color),
-    ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack);
-  }
-
-  String _getStatusMessage(PairingStatus status) {
-    return status.when(
-      idle: () => 'Ready to Pair',
-      discoveryStarted: () => 'Discovering...',
-      devicesFound: (devices) => 'Devices Found',
-      connecting: (device) => 'Connecting to ${device.name}',
-      awaitingPin: (device, expires) => 'Enter PIN',
-      pinVerified: (device) => 'PIN Verified!',
-      paired: (device) => 'Successfully Paired!',
-      connected: (device) => 'Connected',
-      reconnecting: (device, attempt) => 'Reconnecting...',
-      disconnected: (last, reason) => 'Disconnected',
-      connectionFailed: (device, failure) => 'Connection Failed',
-      pinError: (device, left, msg) => 'Invalid PIN',
-    );
-  }
-
-  String _getStatusSubtitle(PairingStatus status) {
-    return status.when(
-      idle: () => 'Select a device to start pairing.',
-      discoveryStarted: () => 'Searching for devices...',
-      devicesFound: (devices) => 'Found ${devices.length} devices.',
-      connecting: (device) => 'Establishing a secure connection...',
-      awaitingPin: (device, expires) =>
-          'A ${device.name} will show a PIN code. Please enter it here.',
-      pinVerified: (device) => 'Waiting for authentication...',
-      paired: (device) => 'Redirecting you to the remote...',
-      connected: (device) => 'Ready to control.',
-      reconnecting: (device, attempt) =>
-          'Connection lost. Retrying ($attempt)...',
-      disconnected: (last, reason) => reason,
-      connectionFailed: (device, failure) => failure.toString(),
-      pinError: (device, left, msg) => msg,
-    );
-  }
-
-  void _submitPin(String pin) {
-    if (pin.length < 4) return;
-    ref.read(connectionNotifierProvider.notifier).submitPin(pin);
   }
 }

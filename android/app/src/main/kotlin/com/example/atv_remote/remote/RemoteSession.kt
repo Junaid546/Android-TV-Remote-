@@ -2,8 +2,6 @@ package com.example.atv_remote.remote
 
 import android.util.Log
 import com.example.atv_remote.pairing.CertificateStore
-import com.example.atv_remote.pairing.TlsHandshakeException
-import com.example.atv_remote.pairing.TlsSocketFactory
 import com.tvremote.app.proto.RemoteProto.RemoteDirection
 import com.tvremote.app.proto.RemoteProto.RemoteKeyCode
 import com.tvremote.app.proto.RemoteProto.RemoteKeyInject
@@ -28,26 +26,12 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.SSLSocket
 
-/**
- * Manages the persistent TLS remote-control connection to an Android TV device.
- *
- * Responsibilities:
- * - Opens a mutual-TLS socket on port 6466.
- * - Sends [RemoteKeyInject] protobuf messages for key events.
- * - Sends periodic [RemotePingRequest] keep-alive pings every 5 s.
- * - Receives and handles [RemotePingResponse] messages.
- * - Reconnects automatically with linear back-off (up to MAX_RECONNECT_ATTEMPTS).
- * - Exposes [connectionState] as a [StateFlow] for the Flutter layer.
- *
- * Thread safety: all socket writes are serialised through [outputLock].
- */
 class RemoteSession(
     private val certStore: CertificateStore,
     private val scope: CoroutineScope
 ) {
     private val tag = "TvRemote"
 
-    // ── Constants ───────────────────────────────────────────────────────────────
     companion object {
         const val REMOTE_PORT = 6466
         const val KEEP_ALIVE_INTERVAL_MS = 5_000L
@@ -57,37 +41,24 @@ class RemoteSession(
         const val MAX_MESSAGE_BYTES = 1_048_576 // 1 MB guard
     }
 
-    // ── State ───────────────────────────────────────────────────────────────────
     private val _connectionState =
         MutableStateFlow<RemoteConnectionState>(RemoteConnectionState.Disconnected)
     val connectionState: StateFlow<RemoteConnectionState> = _connectionState.asStateFlow()
 
-    // ── Socket / Stream references ──────────────────────────────────────────────
     @Volatile private var socket: SSLSocket? = null
     @Volatile private var outputStream: DataOutputStream? = null
     @Volatile private var inputStream: DataInputStream? = null
 
-    // ── Jobs ────────────────────────────────────────────────────────────────────
     private var keepAliveJob: Job? = null
     private var receiveJob: Job? = null
 
-    // ── Reconnect tracking ──────────────────────────────────────────────────────
     private var reconnectAttempts = 0
     private var currentDeviceIp: String? = null
     private var currentDeviceName: String = ""
 
-    // ── Write serialisation ─────────────────────────────────────────────────────
     private val outputLock = Mutex()
-
-    // ── Guard against repeated handleDisconnection calls ───────────────────────
     private val handlingDisconnection = AtomicBoolean(false)
 
-    // ── Public API ──────────────────────────────────────────────────────────────
-
-    /**
-     * Opens a new mTLS remote socket and begins keep-alive + receive loops.
-     * Safe to call from any coroutine context.
-     */
     suspend fun connect(
         deviceIp: String,
         deviceName: String,
@@ -100,7 +71,7 @@ class RemoteSession(
 
         withContext(Dispatchers.IO) {
             try {
-                val rawSocket = TlsSocketFactory.createRemoteSocket(deviceIp, port, certStore)
+                val rawSocket = createRemoteSocket(deviceIp, port)
                 socket = rawSocket
                 outputStream = DataOutputStream(rawSocket.outputStream)
                 inputStream = DataInputStream(rawSocket.inputStream)
@@ -112,23 +83,72 @@ class RemoteSession(
 
                 startKeepAlive()
                 startReceiving()
-            } catch (e: TlsHandshakeException) {
-                Log.e(tag, "TLS handshake failed: ${e.message}", e)
-                scheduleReconnectOrFail("TLS error: ${e.message}")
-            } catch (e: IOException) {
-                Log.e(tag, "IO error on connect: ${e.message}", e)
-                scheduleReconnectOrFail("IO error: ${e.message}")
             } catch (e: Exception) {
                 Log.e(tag, "Unexpected connect error: ${e.javaClass.simpleName}: ${e.message}", e)
-                scheduleReconnectOrFail("Connect failed: ${e.message}")
+                if (e is javax.net.ssl.SSLHandshakeException || e.message?.contains("handshake") == true) {
+                    certStore.clearServerCertificate(deviceIp)
+                    _connectionState.value = RemoteConnectionState.Failed(deviceIp, "REPAIRING_NEEDED")
+                } else {
+                    scheduleReconnectOrFail("Connect failed: ${e.message}")
+                }
             }
         }
     }
 
-    /**
-     * Injects a single key event.
-     * [direction]: 1 = DOWN, 2 = UP
-     */
+    private fun createRemoteSocket(host: String, port: Int = REMOTE_PORT): SSLSocket {
+        Log.d(tag, "Creating REMOTE socket → $host:$port")
+
+        val sslContext = certStore.createMutualTlsContext(host)
+        var remoteSocket = sslContext.socketFactory.createSocket() as SSLSocket
+
+        remoteSocket.useClientMode = true
+        remoteSocket.soTimeout = 35_000
+        remoteSocket.tcpNoDelay = true
+        remoteSocket.keepAlive = true
+
+        try {
+            val params = remoteSocket.sslParameters
+            params.serverNames = listOf(javax.net.ssl.SNIHostName(host))
+            remoteSocket.sslParameters = params
+        } catch (e: Exception) {
+            Log.w(tag, "SNI setup failed (non-fatal): ${e.message}")
+        }
+
+        try {
+            remoteSocket.enabledProtocols = arrayOf("TLSv1.2")
+            remoteSocket.connect(java.net.InetSocketAddress(host, port), 10_000)
+            remoteSocket.startHandshake()
+        } catch (e: Exception) {
+            Log.w(tag, "TLSv1.2 failed, trying TLSv1.3: ${e.message}")
+            try { remoteSocket.close() } catch (_: Exception) {}
+
+            remoteSocket = sslContext.socketFactory.createSocket() as SSLSocket
+            remoteSocket.useClientMode = true
+            remoteSocket.soTimeout = 35_000
+            remoteSocket.tcpNoDelay = true
+            remoteSocket.keepAlive = true
+            remoteSocket.enabledProtocols = arrayOf("TLSv1.3")
+
+            try {
+                val params = remoteSocket.sslParameters
+                params.serverNames = listOf(javax.net.ssl.SNIHostName(host))
+                remoteSocket.sslParameters = params
+            } catch (_: Exception) {}
+
+            try {
+                remoteSocket.connect(java.net.InetSocketAddress(host, port), 10_000)
+                remoteSocket.startHandshake()
+            } catch (e2: Exception) {
+                try { remoteSocket.close() } catch (_: Exception) {}
+                throw javax.net.ssl.SSLHandshakeException("Handshake failed for $host:$port")
+            }
+        }
+
+        Log.d(tag, "Cipher suite: ${remoteSocket.session.cipherSuite}")
+        Log.d(tag, "Protocol: ${remoteSocket.session.protocol}")
+        return remoteSocket
+    }
+
     suspend fun sendKey(keyCode: Int, direction: Int) {
         if (_connectionState.value !is RemoteConnectionState.Connected) {
             Log.w(tag, "sendKey ignored — not connected (state=${_connectionState.value})")
@@ -159,9 +179,6 @@ class RemoteSession(
         }
     }
 
-    /**
-     * Cleanly disconnects and resets state. Called by user intent or [onDestroy].
-     */
     fun disconnect() {
         Log.d(tag, "disconnect() called by user/system")
         keepAliveJob?.cancel()
@@ -173,9 +190,6 @@ class RemoteSession(
         _connectionState.value = RemoteConnectionState.Disconnected
     }
 
-    // ── Internal ────────────────────────────────────────────────────────────────
-
-    /** Sends length-prefixed protobuf bytes. Serialised via [outputLock]. */
     private suspend fun writeMessage(bytes: ByteArray) {
         outputLock.withLock {
             val dos = outputStream ?: throw IOException("Output stream is null — not connected")
@@ -254,12 +268,7 @@ class RemoteSession(
         }
     }
 
-    /**
-     * Idempotent disconnection handler. Uses [AtomicBoolean] to ensure only the first
-     * caller (keepAlive or receive) triggers the reconnect path; subsequent calls are no-ops.
-     */
     private suspend fun handleDisconnection(reason: String) {
-        // Only one coroutine wins — prevents double reconnect
         if (!handlingDisconnection.compareAndSet(false, true)) {
             Log.d(tag, "handleDisconnection suppressed (already handling): $reason")
             return
@@ -286,7 +295,6 @@ class RemoteSession(
                 ip, reconnectAttempts, MAX_RECONNECT_ATTEMPTS
             )
             delay(backoff)
-            // Reset guard so handleDisconnection can fire again after next attempt
             handlingDisconnection.set(false)
             connect(ip, currentDeviceName)
         } else {

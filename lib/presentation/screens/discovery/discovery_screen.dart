@@ -8,6 +8,7 @@ import 'package:atv_remote/domain/entities/tv_device.dart';
 import 'package:atv_remote/presentation/providers/connection_provider.dart';
 import 'package:atv_remote/presentation/providers/discovery_provider.dart';
 import 'package:atv_remote/presentation/providers/network_provider.dart';
+import 'package:atv_remote/presentation/screens/discovery/widgets/connecting_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -26,7 +27,6 @@ class DiscoveryScreen extends ConsumerStatefulWidget {
 }
 
 class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
-  OverlayEntry? _connectingOverlay;
   Timer? _timeoutTimer;
   bool _timedOut = false;
 
@@ -60,16 +60,19 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
     });
   }
 
-  void _showOverlay(BuildContext context) {
-    _removeOverlay();
-    final entry = OverlayEntry(builder: (_) => const _ConnectingOverlay());
-    _connectingOverlay = entry;
-    Overlay.of(context).insert(entry);
+  void _removeOverlay() {
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 
-  void _removeOverlay() {
-    _connectingOverlay?.remove();
-    _connectingOverlay = null;
+  void _showOverlay(BuildContext context, TvDevice device) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black54,
+      builder: (_) => ConnectingOverlay(deviceName: device.name),
+    );
   }
 
   Future<void> _pullToRefresh() async {
@@ -101,7 +104,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
     // ── Connection state reactions ──
     ref.listen<PairingStatus>(connectionNotifierProvider, (_, next) {
       next.maybeWhen(
-        connecting: (_) => _showOverlay(context),
+        connecting: (device) => _showOverlay(context, device),
         awaitingPin: (device, _) {
           _removeOverlay();
           if (mounted) {
@@ -1384,48 +1387,5 @@ class _BottomNavBar extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Connecting overlay
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _ConnectingOverlay extends StatelessWidget {
-  const _ConnectingOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-          color: AppColors.background.withValues(alpha: 0.85),
-          child: const Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
-                    strokeWidth: 3,
-                  ),
-                ),
-                SizedBox(height: AppSpacing.s16),
-                Text(
-                  'Connecting…',
-                  style: TextStyle(
-                    fontFamily: 'Satoshi',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.onBackground,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        )
-        .animate()
-        .fadeIn(duration: 200.ms)
-        .scaleXY(begin: 0.96, curve: Curves.easeOut);
   }
 }

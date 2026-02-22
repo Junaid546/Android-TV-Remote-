@@ -1,24 +1,15 @@
 package com.example.atv_remote.channels
 
-import android.util.Log
+import com.example.atv_remote.remote.RemoteConnectionState
 import com.example.atv_remote.remote.RemoteSession
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Bridges [RemoteSession] to Flutter via:
- * - MethodChannel: connect / sendKey / disconnect
- * - EventChannel: connection-state updates
- *
- * The special [direction] value 3 ("DOWN_UP") sends a discrete DOWN+UP
- * pair with an 80ms gap — used for momentary key presses from the UI.
- */
 class RemoteChannel(
     private val remoteSession: RemoteSession,
     private val binaryMessenger: BinaryMessenger,
@@ -26,10 +17,8 @@ class RemoteChannel(
 ) {
     companion object {
         const val METHOD_CHANNEL_NAME = "com.tvremote.app/remote"
-        const val EVENT_CHANNEL_NAME  = "com.tvremote.app/remote/events"
+        const val EVENT_CHANNEL_NAME = "com.tvremote.app/remote/events"
     }
-
-    private val tag = "TvRemote"
 
     fun register() {
         setupMethodChannel()
@@ -40,41 +29,32 @@ class RemoteChannel(
         MethodChannel(binaryMessenger, METHOD_CHANNEL_NAME).setMethodCallHandler { call, result ->
             when (call.method) {
                 "connect" -> {
-                    val ip   = call.argument<String>("ip")
+                    val ip = call.argument<String>("ip")
                         ?: return@setMethodCallHandler result.error("INVALID_ARGS", "ip required", null)
                     val name = call.argument<String>("name") ?: "TV"
-                    val port = call.argument<Int>("port") ?: 6466
-
-                    Log.d(tag, "MethodChannel: connect ip=$ip name=$name port=$port")
+                    val port = call.argument<Int>("port") ?: RemoteSession.REMOTE_PORT
                     scope.launch { remoteSession.connect(ip, name, port) }
                     result.success(null)
                 }
-
                 "sendKey" -> {
-                    val keyCode   = call.argument<Int>("keyCode")
+                    val keyCode = call.argument<Int>("keyCode")
                         ?: return@setMethodCallHandler result.error("INVALID_ARGS", "keyCode required", null)
-                    val direction = call.argument<Int>("direction") ?: 3  // default: DOWN_UP
-
-                    Log.d(tag, "MethodChannel: sendKey keyCode=$keyCode direction=$direction")
-                    scope.launch(Dispatchers.IO) {
-                        when (direction) {
-                            3 -> { // DOWN_UP — press and release
-                                remoteSession.sendKey(keyCode, 1) // DOWN
-                                delay(80)
-                                remoteSession.sendKey(keyCode, 2) // UP
-                            }
-                            else -> remoteSession.sendKey(keyCode, direction)
+                    val direction = call.argument<Int>("direction") ?: 3
+                    scope.launch {
+                        if (direction == 3) {
+                            remoteSession.sendKey(keyCode, 1)
+                            delay(80)
+                            remoteSession.sendKey(keyCode, 2)
+                        } else {
+                            remoteSession.sendKey(keyCode, direction)
                         }
                     }
                     result.success(null)
                 }
-
                 "disconnect" -> {
-                    Log.d(tag, "MethodChannel: disconnect")
                     remoteSession.disconnect()
                     result.success(null)
                 }
-
                 else -> result.notImplemented()
             }
         }
@@ -83,11 +63,10 @@ class RemoteChannel(
     private fun setupEventChannel() {
         EventChannel(binaryMessenger, EVENT_CHANNEL_NAME).setStreamHandler(
             object : EventChannel.StreamHandler {
-                private var stateJob: Job? = null
+                private var job: Job? = null
 
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
-                    Log.d(tag, "RemoteChannel EventChannel: onListen")
-                    stateJob = scope.launch(Dispatchers.Main) {
+                    job = scope.launch {
                         remoteSession.connectionState.collect { state ->
                             sink?.success(state.toMap())
                         }
@@ -95,11 +74,23 @@ class RemoteChannel(
                 }
 
                 override fun onCancel(arguments: Any?) {
-                    Log.d(tag, "RemoteChannel EventChannel: onCancel")
-                    stateJob?.cancel()
-                    stateJob = null
+                    job?.cancel()
+                    job = null
                 }
             }
         )
+    }
+
+    private fun RemoteConnectionState.toMap(): Map<String, Any?> = when (this) {
+        is RemoteConnectionState.Disconnected ->
+            mapOf("state" to "DISCONNECTED")
+        is RemoteConnectionState.Connecting ->
+            mapOf("state" to "CONNECTING", "ip" to deviceIp)
+        is RemoteConnectionState.Connected ->
+            mapOf("state" to "CONNECTED", "ip" to deviceIp, "name" to deviceName)
+        is RemoteConnectionState.Reconnecting ->
+            mapOf("state" to "RECONNECTING", "ip" to deviceIp, "attempt" to attempt, "maxAttempts" to maxAttempts)
+        is RemoteConnectionState.Failed ->
+            mapOf("state" to "FAILED", "ip" to deviceIp, "reason" to reason)
     }
 }

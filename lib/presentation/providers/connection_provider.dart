@@ -89,4 +89,6 @@ extension PairingStatusX on PairingStatus {
     disconnected: (d, _) => d,
     orElse: () => null,
   );
+
+  bool get isConnected => this is Connected;
 }

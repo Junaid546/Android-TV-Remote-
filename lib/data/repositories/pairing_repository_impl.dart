@@ -1,3 +1,4 @@
+import 'package:atv_remote/core/constants/app_constants.dart';
 import 'package:atv_remote/core/errors/failures.dart';
 import 'package:atv_remote/data/datasources/native/pairing_native_datasource.dart';
 import 'package:atv_remote/domain/entities/pairing_status.dart';
@@ -15,6 +16,16 @@ class PairingRepositoryImpl implements PairingRepository {
   Stream<Either<Failure, PairingStatus>> get statusStream {
     return _nativeDataSource.pairingEventStream.map((event) {
       try {
+        final type = event['type'] as String?;
+
+        // Handle PIN_EXPIRY events (no 'state' key)
+        if (type == 'PIN_EXPIRY') {
+          final device = _currentDevice;
+          if (device == null) return const Right(PairingStatus.idle());
+          final seconds = event['seconds'] as int? ?? 60;
+          return Right(PairingStatus.awaitingPin(device, seconds));
+        }
+
         final state = event['state'] as String;
         final device = _currentDevice;
 
@@ -57,10 +68,10 @@ class PairingRepositoryImpl implements PairingRepository {
   @override
   Future<Either<Failure, void>> connectToDevice(TvDevice device) async {
     try {
-      _currentDevice = device;
+      _currentDevice = device.copyWith(port: AppConstants.kPairingPort);
       await _nativeDataSource.startPairing(
         device.ipAddress,
-        device.port,
+        AppConstants.kPairingPort,
         device.name,
       );
       return const Right(null);

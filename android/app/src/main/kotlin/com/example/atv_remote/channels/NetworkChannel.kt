@@ -10,17 +10,12 @@ import android.os.Looper
 import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
+import kotlinx.coroutines.CoroutineScope
 
-/**
- * Streams real-time network connectivity events to Flutter.
- * Uses [ConnectivityManager.NetworkCallback] for API 24+.
- *
- * Event shape: { "connected": Boolean, "type": "wifi"|"cellular"|"other"|"none" }
- */
 class NetworkChannel(
     private val context: Context,
     private val binaryMessenger: BinaryMessenger,
-    private val scope: kotlinx.coroutines.CoroutineScope
+    private val scope: CoroutineScope
 ) {
     companion object {
         const val EVENT_CHANNEL_NAME = "com.tvremote.app/network/events"
@@ -35,11 +30,11 @@ class NetworkChannel(
                 private val mainHandler = Handler(Looper.getMainLooper())
 
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
-                    Log.d(tag, "NetworkChannel: onListen")
+                    Log.d(tag, "NetworkChannel onListen")
                     val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-                        as ConnectivityManager
+                            as ConnectivityManager
 
-                    // Emit current state immediately so Flutter doesn't wait for a change
+                    // Emit current state immediately
                     mainHandler.post {
                         sink?.success(cm.currentConnectivityMap())
                     }
@@ -77,9 +72,9 @@ class NetworkChannel(
                 }
 
                 override fun onCancel(arguments: Any?) {
-                    Log.d(tag, "NetworkChannel: onCancel")
+                    Log.d(tag, "NetworkChannel onCancel")
                     val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-                        as ConnectivityManager
+                            as ConnectivityManager
                     networkCallback?.let {
                         try {
                             cm.unregisterNetworkCallback(it)
@@ -93,8 +88,6 @@ class NetworkChannel(
         )
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
-
     @SuppressLint("MissingPermission")
     private fun ConnectivityManager.currentConnectivityMap(): Map<String, Any> {
         val net = activeNetwork
@@ -105,7 +98,7 @@ class NetworkChannel(
     }
 
     private fun NetworkCapabilities.networkType(): String = when {
-        hasTransport(NetworkCapabilities.TRANSPORT_WIFI)     -> "wifi"
+        hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
         hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
         hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
         else -> "other"

@@ -55,6 +55,10 @@ flutter {
 dependencies {
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
     implementation "com.google.protobuf:protobuf-javalite:3.25.3"
+    
+    // BouncyCastle for robust software-based RSA key generation (bypasses Android Keystore hardware crashes)
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.77'
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.77'
 }
 
 protobuf {

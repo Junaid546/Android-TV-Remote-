@@ -5,161 +5,188 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.util.Log
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
-import java.math.BigInteger
+import java.io.ByteArrayInputStream
 import java.security.KeyPairGenerator
 import java.security.KeyStore
-import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.security.spec.ECGenParameterSpec
 import java.util.Date
 import javax.security.auth.x500.X500Principal
-
-// TEST: Call getClientCertificate() twice → must return same cert both times
-// TEST: Call getClientPrivateKey() → must not be null
-// TEST: getClientCertificateFingerprint() → must return non-empty string
-// TEST: saveServerCertificate("192.168.1.5", cert) then getServerCertificate("192.168.1.5")
-//       → must return cert with same encoded bytes
-// TEST: clearServerCertificate → getServerCertificate returns null
 
 class CertificateStore(private val context: Context) {
 
     private val tag = "TvCertStore"
-    private val keystoreAlias = "tvremote_client_key"
-    private val clientCertPrefKey = "client_certificate_pem"
-    private val androidKeyStoreName = "AndroidKeyStore"
+    private val androidKeyStore = "AndroidKeyStore"
 
-    private val encryptedPrefs by lazy {
-        Log.d(tag, "Initializing EncryptedSharedPreferences")
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
+    // One shared identity for all devices
+    private val clientAlias = "atv_remote_client_identity"
 
-        EncryptedSharedPreferences.create(
-            context,
-            "tv_remote_secure_prefs",
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    // ─────────────────────────────────────────────────────────────
+    // Client Identity (software-based to bypass AndroidKeyStore hardware crashes)
+    // ─────────────────────────────────────────────────────────────
+
+    fun generateIdentityIfNeeded() {
+        if (prefs().contains("client_cert") && prefs().contains("client_key")) {
+            return // Already generated
+        }
+
+        Log.i(tag, "Generating software-based RSA-2048 client identity...")
+
+        // 1. Generate RSA-2048 KeyPair in software (bypasses AndroidKeyStore strictness)
+        val kpg = KeyPairGenerator.getInstance("RSA")
+        kpg.initialize(2048)
+        val keyPair = kpg.generateKeyPair()
+
+        // 2. Generate Self-Signed X.509 Certificate using BouncyCastle
+        val now = System.currentTimeMillis()
+        val startDate = Date(now - 24 * 60 * 60 * 1000) // Yesterday
+        val endDate = Date(now + 10L * 365 * 24 * 60 * 60 * 1000) // 10 years
+
+        val certBuilder = org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder(
+            org.bouncycastle.asn1.x500.X500Name("CN=AndroidTVRemoteClient"),
+            java.math.BigInteger.valueOf(now),
+            startDate,
+            endDate,
+            org.bouncycastle.asn1.x500.X500Name("CN=AndroidTVRemoteClient"),
+            keyPair.public
         )
+
+        val contentSigner = org.bouncycastle.operator.jcajce.JcaContentSignerBuilder("SHA256WithRSAEncryption")
+            .build(keyPair.private)
+
+        val certHolder = certBuilder.build(contentSigner)
+        val cert = org.bouncycastle.cert.jcajce.JcaX509CertificateConverter()
+            .setProvider(org.bouncycastle.jce.provider.BouncyCastleProvider())
+            .getCertificate(certHolder)
+
+        // 3. Save to SharedPreferences as Base64
+        prefs().edit()
+            .putString("client_cert", Base64.encodeToString(cert.encoded, Base64.NO_WRAP))
+            .putString("client_key", Base64.encodeToString(keyPair.private.encoded, Base64.NO_WRAP))
+            .apply()
+
+        Log.i(tag, "Software identity generated: ${getClientCertificateFingerprint()}")
     }
 
-    // ─── Public API ────────────────────────────────────────────────────────────
-
     fun getClientCertificate(): X509Certificate {
-        Log.d(tag, "getClientCertificate called")
-        val pem = encryptedPrefs.getString(clientCertPrefKey, null)
-        if (pem != null) {
-            Log.d(tag, "Found existing client certificate in EncryptedSharedPreferences")
-            return pemToX509(pem)
-        }
-        Log.d(tag, "No client certificate found, generating new one")
-        generateAndStoreClientCertificate()
-        val newPem = encryptedPrefs.getString(clientCertPrefKey, null)
-            ?: throw IllegalStateException("Certificate generation succeeded but PEM not found")
-        return pemToX509(newPem)
+        val encoded = prefs().getString("client_cert", null) 
+            ?: throw IllegalStateException("Client cert not found")
+        val bytes = Base64.decode(encoded, Base64.NO_WRAP)
+        return CertificateFactory.getInstance("X.509")
+            .generateCertificate(ByteArrayInputStream(bytes)) as X509Certificate
     }
 
     fun getClientPrivateKey(): PrivateKey {
-        Log.d(tag, "getClientPrivateKey called")
-        val ks = KeyStore.getInstance(androidKeyStoreName).apply { load(null) }
-        val key = ks.getKey(keystoreAlias, null) as? PrivateKey
-        if (key != null) {
-            Log.d(tag, "Found existing private key in AndroidKeyStore")
-            return key
-        }
-        Log.d(tag, "Private key not found, generating new certificate+key pair")
-        generateAndStoreClientCertificate()
-        return ks.getKey(keystoreAlias, null) as? PrivateKey
-            ?: throw IllegalStateException("Key generation succeeded but key not found in AndroidKeyStore")
-    }
-
-    fun saveServerCertificate(deviceIp: String, cert: X509Certificate) {
-        val key = "server_cert_${sanitizeIp(deviceIp)}"
-        val pem = x509ToPem(cert)
-        encryptedPrefs.edit().putString(key, pem).apply()
-        Log.d(tag, "Saved server certificate for $deviceIp under key $key")
-    }
-
-    fun getServerCertificate(deviceIp: String): X509Certificate? {
-        val key = "server_cert_${sanitizeIp(deviceIp)}"
-        val pem = encryptedPrefs.getString(key, null) ?: run {
-            Log.d(tag, "No server certificate found for $deviceIp")
-            return null
-        }
-        Log.d(tag, "Loaded server certificate for $deviceIp")
-        return pemToX509(pem)
-    }
-
-    fun clearServerCertificate(deviceIp: String) {
-        val key = "server_cert_${sanitizeIp(deviceIp)}"
-        encryptedPrefs.edit().remove(key).apply()
-        Log.d(tag, "Cleared server certificate for $deviceIp (key: $key)")
+        val encoded = prefs().getString("client_key", null)
+            ?: throw IllegalStateException("Client key not found")
+        val bytes = Base64.decode(encoded, Base64.NO_WRAP)
+        val spec = java.security.spec.PKCS8EncodedKeySpec(bytes)
+        return java.security.KeyFactory.getInstance("RSA").generatePrivate(spec)
     }
 
     fun getClientCertificateFingerprint(): String {
         val cert = getClientCertificate()
-        val digest = MessageDigest.getInstance("SHA-256").digest(cert.encoded)
-        val hex = digest.joinToString(":") { "%02X".format(it) }
-        Log.d(tag, "Client certificate fingerprint: $hex")
-        return hex
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        return digest.digest(cert.encoded).joinToString(":") { "%02X".format(it) }
     }
 
-    // ─── Private Helpers ───────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Server Certificate Storage (per device IP)
+    // ─────────────────────────────────────────────────────────────
 
-    private fun generateAndStoreClientCertificate() {
-        Log.d(tag, "Generating RSA-2048 key pair in AndroidKeyStore (alias=$keystoreAlias)")
-
-        val notBefore = Date()
-        val notAfter = Date(System.currentTimeMillis() + 10L * 365 * 24 * 3600 * 1000)
-
-        val spec = KeyGenParameterSpec.Builder(
-            keystoreAlias,
-            KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
-        )
-            .setKeySize(2048)
-            .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
-            .setDigests(KeyProperties.DIGEST_SHA256)
-            .setCertificateSubject(X500Principal("CN=tvremote,O=tvremote"))
-            .setCertificateSerialNumber(BigInteger.ONE)
-            .setCertificateNotBefore(notBefore)
-            .setCertificateNotAfter(notAfter)
-            .build()
-
-        val kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, androidKeyStoreName)
-        kpg.initialize(spec)
-        kpg.generateKeyPair()
-        Log.d(tag, "Key pair generated in AndroidKeyStore")
-
-        // The Android KeyStore automatically creates a self-signed certificate for the keypair.
-        // We extract it and persist it to EncryptedSharedPreferences.
-        val ks = KeyStore.getInstance(androidKeyStoreName).apply { load(null) }
-        val cert = ks.getCertificate(keystoreAlias) as X509Certificate
-        Log.d(tag, "Extracted self-signed certificate from AndroidKeyStore")
-
-        val pem = x509ToPem(cert)
-        encryptedPrefs.edit().putString(clientCertPrefKey, pem).apply()
-        Log.d(tag, "Stored client certificate PEM in EncryptedSharedPreferences")
+    fun saveServerCertificate(deviceIp: String, cert: X509Certificate) {
+        val key = serverCertKey(deviceIp)
+        prefs().edit()
+            .putString(key, Base64.encodeToString(cert.encoded, Base64.NO_WRAP))
+            .apply()
+        Log.d(tag, "Server cert saved for $deviceIp")
     }
 
-    private fun sanitizeIp(ip: String): String = ip.replace(".", "_")
-
-    private fun pemToX509(pem: String): X509Certificate {
-        val stripped = pem
-            .replace("-----BEGIN CERTIFICATE-----", "")
-            .replace("-----END CERTIFICATE-----", "")
-            .replace("\\s".toRegex(), "")
-        val der = Base64.decode(stripped, Base64.DEFAULT)
+    fun getServerCertificate(deviceIp: String): X509Certificate? {
+        val encoded = prefs().getString(serverCertKey(deviceIp), null) ?: return null
+        val bytes = Base64.decode(encoded, Base64.NO_WRAP)
         return CertificateFactory.getInstance("X.509")
-            .generateCertificate(der.inputStream()) as X509Certificate
+            .generateCertificate(ByteArrayInputStream(bytes)) as X509Certificate
     }
 
-    private fun x509ToPem(cert: X509Certificate): String {
-        val encoded = Base64.encodeToString(cert.encoded, Base64.NO_WRAP)
-        // Wrap at 64 characters per PEM standard
-        val wrapped = encoded.chunked(64).joinToString("\n")
-        return "-----BEGIN CERTIFICATE-----\n$wrapped\n-----END CERTIFICATE-----"
+    @Synchronized
+    fun hasServerCertificate(deviceIp: String): Boolean =
+        prefs().contains(serverCertKey(deviceIp))
+
+    @Synchronized
+    fun isPaired(deviceIp: String): Boolean = hasServerCertificate(deviceIp)
+
+    fun clearServerCertificate(deviceIp: String) {
+        prefs().edit().remove(serverCertKey(deviceIp)).apply()
+        Log.d(tag, "Server cert cleared for $deviceIp")
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Cert Order Persistence for STATUS_BAD_SECRET
+    // ─────────────────────────────────────────────────────────────
+    
+    @Synchronized
+    fun isClientFirst(deviceIp: String): Boolean {
+        return prefs().getBoolean("cert_order_${deviceIp.replace(".", "_")}", true)
+    }
+
+    @Synchronized
+    fun setClientFirst(deviceIp: String, clientFirst: Boolean) {
+        prefs().edit().putBoolean("cert_order_${deviceIp.replace(".", "_")}", clientFirst).apply()
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // mTLS Context for RemoteSession
+    // ─────────────────────────────────────────────────────────────
+
+    fun createMutualTlsContext(deviceIp: String): javax.net.ssl.SSLContext {
+        generateIdentityIfNeeded()
+
+        val clientCert = getClientCertificate()
+        val clientKey = getClientPrivateKey()
+
+        val serverCert = getServerCertificate(deviceIp)
+            ?: throw IllegalStateException("No server certificate for $deviceIp. Pair first.")
+
+        // KeyStore with client identity
+        val clientKs = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+            load(null)
+            setKeyEntry("client", clientKey, null, arrayOf(clientCert))
+        }
+
+        val kmf = javax.net.ssl.KeyManagerFactory.getInstance(
+            javax.net.ssl.KeyManagerFactory.getDefaultAlgorithm()
+        ).apply { init(clientKs, null) }
+
+        // TrustStore with ONLY the server cert
+        val trustKs = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+            load(null)
+            setCertificateEntry("server", serverCert)
+        }
+
+        val tmf = javax.net.ssl.TrustManagerFactory.getInstance(
+            javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm()
+        ).apply { init(trustKs) }
+
+        return javax.net.ssl.SSLContext.getInstance("TLSv1.2").apply {
+            init(kmf.keyManagers, tmf.trustManagers, java.security.SecureRandom())
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────
+
+    private fun prefs() = context.getSharedPreferences("atv_cert_store", Context.MODE_PRIVATE)
+
+    private fun serverCertKey(ip: String) = "server_cert_${ip.replace(".", "_")}"
+
+    companion object {
+        fun getFingerprint(cert: X509Certificate): String {
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            return digest.digest(cert.encoded).joinToString(":") { "%02X".format(it) }
+        }
     }
 }

@@ -12,14 +12,16 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.util.concurrent.ConcurrentHashMap
 
-class NsdDiscoveryEngine(private val context: Context) {
+class NsdDiscoveryEngine(
+    private val context: Context,
+    private val scope: CoroutineScope
+) {
     private val tag = "TvDiscovery"
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val subnetTag = "TvSubnetScan"
 
     private val _devicesFlow = MutableStateFlow<List<DiscoveredDevice>>(emptyList())
     val devicesFlow: StateFlow<List<DiscoveredDevice>> = _devicesFlow.asStateFlow()
@@ -36,15 +38,17 @@ class NsdDiscoveryEngine(private val context: Context) {
     }
 
     private var multicastLock: WifiManager.MulticastLock? = null
-    private var discoveryListener: NsdManager.DiscoveryListener? = null
-
-    private val resolveQueue = ArrayDeque<NsdServiceInfo>()
-    private val resolving = AtomicBoolean(false)
-    private val discoveredIps = mutableSetOf<String>()
+    private val discoveryListeners = mutableListOf<NsdManager.DiscoveryListener>()
+    private val discoveredIps = ConcurrentHashMap.newKeySet<String>()
     
-    // Retry tracking for resolve failures
-    private val retryCountMap = mutableMapOf<String, Int>()
-    private val MAX_RETRIES = 3
+    private var scanJob: Job? = null
+    private var subnetFallbackJob: Job? = null
+
+    private val serviceTypes = listOf(
+        "_androidtvremote2._tcp",
+        "_androidtvremote._tcp",
+        "_googlerpc._tcp"
+    )
 
     fun startDiscovery() {
         Log.d(tag, "startDiscovery requested")
@@ -52,23 +56,36 @@ class NsdDiscoveryEngine(private val context: Context) {
 
         _devicesFlow.value = emptyList()
         discoveredIps.clear()
-        retryCountMap.clear()
 
         acquireMulticastLock()
 
+        scanJob = scope.launch(Dispatchers.IO) {
+            startNsdDiscovery()
+            
+            // 15 seconds wait for fallback
+            delay(15000L)
+            if (discoveredIps.isEmpty() && isActive) {
+                Log.d(tag, "15s passed with no devices. Starting subnet fallback scan.")
+                startSubnetScan()
+            }
+        }
+    }
+
+    private fun startNsdDiscovery() {
+        serviceTypes.forEach { serviceType ->
+            startServiceDiscovery(serviceType)
+        }
+    }
+
+    private fun startServiceDiscovery(serviceType: String) {
         val listener = object : NsdManager.DiscoveryListener {
             override fun onDiscoveryStarted(regType: String) {
                 Log.d(tag, "onDiscoveryStarted: $regType")
             }
 
             override fun onServiceFound(serviceInfo: NsdServiceInfo) {
-                Log.d(tag, "onServiceFound: ${serviceInfo.serviceName}")
-                if (serviceInfo.serviceType == "_androidtvremote2._tcp.") {
-                   synchronized(resolveQueue) {
-                       resolveQueue.add(serviceInfo)
-                   }
-                   triggerResolve()
-                }
+                Log.d(tag, "onServiceFound: ${serviceInfo.serviceName} type: ${serviceInfo.serviceType}")
+                resolveServiceWithRetry(serviceInfo, 0)
             }
 
             override fun onServiceLost(serviceInfo: NsdServiceInfo) {
@@ -82,158 +99,180 @@ class NsdDiscoveryEngine(private val context: Context) {
                 }
             }
 
-            override fun onDiscoveryStopped(serviceType: String) {
-                Log.d(tag, "onDiscoveryStopped: $serviceType")
-                discoveryListener = null
+            override fun onDiscoveryStopped(type: String) {
+                Log.d(tag, "onDiscoveryStopped: $type")
             }
 
-            override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
-                Log.e(tag, "onStartDiscoveryFailed: $errorCode")
-                scope.launch {
-                    _errorFlow.emit("Discovery start failed with error code: $errorCode")
+            override fun onStartDiscoveryFailed(type: String, errorCode: Int) {
+                Log.e(tag, "onStartDiscoveryFailed: $errorCode for $type")
+                try {
+                    nsdManager?.stopServiceDiscovery(this)
+                } catch (e: Exception) {
+                    Log.e(tag, "Error stopping after start fail", e)
                 }
-                stopDiscovery()
+                // Handle ALREADY_ACTIVE by restarting
+                if (errorCode == NsdManager.FAILURE_ALREADY_ACTIVE) {
+                    scope.launch(Dispatchers.IO) {
+                        delay(1000)
+                        startServiceDiscovery(type)
+                    }
+                }
             }
 
-            override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
-                Log.e(tag, "onStopDiscoveryFailed: $errorCode")
+            override fun onStopDiscoveryFailed(type: String, errorCode: Int) {
+                Log.e(tag, "onStopDiscoveryFailed: $errorCode for $type")
             }
         }
 
-        discoveryListener = listener
+        synchronized(discoveryListeners) {
+            discoveryListeners.add(listener)
+        }
         try {
-            nsdManager?.discoverServices("_androidtvremote2._tcp", NsdManager.PROTOCOL_DNS_SD, listener)
+            nsdManager?.discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, listener)
         } catch (e: Exception) {
-            Log.e(tag, "Error starting discovery", e)
-            scope.launch { _errorFlow.emit("Exception starting discovery: ${e.message}") }
+            Log.e(tag, "Error starting discovery for $serviceType", e)
         }
     }
 
-    private fun triggerResolve() {
-        if (resolving.get()) return
-
-        val nextService = synchronized(resolveQueue) {
-            if (resolveQueue.isEmpty()) return
-            resolveQueue.removeFirst()
-        }
-
-        resolving.set(true)
-
+    private fun resolveServiceWithRetry(serviceInfo: NsdServiceInfo, attempt: Int) {
         val resolveListener = object : NsdManager.ResolveListener {
             override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
                 Log.e(tag, "onResolveFailed for ${serviceInfo.serviceName}: $errorCode")
-                
-                if (errorCode == NsdManager.FAILURE_ALREADY_ACTIVE) {
-                    val retryKey = serviceInfo.serviceName
-                    val retries = retryCountMap.getOrDefault(retryKey, 0)
-                    if (retries < MAX_RETRIES) {
-                        retryCountMap[retryKey] = retries + 1
-                        val delayMs = 200L * (1 shl retries) // exponential backoff: 200, 400, 800
-                        scope.launch {
-                            delay(delayMs)
-                            synchronized(resolveQueue) {
-                                resolveQueue.addFirst(serviceInfo)
-                            }
-                            resolving.set(false)
-                            triggerResolve()
-                        }
-                    } else {
-                        Log.e(tag, "Max retries reached for ${serviceInfo.serviceName}")
-                        resolving.set(false)
-                        triggerResolve()
+                if (errorCode == NsdManager.FAILURE_ALREADY_ACTIVE && attempt < 3) {
+                    scope.launch(Dispatchers.IO) {
+                        delay(500)
+                        resolveServiceWithRetry(serviceInfo, attempt + 1)
                     }
-                } else {
-                    scope.launch {
-                        _errorFlow.emit("Resolve failed for ${serviceInfo.serviceName}: $errorCode")
-                    }
-                    resolving.set(false)
-                    triggerResolve()
                 }
             }
 
-            override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-                Log.d(tag, "onServiceResolved: ${serviceInfo.serviceName} at ${serviceInfo.host?.hostAddress}")
+            override fun onServiceResolved(resolvedInfo: NsdServiceInfo) {
+                Log.d(tag, "onServiceResolved: ${resolvedInfo.serviceName}")
+                val ip = resolvedInfo.host?.hostAddress ?: resolvedInfo.host?.canonicalHostName ?: return
                 
-                val host = serviceInfo.host ?: run {
-                    resolving.set(false)
-                    triggerResolve()
+                if (!ip.contains('.')) { // Skip IPv6
                     return
                 }
 
-                val ip = host.hostAddress ?: run {
-                    resolving.set(false)
-                    triggerResolve()
-                    return
-                }
+                if (discoveredIps.contains(ip)) return
 
-                // Filter out IPv6, only accept IPv4
-                if (!ip.contains('.')) {
-                    Log.d(tag, "Skipping non-IPv4 address: $ip")
-                    resolving.set(false)
-                    triggerResolve()
-                    return
-                }
-
-                if (discoveredIps.contains(ip)) {
-                    Log.d(tag, "IP already discovered: $ip")
-                    resolving.set(false)
-                    triggerResolve()
-                    return
-                }
-
-                discoveredIps.add(ip)
-                val device = DiscoveredDevice(
-                    id = ip,
-                    name = serviceInfo.serviceName,
-                    ipAddress = ip,
-                    port = serviceInfo.port,
-                    serviceType = serviceInfo.serviceType
-                )
-
-                scope.launch {
-                    val currentList = _devicesFlow.value
-                    if (currentList.none { it.ipAddress == ip }) {
-                        _devicesFlow.emit(currentList + device)
+                scope.launch(Dispatchers.IO) {
+                    if (probeTcpPort(ip, 6466)) {
+                        if (discoveredIps.add(ip)) {
+                            val device = DiscoveredDevice(
+                                id = ip,
+                                name = resolvedInfo.serviceName,
+                                ipAddress = ip,
+                                port = resolvedInfo.port.takeIf { it > 0 } ?: 6466,
+                                serviceType = resolvedInfo.serviceType
+                            )
+                            val currentList = _devicesFlow.value
+                            _devicesFlow.emit(currentList + device)
+                        }
                     }
                 }
-
-                resolving.set(false)
-                triggerResolve()
             }
         }
-
         try {
-            nsdManager?.resolveService(nextService, resolveListener)
+            nsdManager?.resolveService(serviceInfo, resolveListener)
         } catch (e: Exception) {
             Log.e(tag, "Exception in resolveService", e)
-            resolving.set(false)
-            triggerResolve()
+            if (attempt < 3) {
+                scope.launch(Dispatchers.IO) {
+                    delay(500)
+                    resolveServiceWithRetry(serviceInfo, attempt + 1)
+                }
+            }
+        }
+    }
+
+    private fun startSubnetScan() {
+        subnetFallbackJob?.cancel()
+        subnetFallbackJob = scope.launch(Dispatchers.IO) {
+            val dhcpInfo = wifiManager?.dhcpInfo ?: return@launch
+            val ipAddress = dhcpInfo.ipAddress
+            // ipAddress is little-endian
+            val ipBytes = byteArrayOf(
+                (ipAddress and 0xFF).toByte(),
+                ((ipAddress shr 8) and 0xFF).toByte(),
+                ((ipAddress shr 16) and 0xFF).toByte(),
+                0
+            )
+            
+            val baseIp = "${ipBytes[0].toInt() and 0xFF}.${ipBytes[1].toInt() and 0xFF}.${ipBytes[2].toInt() and 0xFF}"
+            Log.d(tag, "Starting subnet scan on $baseIp.x")
+
+            val deferredList = mutableListOf<Deferred<Unit>>()
+            val semaphore = kotlinx.coroutines.sync.Semaphore(20)
+            
+            for (i in 1..254) {
+                val ip = "$baseIp.$i"
+                deferredList.add(async {
+                    semaphore.acquire()
+                    try {
+                        if (!discoveredIps.contains(ip)) {
+                            Log.d(subnetTag, "Probing $ip")
+                            if (probeTcpPort(ip, 6466) || probeTcpPort(ip, 6467)) {
+                                if (discoveredIps.add(ip)) {
+                                    val device = DiscoveredDevice(
+                                        id = ip,
+                                        name = "Android TV ($ip)",
+                                        ipAddress = ip,
+                                        port = 6466,
+                                        serviceType = "SubnetScan"
+                                    )
+                                    val currentList = _devicesFlow.value
+                                    _devicesFlow.emit(currentList + device)
+                                }
+                            }
+                        }
+                    } finally {
+                        semaphore.release()
+                    }
+                })
+            }
+            deferredList.awaitAll()
+            Log.d(tag, "Subnet scan completed")
+        }
+    }
+
+    private fun probeTcpPort(ip: String, port: Int): Boolean {
+        var socket: Socket? = null
+        return try {
+            socket = Socket()
+            socket.connect(InetSocketAddress(ip, port), 3000)
+            true
+        } catch (e: Exception) {
+            false
+        } finally {
+            try {
+                socket?.close()
+            } catch (e: Exception) {
+                // Ignore close errors
+            }
         }
     }
 
     fun stopDiscovery() {
         Log.d(tag, "stopDiscovery requested")
-        try {
-            discoveryListener?.let {
-                nsdManager?.stopServiceDiscovery(it)
-            }
-        } catch (e: IllegalArgumentException) {
-            // Already stopped or not started
-            Log.w(tag, "stopDiscovery failed: ${e.message}")
-        } catch (e: Exception) {
-            Log.e(tag, "Error stopping discovery", e)
-        }
+        
+        scanJob?.cancel()
+        scanJob = null
+        subnetFallbackJob?.cancel()
+        subnetFallbackJob = null
 
-        discoveryListener = null
-        resolving.set(false)
-        synchronized(resolveQueue) {
-            resolveQueue.clear()
+        synchronized(discoveryListeners) {
+            discoveryListeners.forEach { listener ->
+                try {
+                    nsdManager?.stopServiceDiscovery(listener)
+                } catch (e: Exception) {
+                    Log.w(tag, "stopDiscovery failed: ${e.message}")
+                }
+            }
+            discoveryListeners.clear()
         }
         
         releaseMulticastLock()
-        
-        // Cancel all pending state updates
-        scope.coroutineContext.cancelChildren()
     }
 
     private fun acquireMulticastLock() {
@@ -241,21 +280,30 @@ class NsdDiscoveryEngine(private val context: Context) {
             multicastLock = wifiManager?.createMulticastLock("NsdDiscovery")
             multicastLock?.setReferenceCounted(false)
         }
-        multicastLock?.acquire()
-        Log.d(tag, "MulticastLock acquired")
+        try {
+            if (multicastLock?.isHeld == false) {
+                multicastLock?.acquire()
+                Log.d(tag, "MulticastLock acquired")
+            }
+        } catch (e: Exception) {
+            Log.e(tag, "Error acquiring MulticastLock", e)
+        }
     }
 
     private fun releaseMulticastLock() {
-        multicastLock?.let {
-            if (it.isHeld) {
-                it.release()
-                Log.d(tag, "MulticastLock released")
+        try {
+            multicastLock?.let {
+                if (it.isHeld) {
+                    it.release()
+                    Log.d(tag, "MulticastLock released")
+                }
             }
+        } catch (e: Exception) {
+            Log.e(tag, "Error releasing MulticastLock", e)
         }
     }
 
     fun destroy() {
         stopDiscovery()
-        scope.cancel()
     }
 }
