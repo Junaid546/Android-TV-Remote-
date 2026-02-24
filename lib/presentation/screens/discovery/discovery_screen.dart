@@ -31,11 +31,14 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   bool _timedOut = false;
   bool _isOverlayVisible = false;
 
+  late final _discoveryNotifier = ref.read(discoveryNotifierProvider.notifier);
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(discoveryNotifierProvider.notifier).startDiscovery();
+      if (!mounted) return;
+      _discoveryNotifier.startDiscovery();
       _scheduleTimeout();
     });
   }
@@ -44,7 +47,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   void dispose() {
     _removeOverlay();
     _timeoutTimer?.cancel();
-    ref.read(discoveryNotifierProvider.notifier).stopDiscovery();
+    _discoveryNotifier.stopDiscovery();
     super.dispose();
   }
 
@@ -83,8 +86,9 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   Future<void> _pullToRefresh() async {
     _timeoutTimer?.cancel();
     setState(() => _timedOut = false);
-    await ref.read(discoveryNotifierProvider.notifier).stopDiscovery();
-    await ref.read(discoveryNotifierProvider.notifier).startDiscovery();
+    await _discoveryNotifier.stopDiscovery();
+    if (!mounted) return;
+    await _discoveryNotifier.startDiscovery();
     _scheduleTimeout();
   }
 

@@ -71,6 +71,10 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
       _pinController.clear();
       _triggerShake();
     } else if (next is ConnectionFailed) {
+      ref
+          .read(pairingScreenNotifierProvider.notifier)
+          .handleError(next.failure);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(next.failure.userMessage),
@@ -79,10 +83,10 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
       );
       _popTimer?.cancel();
       _popTimer = Timer(const Duration(seconds: 2), () {
-        if (mounted && context.mounted) context.pop();
+        if (mounted && context.mounted && context.canPop()) context.pop();
       });
     } else if (next is Disconnected && next.reason.contains('expired')) {
-      context.pop();
+      if (context.canPop()) context.pop();
     }
   }
 
@@ -228,7 +232,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                                   focusNode: _focusNode,
                                   autofocus: true,
                                   showCursor: false,
-                                  keyboardType: TextInputType.number,
+                                  keyboardType: TextInputType.text,
                                   maxLength: 6,
                                   onChanged: (value) {
                                     ref

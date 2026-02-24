@@ -35,11 +35,13 @@ class PairingScreenNotifier extends _$PairingScreenNotifier {
 
   void updatePin(String value) {
     if (state.isSubmitting) return;
-    final digits = value.replaceAll(RegExp(r'\D'), '');
-    if (digits.length <= 6) {
-      state = state.copyWith(pin: digits, errorMessage: null);
+
+    // Allow uppercase alphanumeric characters for the PIN
+    final chars = value.trim().toUpperCase();
+    if (chars.length <= 6) {
+      state = state.copyWith(pin: chars, errorMessage: null);
     }
-    if (digits.length == 6) _autoSubmit();
+    if (chars.length == 6) _autoSubmit();
   }
 
   Future<void> submitPin() async {
