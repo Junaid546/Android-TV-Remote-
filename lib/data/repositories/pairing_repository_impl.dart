@@ -116,6 +116,14 @@ class PairingRepositoryImpl implements PairingRepository {
         ); // Native doesn't seem to pass attempts left yet
       case 'PIN_EXPIRED':
         return const PinExpiredFailure();
+      case 'BAD_CONFIGURATION':
+        return const PairingFailure(
+          'The TV rejected pairing configuration. Try reconnecting and pairing again.',
+        );
+      case 'PROTOCOL_TIMEOUT':
+        return const PairingFailure(
+          'Pairing timed out while waiting for TV response.',
+        );
       default:
         return PairingFailure(message);
     }

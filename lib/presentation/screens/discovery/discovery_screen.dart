@@ -29,6 +29,7 @@ class DiscoveryScreen extends ConsumerStatefulWidget {
 class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   Timer? _timeoutTimer;
   bool _timedOut = false;
+  bool _isOverlayVisible = false;
 
   @override
   void initState() {
@@ -61,18 +62,22 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   }
 
   void _removeOverlay() {
-    if (mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
+    if (!mounted || !_isOverlayVisible) return;
+    _isOverlayVisible = false;
+    Navigator.of(context, rootNavigator: true).maybePop();
   }
 
   void _showOverlay(BuildContext context, TvDevice device) {
+    if (_isOverlayVisible) return;
+    _isOverlayVisible = true;
     showDialog(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black54,
       builder: (_) => ConnectingOverlay(deviceName: device.name),
-    );
+    ).whenComplete(() {
+      _isOverlayVisible = false;
+    });
   }
 
   Future<void> _pullToRefresh() async {
@@ -102,13 +107,14 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
     });
 
     // ── Connection state reactions ──
-    ref.listen<PairingStatus>(connectionNotifierProvider, (_, next) {
+    ref.listen<PairingStatus>(connectionNotifierProvider, (prev, next) {
       next.maybeWhen(
         connecting: (device) => _showOverlay(context, device),
         awaitingPin: (device, _) {
+          if (prev is AwaitingPin) return;
           _removeOverlay();
           if (mounted) {
-            context.push('/pairing?deviceId=${device.id}');
+            context.go('/pairing?deviceId=${device.id}');
           }
         },
         connected: (_) {

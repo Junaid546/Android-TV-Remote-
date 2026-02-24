@@ -20,13 +20,18 @@ class PairingScreenState with _$PairingScreenState {
 
 @riverpod
 class PairingScreenNotifier extends _$PairingScreenNotifier {
+  bool _disposed = false;
+
   @override
-  PairingScreenState build() => const PairingScreenState(
-    pin: '',
-    isSubmitting: false,
-    errorMessage: null,
-    attemptsLeft: 3,
-  );
+  PairingScreenState build() {
+    ref.onDispose(() => _disposed = true);
+    return const PairingScreenState(
+      pin: '',
+      isSubmitting: false,
+      errorMessage: null,
+      attemptsLeft: 3,
+    );
+  }
 
   void updatePin(String value) {
     if (state.isSubmitting) return;
@@ -38,15 +43,20 @@ class PairingScreenNotifier extends _$PairingScreenNotifier {
   }
 
   Future<void> submitPin() async {
+    if (_disposed) return;
     if (state.pin.length != 6 || state.isSubmitting) return;
     state = state.copyWith(isSubmitting: true, errorMessage: null);
     await ref.read(connectionNotifierProvider.notifier).submitPin(state.pin);
+    if (_disposed) return;
     state = state.copyWith(isSubmitting: false);
   }
 
   void _autoSubmit() {
     HapticService.selection();
-    Future.delayed(const Duration(milliseconds: 150), submitPin);
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (_disposed) return;
+      submitPin();
+    });
   }
 
   void handleError(Failure failure) {

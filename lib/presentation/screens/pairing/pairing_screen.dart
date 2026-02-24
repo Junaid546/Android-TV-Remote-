@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/core/utils/haptic_service.dart';
 import 'package:atv_remote/core/utils/failure_mapper.dart';
 import 'package:atv_remote/core/errors/failures.dart';
 import 'package:atv_remote/domain/entities/pairing_status.dart';
+import 'package:atv_remote/domain/entities/tv_device.dart';
 import 'package:atv_remote/presentation/providers/connection_provider.dart';
 import 'package:atv_remote/presentation/providers/saved_devices_provider.dart';
 import 'package:atv_remote/presentation/providers/use_case_providers.dart';
@@ -27,9 +30,22 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
   final _pinController = TextEditingController();
   final _focusNode = FocusNode();
   final _shakeNotifier = ValueNotifier<bool>(false);
+  ProviderSubscription<PairingStatus>? _connectionSubscription;
+  Timer? _popTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectionSubscription = ref.listenManual<PairingStatus>(
+      connectionNotifierProvider,
+      _onConnectionChanged,
+    );
+  }
 
   @override
   void dispose() {
+    _connectionSubscription?.close();
+    _popTimer?.cancel();
     _pinController.dispose();
     _focusNode.dispose();
     _shakeNotifier.dispose();
@@ -42,40 +58,48 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
     if (mounted) _shakeNotifier.value = false;
   }
 
+  void _onConnectionChanged(PairingStatus? previous, PairingStatus next) {
+    if (!mounted) return;
+    if (next is Connected) {
+      context.go('/remote');
+    } else if (next is Paired) {
+      unawaited(_handlePaired(next.device));
+    } else if (next is PinError) {
+      ref
+          .read(pairingScreenNotifierProvider.notifier)
+          .handleError(WrongPinFailure(next.attemptsLeft));
+      _pinController.clear();
+      _triggerShake();
+    } else if (next is ConnectionFailed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(next.failure.userMessage),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      _popTimer?.cancel();
+      _popTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted && context.mounted) context.pop();
+      });
+    } else if (next is Disconnected && next.reason.contains('expired')) {
+      context.pop();
+    }
+  }
+
+  Future<void> _handlePaired(TvDevice device) async {
+    final saveDevice = ref.read(saveDeviceUseCaseProvider);
+    final savedDevicesNotifier = ref.read(
+      savedDevicesNotifierProvider.notifier,
+    );
+    await saveDevice(device);
+    if (!mounted) return;
+    await savedDevicesNotifier.refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     final status = ref.watch(connectionNotifierProvider);
     final pairingState = ref.watch(pairingScreenNotifierProvider);
-
-    ref.listen(connectionNotifierProvider, (previous, next) {
-      if (next is Connected) {
-        context.go('/remote');
-      } else if (next is Paired) {
-        ref.read(saveDeviceUseCaseProvider)(next.device).then((_) {
-          ref.read(savedDevicesNotifierProvider.notifier).refresh();
-        });
-      } else if (next is PinError) {
-        ref
-            .read(pairingScreenNotifierProvider.notifier)
-            .handleError(WrongPinFailure(next.attemptsLeft));
-        _pinController.clear();
-        _triggerShake();
-      } else if (next is ConnectionFailed) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.failure.userMessage),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        Future.delayed(const Duration(seconds: 2), () {
-          if (context.mounted) context.pop();
-        });
-      } else if (next is Disconnected && next.reason.contains('expired')) {
-        context.pop();
-      } else if (next is PinExpiredFailure) {
-        context.pop();
-      }
-    });
 
     if (pairingState.pin.isEmpty && _pinController.text.isNotEmpty) {
       _pinController.clear();
