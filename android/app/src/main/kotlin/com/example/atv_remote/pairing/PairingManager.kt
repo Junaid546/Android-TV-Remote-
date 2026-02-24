@@ -70,23 +70,23 @@ class PairingManager(
 
                 // Step 1 — Send PairingRequest
                 val request = PairingMessage.newBuilder()
+                    .setProtocolVersion(2)
+                    .setStatus(200)
                     .setPairingRequest(
                         PairingRequest.newBuilder()
-                            .setServiceName("androidtvremote2")
-                            .setClientName(deviceName)
+                            .setServiceName("ATV Remote")
+                            .setClientName("ATV Remote")
                             .build()
                     )
                     .build()
-
                 writeMessage(request)
-                Log.d(tag, "PairingRequest sent")
+                val reqAck = readMessage(2000)
+                Log.d(tag, "Request Ack status: ${reqAck?.status}")
 
-                // Step 2 — Read response
-                val resp1 = readMessage(5000)
-                Log.d(tag, "Response 1 status: ${resp1?.status?.code ?: "TIMEOUT"}")
-
-                // Step 3 — Send PairingOption
+                // Step 2 — Send PairingOption
                 val option = PairingMessage.newBuilder()
+                    .setProtocolVersion(2)
+                    .setStatus(200)
                     .setPairingOption(
                         PairingOption.newBuilder()
                             .setPreferredRole(RoleType.ROLE_TYPE_INPUT)
@@ -99,13 +99,36 @@ class PairingManager(
                             .build()
                     )
                     .build()
-
                 writeMessage(option)
-                Log.d(tag, "PairingOption sent")
+                val optAck = readMessage(2000)
+                Log.d(tag, "Option Ack status: ${optAck?.status}")
 
-                // Step 4 — Read option ack
-                val resp2 = readMessage(5000)
-                Log.d(tag, "Response 2 status: ${resp2?.status?.code ?: "TIMEOUT"}")
+                // Step 3 — Send PairingConfiguration
+                val config = PairingMessage.newBuilder()
+                    .setProtocolVersion(2)
+                    .setStatus(200)
+                    .setPairingConfiguration(
+                        PairingConfiguration.newBuilder()
+                            .setClientRole(RoleType.ROLE_TYPE_INPUT)
+                            .setClientInputEncoding(
+                                PairingEncoding.newBuilder()
+                                    .setType(EncodingType.ENCODING_TYPE_HEXADECIMAL)
+                                    .setSymbolLength(6)
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+                writeMessage(config)
+                val confAck = readMessage(2000)
+                Log.d(tag, "Config Ack status: ${confAck?.status}")
+                
+                // Read whatever the TV sent (Option, Config) to clear the buffer before PIN
+                var tempMsg = readMessage(1000)
+                while (tempMsg != null) {
+                    Log.d(tag, "Cleared message from buffer")
+                    tempMsg = readMessage(1000)
+                }
 
                 // Ready for PIN
                 _state.value = PairingState.AwaitingPin
@@ -162,6 +185,8 @@ class PairingManager(
                     Log.d(tag, "PIN entered by user: $pin (should match first 6 hex)")
 
                     val secretMsg = PairingMessage.newBuilder()
+                        .setProtocolVersion(2)
+                        .setStatus(200)
                         .setPairingSecret(
                             PairingSecret.newBuilder()
                                 .setSecret(ByteString.copyFrom(secretBytes))
@@ -173,9 +198,9 @@ class PairingManager(
                     Log.d(tag, "PairingSecret sent")
 
                     val result = readMessage()
-                    Log.d(tag, "PairingResult: ${result?.status?.code}")
+                    Log.d(tag, "PairingResult: ${result?.status}")
 
-                    if (result?.status?.code == RpcStatus.STATUS_OK) {
+                    if (result?.status == 200) {
                         certStore.setClientFirst(currentDeviceIp, isClientFirst)
                         certStore.saveServerCertificate(currentDeviceIp, serverCert)
                         Log.i(tag, "Pairing SUCCESS for $currentDeviceIp")
@@ -184,13 +209,13 @@ class PairingManager(
                         
                         _state.value = PairingState.Success
                         return@withContext
-                    } else if (result?.status?.code == RpcStatus.STATUS_BAD_SECRET && attemptCount == 1) {
-                        Log.w(tag, "STATUS_BAD_SECRET. Retrying with flipped cert order.")
+                    } else if (result?.status == 401 && attemptCount == 1) {
+                        Log.w(tag, "STATUS_BAD_SECRET (401). Retrying with flipped cert order.")
                         isClientFirst = !isClientFirst
                         attemptCount++
                         continue
                     } else {
-                        fail("Pairing error: ${result?.status?.code}", if (result?.status?.code == RpcStatus.STATUS_BAD_SECRET) "WRONG_PIN" else "PAIRING_ERROR")
+                        fail("Pairing error: ${result?.status}", if (result?.status == 401) "WRONG_PIN" else "PAIRING_ERROR")
                         return@withContext
                     }
                 }
@@ -241,55 +266,28 @@ class PairingManager(
     // ─────────────────────────────────────────────────────────────
 
     private fun writeMessage(msg: PairingMessage) {
-        val bytes = msg.toByteArray()
         val out = output ?: throw IllegalStateException("Output stream is null")
-
-        if (bytes.size > 0xFFFF) throw IllegalArgumentException("Message too large: ${bytes.size}")
-
-        out.write((bytes.size shr 8) and 0xFF)   // high byte
-        out.write(bytes.size and 0xFF)            // low byte
-        out.write(bytes)
+        msg.writeDelimitedTo(out)
         out.flush()
     }
 
     private fun readMessage(timeoutMs: Int = 0): PairingMessage? {
         val inp = input ?: throw IllegalStateException("Input stream is null")
         val oldTimeout = socket?.soTimeout ?: 0
-        
-        if (timeoutMs > 0) {
-            socket?.soTimeout = timeoutMs
-        }
+
+        if (timeoutMs > 0) socket?.soTimeout = timeoutMs
 
         try {
-            val high = inp.read()
-            val low = inp.read()
-
-            if (high == -1 || low == -1) throw java.io.EOFException("Stream closed by TV")
-
-            val length = (high shl 8) or low
-
-            if (length <= 0 || length > 0xFFFF) {
-                throw java.io.IOException("Invalid message length: $length")
-            }
-
-            Log.d(tag, "Read raw bytes length: $length")
-
-            val buffer = ByteArray(length)
-            var offset = 0
-            while (offset < length) {
-                val read = inp.read(buffer, offset, length - offset)
-                if (read == -1) throw java.io.EOFException("Stream closed mid-read")
-                offset += read
-            }
-
-            return PairingMessage.parseFrom(buffer)
+            // parseDelimitedFrom automatically reads the varint length and the exact payload
+            return PairingMessage.parseDelimitedFrom(inp)
         } catch (e: java.net.SocketTimeoutException) {
             Log.w(tag, "Timeout reading message, assuming TV waiting...")
             return null
+        } catch (e: Exception) {
+            Log.e(tag, "Error reading message", e)
+            return null
         } finally {
-            if (timeoutMs > 0) {
-                socket?.soTimeout = oldTimeout
-            }
+            if (timeoutMs > 0) socket?.soTimeout = oldTimeout
         }
     }
 

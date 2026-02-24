@@ -22,72 +22,25 @@ class MainActivity : FlutterActivity() {
     private val tag = "TvMain"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    private lateinit var discoveryEngine: NsdDiscoveryEngine
-    private lateinit var remoteSession: RemoteSession
+    private lateinit var channelManager: com.example.atv_remote.channels.ChannelManager
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        val messenger = flutterEngine.dartExecutor.binaryMessenger
+        Log.d(tag, "Configuring Flutter Engine and Channels")
 
-        Log.d(tag, "Registering Flutter channels")
-
-        try {
-            // Discovery
-            discoveryEngine = NsdDiscoveryEngine(applicationContext, scope)
-            DiscoveryChannel(
-                engine = discoveryEngine,
-                binaryMessenger = messenger,
-                coroutineScope = scope
-            ).register()
-
-            // Shared certificate store — one instance, passed everywhere
-            val certStore = CertificateStore(applicationContext)
-
-            // Generate client identity once at startup
-            certStore.generateIdentityIfNeeded()
-
-            // Pairing
-            PairingChannel(
-                pairingManager = PairingManager(
-                    certStore = certStore,
-                    scope = scope
-                ),
-                binaryMessenger = messenger,
-                scope = scope
-            ).register()
-
-            // Remote control — uses RemoteSession, NOT ControlConnectionManager
-            remoteSession = RemoteSession(
-                certStore = certStore,
-                scope = scope
-            )
-            RemoteChannel(
-                remoteSession = remoteSession,
-                binaryMessenger = messenger,
-                scope = scope
-            ).register()
-
-            // Network monitoring
-            NetworkChannel(
-                context = applicationContext,
-                binaryMessenger = messenger,
-                scope = scope
-            ).register()
-
-            Log.d(tag, "All channels registered ✅")
-
-        } catch (e: Exception) {
-            Log.e(tag, "Channel registration failed", e)
-        }
+        channelManager = com.example.atv_remote.channels.ChannelManager(
+            context = applicationContext,
+            flutterEngine = flutterEngine,
+            scope = scope
+        )
+        channelManager.registerAll()
     }
 
     override fun onDestroy() {
         Log.d(tag, "Cleaning up native resources")
         try {
-            if (::discoveryEngine.isInitialized) discoveryEngine.destroy()
-            if (::remoteSession.isInitialized) remoteSession.disconnect()
+            if (::channelManager.isInitialized) channelManager.destroy()
             scope.cancel()
         } catch (e: Exception) {
             Log.e(tag, "Cleanup error", e)

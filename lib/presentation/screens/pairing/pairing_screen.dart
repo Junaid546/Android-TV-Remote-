@@ -1,5 +1,4 @@
 import 'package:atv_remote/core/theme/app_colors.dart';
-import 'package:atv_remote/core/theme/app_spacing.dart';
 import 'package:atv_remote/core/utils/haptic_service.dart';
 import 'package:atv_remote/core/utils/failure_mapper.dart';
 import 'package:atv_remote/core/errors/failures.dart';
@@ -39,7 +38,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
 
   void _triggerShake() async {
     _shakeNotifier.value = true;
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) _shakeNotifier.value = false;
   }
 
@@ -62,35 +61,27 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
         _pinController.clear();
         _triggerShake();
       } else if (next is ConnectionFailed) {
-        // Show error, context.pop() after 2s
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              next.failure.userMessage,
-            ), // Assuming failure.userMessage uses mapper
+            content: Text(next.failure.userMessage),
             backgroundColor: AppColors.error,
           ),
         );
         Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            // ignore: use_build_context_synchronously
-            context.pop();
-          }
+          if (context.mounted) context.pop();
         });
       } else if (next is Disconnected && next.reason.contains('expired')) {
         context.pop();
       } else if (next is PinExpiredFailure) {
-        // Handles failure
         context.pop();
       }
     });
 
-    // Update text controller if state was cleared
     if (pairingState.pin.isEmpty && _pinController.text.isNotEmpty) {
       _pinController.clear();
     }
 
-    String appBarTitle = 'Pair Device';
+    String title = 'Pair Device';
     String? deviceName;
     String? deviceIp;
 
@@ -98,12 +89,12 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
       awaitingPin: (device, _) {
         deviceName = device.name;
         deviceIp = device.ipAddress;
-        appBarTitle = 'Pair with ${device.name}';
+        title = 'Pair with ${device.name}';
       },
       connecting: (device) {
         deviceName = device.name;
         deviceIp = device.ipAddress;
-        appBarTitle = 'Connecting...';
+        title = 'Connecting...';
       },
       orElse: () {},
     );
@@ -111,32 +102,36 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(appBarTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
             ref.read(connectionNotifierProvider.notifier).disconnect();
             context.pop();
           },
-          icon: const Icon(Icons.arrow_back_rounded),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s32),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: AppSpacing.s32),
+                const SizedBox(height: 40),
 
-                // 1. TV Name area
+                /// TV ICON (Subtle Glow)
                 Container(
-                      padding: const EdgeInsets.all(AppSpacing.s24),
+                      padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(25), // ~10% opacity
                         shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppColors.primary.withAlpha(40),
+                            Colors.transparent,
+                          ],
+                        ),
                       ),
                       child: const Icon(
                         Icons.tv_rounded,
@@ -147,13 +142,10 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                     .animate(
                       onPlay: (controller) => controller.repeat(reverse: true),
                     )
-                    .scale(
-                      begin: const Offset(1, 1),
-                      end: const Offset(1.05, 1.05),
-                      duration: 2.seconds,
-                    ),
+                    .fade(begin: 0.85, end: 1, duration: 2.seconds),
 
-                const SizedBox(height: AppSpacing.s24),
+                const SizedBox(height: 20),
+
                 if (deviceName != null) ...[
                   Text(
                     deviceName!,
@@ -169,93 +161,98 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
-                    textAlign: TextAlign.center,
                   ),
                 ],
 
-                const SizedBox(height: AppSpacing.s48),
+                const SizedBox(height: 36),
 
-                // 2. Instruction text
+                /// Instruction
                 Text(
-                  'A PIN is displayed on your TV screen.',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Enter the PIN below to pair.',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                  'Enter the 6-digit code shown on your TV',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                   textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: AppSpacing.s48),
+                const SizedBox(height: 40),
 
-                // 3 & 4. PIN Input Row Stack
-                ValueListenableBuilder<bool>(
-                  valueListenable: _shakeNotifier,
-                  builder: (context, shouldShake, child) {
-                    Widget row = Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        PinInputRow(
-                          pin: pairingState.pin,
-                          hasError: pairingState.errorMessage != null,
-                        ),
-                        Opacity(
-                          opacity: 0.0,
-                          child: TextField(
-                            controller: _pinController,
-                            focusNode: _focusNode,
-                            autofocus: true,
-                            showCursor: false,
-                            keyboardType: TextInputType.number,
-                            maxLength: 6,
-                            onChanged: (value) {
-                              ref
-                                  .read(pairingScreenNotifierProvider.notifier)
-                                  .updatePin(value);
-                            },
+                /// PIN Section Card
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 28),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    children: [
+                      ValueListenableBuilder<bool>(
+                        valueListenable: _shakeNotifier,
+                        builder: (context, shouldShake, child) {
+                          Widget row = Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              PinInputRow(
+                                pin: pairingState.pin,
+                                hasError: pairingState.errorMessage != null,
+                              ),
+                              Opacity(
+                                opacity: 0,
+                                child: TextField(
+                                  controller: _pinController,
+                                  focusNode: _focusNode,
+                                  autofocus: true,
+                                  showCursor: false,
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 6,
+                                  onChanged: (value) {
+                                    ref
+                                        .read(
+                                          pairingScreenNotifierProvider
+                                              .notifier,
+                                        )
+                                        .updatePin(value);
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+
+                          if (shouldShake) {
+                            row = row
+                                .animate(
+                                  onPlay: (controller) =>
+                                      controller.forward(from: 0),
+                                )
+                                .shakeX(hz: 8, amount: 8, duration: 400.ms);
+                          }
+
+                          return row;
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      if (pairingState.errorMessage != null)
+                        Text(
+                          pairingState.errorMessage!,
+                          style: const TextStyle(
+                            color: AppColors.error,
+                            fontSize: 12,
                           ),
-                        ),
-                      ],
-                    );
-
-                    if (shouldShake) {
-                      row = row
-                          .animate(
-                            onPlay: (controller) => controller.forward(from: 0),
-                          )
-                          .shakeX(hz: 8, amount: 8, duration: 500.ms);
-                    }
-                    return row;
-                  },
+                        ).animate().fadeIn(),
+                    ],
+                  ),
                 ),
 
-                const SizedBox(height: AppSpacing.s16),
+                const SizedBox(height: 48),
 
-                // 5. Error state
-                if (pairingState.errorMessage != null)
-                  Text(
-                    pairingState.errorMessage!,
-                    style: const TextStyle(
-                      color: AppColors.error,
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
-                  ).animate().fadeIn().slideY(),
-
-                const SizedBox(height: AppSpacing.s48),
-
-                // 6. PIN Expiry Timer
                 const PinCountdownTimer(),
 
-                const SizedBox(height: AppSpacing.s48),
+                const SizedBox(height: 24),
 
-                // 7. "Confirm" button
+                /// Confirm Button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -272,9 +269,8 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      disabledBackgroundColor: AppColors.primary.withAlpha(50),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     child: pairingState.isSubmitting
@@ -283,20 +279,20 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                             height: 24,
                             child: CircularProgressIndicator(
                               color: Colors.white,
-                              strokeWidth: 2.5,
+                              strokeWidth: 2,
                             ),
                           )
                         : const Text(
                             'Confirm',
                             style: TextStyle(
-                              fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              fontSize: 16,
                             ),
                           ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.s32),
+
+                const SizedBox(height: 32),
               ],
             ),
           ),

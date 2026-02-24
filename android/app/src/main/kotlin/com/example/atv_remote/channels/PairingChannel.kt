@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PairingChannel(
     private val pairingManager: PairingManager,
@@ -60,30 +61,37 @@ class PairingChannel(
     private fun setupEventChannel() {
         EventChannel(binaryMessenger, EVENT_CHANNEL_NAME).setStreamHandler(
             object : EventChannel.StreamHandler {
+                private var eventJob: Job? = null
+
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
-                    Log.d(tag, "EventChannel onListen")
-                    stateJob = scope.launch {
-                        // Pairing state stream
-                        launch(Dispatchers.Main) {
+                    Log.d(tag, "Pairing EventChannel onListen")
+                    eventJob?.cancel()
+                    eventJob = scope.launch {
+                        // 1. Pairing state stream
+                        launch {
                             pairingManager.state.collect { state ->
-                                sink?.success(state.toMap())
+                                withContext(Dispatchers.Main) {
+                                    sink?.success(state.toMap())
+                                }
                             }
                         }
-                        // PIN countdown stream
-                        launch(Dispatchers.Main) {
+                        // 2. PIN countdown stream
+                        launch {
                             pairingManager.pinExpiry.collect { seconds ->
-                                sink?.success(
-                                    mapOf("type" to "PIN_EXPIRY", "seconds" to seconds)
-                                )
+                                withContext(Dispatchers.Main) {
+                                    sink?.success(
+                                        mapOf("type" to "PIN_EXPIRY", "seconds" to seconds)
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
                 override fun onCancel(arguments: Any?) {
-                    Log.d(tag, "EventChannel onCancel")
-                    stateJob?.cancel()
-                    stateJob = null
+                    Log.d(tag, "Pairing EventChannel onCancel")
+                    eventJob?.cancel()
+                    eventJob = null
                 }
             }
         )

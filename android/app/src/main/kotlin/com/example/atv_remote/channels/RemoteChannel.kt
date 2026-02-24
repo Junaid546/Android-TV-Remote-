@@ -6,9 +6,11 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RemoteChannel(
     private val remoteSession: RemoteSession,
@@ -68,7 +70,9 @@ class RemoteChannel(
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
                     job = scope.launch {
                         remoteSession.connectionState.collect { state ->
-                            sink?.success(state.toMap())
+                            withContext(Dispatchers.Main) {
+                                sink?.success(state.toMap())
+                            }
                         }
                     }
                 }

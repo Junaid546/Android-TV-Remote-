@@ -1,5 +1,4 @@
 syntax = "proto3";
-
 option java_package = "com.tvremote.app.proto";
 option java_outer_classname = "PairingProto";
 option java_multiple_files = false;
@@ -11,8 +10,15 @@ message PairingRequest {
 }
 
 message PairingOption {
-  RoleType preferred_role = 1;
-  repeated PairingEncoding input_encodings = 2;
+  repeated PairingEncoding input_encodings = 1;
+  repeated PairingEncoding output_encodings = 2;
+  RoleType preferred_role = 3;
+}
+
+message PairingConfiguration {
+  PairingEncoding client_input_encoding = 1;
+  PairingEncoding client_output_encoding = 2;
+  RoleType client_role = 3;
 }
 
 enum RoleType {
@@ -39,21 +45,13 @@ message PairingSecret {
 }
 
 message PairingMessage {
-  Status status = 1;
+  int32 protocol_version = 1;
+  int32 status = 2;
+  string request_id = 3;
   oneof payload {
     PairingRequest pairing_request = 10;
     PairingOption pairing_option = 11;
-    PairingSecret pairing_secret = 12;
+    PairingConfiguration pairing_configuration = 12;
+    PairingSecret pairing_secret = 13;
   }
-}
-
-message Status {
-  RpcStatus code = 1;
-}
-
-enum RpcStatus {
-  STATUS_UNKNOWN = 0;
-  STATUS_OK = 200;
-  STATUS_ERROR = 400;
-  STATUS_BAD_SECRET = 401;
 }

@@ -27,7 +27,6 @@ class NetworkChannel(
         EventChannel(binaryMessenger, EVENT_CHANNEL_NAME).setStreamHandler(
             object : EventChannel.StreamHandler {
                 private var networkCallback: ConnectivityManager.NetworkCallback? = null
-                private val mainHandler = Handler(Looper.getMainLooper())
 
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
                     Log.d(tag, "NetworkChannel onListen")
@@ -35,7 +34,7 @@ class NetworkChannel(
                             as ConnectivityManager
 
                     // Emit current state immediately
-                    mainHandler.post {
+                    Handler(Looper.getMainLooper()).post {
                         sink?.success(cm.currentConnectivityMap())
                     }
 
@@ -44,14 +43,14 @@ class NetworkChannel(
                             val caps = cm.getNetworkCapabilities(network)
                             val type = caps?.networkType() ?: "other"
                             Log.d(tag, "Network available: $type")
-                            mainHandler.post {
+                            Handler(Looper.getMainLooper()).post {
                                 sink?.success(mapOf("connected" to true, "type" to type))
                             }
                         }
 
                         override fun onLost(network: Network) {
                             Log.d(tag, "Network lost")
-                            mainHandler.post {
+                            Handler(Looper.getMainLooper()).post {
                                 sink?.success(mapOf("connected" to false, "type" to "none"))
                             }
                         }
@@ -61,7 +60,7 @@ class NetworkChannel(
                             caps: NetworkCapabilities
                         ) {
                             val type = caps.networkType()
-                            mainHandler.post {
+                            Handler(Looper.getMainLooper()).post {
                                 sink?.success(mapOf("connected" to true, "type" to type))
                             }
                         }
@@ -78,7 +77,7 @@ class NetworkChannel(
                     networkCallback?.let {
                         try {
                             cm.unregisterNetworkCallback(it)
-                        } catch (e: IllegalArgumentException) {
+                        } catch (e: Exception) {
                             Log.w(tag, "unregisterNetworkCallback: ${e.message}")
                         }
                     }

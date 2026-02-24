@@ -61,58 +61,55 @@ object TlsSocketFactory {
         val sslContext = SSLContext.getInstance("TLSv1.2")
         sslContext.init(kmf.keyManagers, arrayOf(trustCapture), SecureRandom())
 
-        val pairingSocket = sslContext.socketFactory.createSocket() as SSLSocket
-
-        // Basic config
-        pairingSocket.useClientMode = true
-        pairingSocket.soTimeout = 15_000
-        pairingSocket.tcpNoDelay = true
-        pairingSocket.keepAlive = true
-
-        // 3️⃣ Allow TLS 1.2 and 1.3 if available
-        val protocols = pairingSocket.supportedProtocols.filter {
-            it == "TLSv1.2" || it == "TLSv1.3"
-        }.toTypedArray()
-        if (protocols.isNotEmpty()) {
-            pairingSocket.enabledProtocols = protocols
-        }
-
-        // 4️⃣ Enable all supported cipher suites so negotiation can succeed
-        pairingSocket.enabledCipherSuites = pairingSocket.supportedCipherSuites
-
-        // 5️⃣ Setup parameters safely
-        try {
-            val params = pairingSocket.sslParameters
-            // Set SNI to hostname
-            params.serverNames = listOf(javax.net.ssl.SNIHostName(host))
-            // DO NOT remove endpointIdentificationAlgorithm — let TLS verify server
-            params.endpointIdentificationAlgorithm = "HTTPS"
-            pairingSocket.sslParameters = params
-        } catch (e: Exception) {
-            Log.w(TAG, "SNI / SSL param set failed: ${e.message}")
-        }
-
         // 6️⃣ Connect + handshake with retry logic
-        var handshakeSuccess = false
+        var finalSocket: SSLSocket? = null
         var lastException: Exception? = null
 
         for (attempt in 1..3) {
             try {
-                pairingSocket.connect(InetSocketAddress(host, port), 10_000)
-                pairingSocket.startHandshake()
-                handshakeSuccess = true
+                Log.d(TAG, "Connection attempt $attempt...")
+                val socket = sslContext.socketFactory.createSocket() as SSLSocket
+                
+                // Basic config
+                socket.useClientMode = true
+                socket.soTimeout = 15_000
+                socket.tcpNoDelay = true
+                socket.keepAlive = true
+
+                // Strictly enforce TLS 1.2 only. 
+                // TLS 1.3 uses RSA-PSS which crashes Conscrypt.
+                val supportedProtocols = socket.supportedProtocols.toSet()
+                if (supportedProtocols.contains("TLSv1.2")) {
+                    socket.enabledProtocols = arrayOf("TLSv1.2")
+                }
+
+                socket.enabledCipherSuites = socket.supportedCipherSuites
+
+                // Setup parameters safely
+                try {
+                    val params = socket.sslParameters
+                    params.serverNames = listOf(SNIHostName(host))
+                    // FIX: Remove endpointIdentificationAlgorithm = "HTTPS" to allow TOFU with IP addresses
+                    params.endpointIdentificationAlgorithm = null 
+                    socket.sslParameters = params
+                } catch (e: Exception) {
+                    Log.w(TAG, "SNI / SSL param set failed: ${e.message}")
+                }
+
+                socket.connect(InetSocketAddress(host, port), 10_000)
+                socket.startHandshake()
+                
+                finalSocket = socket
                 break
             } catch (e: Exception) {
+                Log.w(TAG, "Attempt $attempt failed: ${e.message}")
                 lastException = e
                 // exponential backoff
                 Thread.sleep((attempt * 500).toLong())
             }
         }
         
-        if (!handshakeSuccess) {
-            try { pairingSocket.close() } catch (_: Exception) {}
-            throw Exception("TLS handshake failed after retries for $host:$port", lastException)
-        }
+        val pairingSocket = finalSocket ?: throw Exception("TLS handshake failed after retries for $host:$port", lastException)
 
         // Logging
         val session = pairingSocket.session
@@ -170,15 +167,12 @@ object TlsSocketFactory {
             Log.d(TAG, "Enabled ciphers: ${enabledCiphers.joinToString()}")
         }
 
+        // Strictly enforce TLS 1.2
         val supportedProtocols = socket.supportedProtocols.toSet()
-        val protocols = arrayOf("TLSv1.2", "TLSv1.1", "TLSv1")
-            .filter { it in supportedProtocols }
-            .toTypedArray()
-            
-        if (protocols.isNotEmpty()) {
-            socket.enabledProtocols = protocols
-            Log.d(TAG, "Enabled protocols: ${protocols.joinToString()}")
+        if (supportedProtocols.contains("TLSv1.2")) {
+            socket.enabledProtocols = arrayOf("TLSv1.2")
         }
+        Log.d(TAG, "Enabled protocols: TLSv1.2")
 
         // NO SNI or ALPN
         
