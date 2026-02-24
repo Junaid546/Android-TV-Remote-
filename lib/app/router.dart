@@ -104,6 +104,11 @@ GoRouter appRouter(AppRouterRef ref) {
         return '/remote';
       }
 
+      // Guard: Not connected and trying to access remote → go to discovery
+      if (state.matchedLocation == '/remote' && !listenable.isConnected) {
+        return '/discovery';
+      }
+
       return null;
     },
     routes: [

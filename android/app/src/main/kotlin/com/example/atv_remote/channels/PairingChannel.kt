@@ -38,15 +38,19 @@ class PairingChannel(
                         ?: return@setMethodCallHandler result.error("INVALID_ARGS", "ip required", null)
                     val name = call.argument<String>("name") ?: "Android TV"
                     Log.d(tag, "startPairing ip=$ip name=$name")
-                    scope.launch { pairingManager.startPairing(ip = ip, deviceName = name) }
-                    result.success(null)
+                    scope.launch {
+                        pairingManager.startPairing(ip = ip, deviceName = name)
+                        withContext(Dispatchers.Main) { result.success(null) }
+                    }
                 }
                 "submitPin" -> {
                     val pin = call.argument<String>("pin")
                         ?: return@setMethodCallHandler result.error("INVALID_ARGS", "pin required", null)
                     Log.d(tag, "submitPin length=${pin.length}")
-                    scope.launch { pairingManager.submitPin(pin) }
-                    result.success(null)
+                    scope.launch {
+                        pairingManager.submitPin(pin)
+                        withContext(Dispatchers.Main) { result.success(null) }
+                    }
                 }
                 "cancelPairing" -> {
                     Log.d(tag, "cancelPairing")

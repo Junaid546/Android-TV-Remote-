@@ -70,6 +70,18 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
           .handleError(WrongPinFailure(next.attemptsLeft));
       _pinController.clear();
       _triggerShake();
+
+      if (next.attemptsLeft == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Verification failed. Re-starting pairing...'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && context.mounted) context.go('/discovery');
+        });
+      }
     } else if (next is ConnectionFailed) {
       ref
           .read(pairingScreenNotifierProvider.notifier)
@@ -98,6 +110,8 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
     await saveDevice(device);
     if (!mounted) return;
     await savedDevicesNotifier.refresh();
+    if (!mounted) return;
+    context.go('/remote');
   }
 
   @override
@@ -127,6 +141,19 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
       orElse: () {},
     );
 
+    // ── Auto-unfocus keyboard when submitting or done ──
+    ref.listen<PairingScreenState>(pairingScreenNotifierProvider, (prev, next) {
+      if (next.isSubmitting && !(prev?.isSubmitting ?? false)) {
+        FocusScope.of(context).unfocus();
+      }
+    });
+
+    ref.listen<PairingStatus>(connectionNotifierProvider, (prev, next) {
+      if (next is Connected || next is Paired) {
+        FocusScope.of(context).unfocus();
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -137,7 +164,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
             ref.read(connectionNotifierProvider.notifier).disconnect();
-            context.pop();
+            context.go('/discovery');
           },
         ),
       ),
@@ -283,41 +310,163 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                 /// Confirm Button
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed:
-                        pairingState.pin.length == 6 &&
-                            !pairingState.isSubmitting
-                        ? () {
-                            HapticService.medium();
-                            ref
-                                .read(pairingScreenNotifierProvider.notifier)
-                                .submitPin();
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: pairingState.isSubmitting
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
+                  height: 58,
+                  child:
+                      AnimatedContainer(
+                            duration: 400.ms,
+                            curve: Curves.easeOutCubic,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              gradient:
+                                  pairingState.isSubmitting ||
+                                      pairingState.pin.length != 6
+                                  ? null
+                                  : const LinearGradient(
+                                      colors: [
+                                        Color(0xFFFF8C00),
+                                        Color(0xFFFF4500),
+                                        Color(0xFFFF8C00),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                              color:
+                                  pairingState.pin.length == 6 &&
+                                      !pairingState.isSubmitting
+                                  ? null
+                                  : AppColors.surfaceElevated,
+                              boxShadow:
+                                  pairingState.pin.length == 6 &&
+                                      !pairingState.isSubmitting
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFFFF4500,
+                                        ).withAlpha(100),
+                                        blurRadius: 20,
+                                        spreadRadius: -2,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                            child: ElevatedButton(
+                              onPressed:
+                                  pairingState.pin.length == 6 &&
+                                      !pairingState.isSubmitting
+                                  ? () {
+                                      HapticService.heavy();
+                                      ref
+                                          .read(
+                                            pairingScreenNotifierProvider
+                                                .notifier,
+                                          )
+                                          .submitPin();
+                                    }
+                                  : null,
+                              style:
+                                  ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: Colors.white,
+                                    shadowColor: Colors.transparent,
+                                    disabledBackgroundColor: Colors.transparent,
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                  ).copyWith(
+                                    overlayColor: WidgetStateProperty.all(
+                                      Colors.white10,
+                                    ),
+                                  ),
+                              child: AnimatedSwitcher(
+                                duration: 300.ms,
+                                transitionBuilder:
+                                    (
+                                      Widget child,
+                                      Animation<double> animation,
+                                    ) {
+                                      return FadeTransition(
+                                        opacity: animation,
+                                        child: ScaleTransition(
+                                          scale: animation,
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                child: pairingState.isSubmitting
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        key: ValueKey(
+                                          pairingState.pin.length == 6,
+                                        ),
+                                        children: [
+                                          Text(
+                                            'Confirm',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 17,
+                                              color:
+                                                  pairingState.pin.length == 6
+                                                  ? Colors.white
+                                                  : AppColors.muted.withAlpha(
+                                                      120,
+                                                    ),
+                                              letterSpacing: 1.2,
+                                            ),
+                                          ),
+                                          if (pairingState.pin.length == 6) ...[
+                                            const SizedBox(width: 8),
+                                            const Icon(
+                                                  Icons.arrow_forward_rounded,
+                                                  size: 20,
+                                                )
+                                                .animate(
+                                                  onPlay: (controller) =>
+                                                      controller.repeat(),
+                                                )
+                                                .shimmer(
+                                                  duration: 1500.ms,
+                                                  color: Colors.white24,
+                                                )
+                                                .moveX(
+                                                  begin: 0,
+                                                  end: 4,
+                                                  duration: 600.ms,
+                                                  curve: Curves.easeInOut,
+                                                ),
+                                          ],
+                                        ],
+                                      ),
+                              ),
                             ),
                           )
-                        : const Text(
-                            'Confirm',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                          .animate(
+                            target:
+                                pairingState.pin.length == 6 &&
+                                    !pairingState.isSubmitting
+                                ? 1
+                                : 0,
+                          )
+                          .shimmer(
+                            duration: 2.seconds,
+                            color: Colors.white.withAlpha(20),
+                            angle: 0.7,
+                          )
+                          .scale(
+                            begin: const Offset(1, 1),
+                            end: const Offset(1.02, 1.02),
+                            duration: 200.ms,
                           ),
-                  ),
                 ),
 
                 const SizedBox(height: 32),

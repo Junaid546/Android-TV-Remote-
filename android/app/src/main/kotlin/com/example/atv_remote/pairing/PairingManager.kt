@@ -167,20 +167,19 @@ class PairingManager(
                 while (attemptCount <= 2) {
                     val digest = MessageDigest.getInstance("SHA-256")
                     if (isClientFirst) {
-                        digest.update(clientCert.encoded)   // client FIRST
-                        digest.update(serverCert.encoded)   // server SECOND
-                        Log.i(tag, "Secret order used: CLIENT_SERVER")
+                        digest.update(clientCert.encoded)
+                        digest.update(serverCert.encoded)
+                        Log.i(tag, "Attempt $attemptCount: Trying CLIENT_SERVER order...")
                     } else {
-                        digest.update(serverCert.encoded)   // server FIRST
-                        digest.update(clientCert.encoded)   // client SECOND
-                        Log.i(tag, "Secret order used: SERVER_CLIENT")
+                        digest.update(serverCert.encoded)
+                        digest.update(clientCert.encoded)
+                        Log.i(tag, "Attempt $attemptCount: Trying SERVER_CLIENT order...")
                     }
-                    val secretBytes = digest.digest()
 
-                    Log.d(tag, "Client fingerprint: ${certStore.getClientCertificateFingerprint()}")
-                    Log.d(tag, "Server fingerprint: ${CertificateStore.getFingerprint(serverCert)}")
-                    Log.d(tag, "Secret first 8: ${secretBytes.joinToString("") { "%02x".format(it) }.take(8).uppercase()}")
-                    Log.d(tag, "PIN entered by user: $pin (should match first 6 hex)")
+                    // Include PIN in the hash. Most TVs use the ASCII bytes of the PIN string.
+                    digest.update(pin.toByteArray(Charsets.UTF_8))
+                    
+                    val secretBytes = digest.digest()
 
                     val secretMsg = PairingMessage.newBuilder()
                         .setProtocolVersion(2)
@@ -193,40 +192,46 @@ class PairingManager(
                         .build()
 
                     writeMessage(secretMsg)
-                    Log.d(tag, "PairingSecret sent")
+                    Log.d(tag, "PairingSecret sent. Waiting for result...")
 
-                    val result = readMessage()
-                    Log.d(tag, "PairingResult: ${result?.status}")
+                    val result = readMessage(5000) // 5s timeout
+                    Log.d(tag, "TV Response: ${result?.status}")
 
                     if (result == null) {
                         fail("Timed out waiting for pairing result", "PROTOCOL_TIMEOUT")
                         return@withContext
-                    } else if (result.status == PairingMessage.Status.STATUS_OK) {
-                        certStore.setClientFirst(currentDeviceIp, isClientFirst)
-                        certStore.saveServerCertificate(currentDeviceIp, serverCert)
-                        Log.i(tag, "Pairing SUCCESS for $currentDeviceIp")
-                        
-                        delay(1000) // Defined 1s delay after pairing SUCCESS
-                        
-                        _state.value = PairingState.Success
-                        return@withContext
-                    } else if (
-                        result.status == PairingMessage.Status.STATUS_BAD_SECRET &&
-                            attemptCount == 1
-                    ) {
-                        Log.w(tag, "STATUS_BAD_SECRET. Retrying with flipped cert order.")
-                        isClientFirst = !isClientFirst
-                        attemptCount++
-                        continue
-                    } else if (result.status == PairingMessage.Status.STATUS_BAD_SECRET) {
-                        fail("Wrong PIN / secret mismatch", "WRONG_PIN")
-                        return@withContext
-                    } else if (result.status == PairingMessage.Status.STATUS_BAD_CONFIGURATION) {
-                        fail("Pairing configuration rejected by TV", "BAD_CONFIGURATION")
-                        return@withContext
-                    } else {
-                        fail("Pairing error: ${result.status}", "PAIRING_ERROR")
-                        return@withContext
+                    } 
+                    
+                    when (result.status) {
+                        PairingMessage.Status.STATUS_OK -> {
+                            certStore.setClientFirst(currentDeviceIp, isClientFirst)
+                            certStore.saveServerCertificate(currentDeviceIp, serverCert)
+                            Log.i(tag, "Pairing SUCCESS for $currentDeviceIp")
+                            
+                            delay(1000) 
+                            _state.value = PairingState.Success
+                            return@withContext
+                        }
+                        PairingMessage.Status.STATUS_BAD_SECRET -> {
+                            if (attemptCount == 1) {
+                                Log.w(tag, "TV rejected secret. Trying alternative cert order...")
+                                isClientFirst = !isClientFirst
+                                attemptCount++
+                                continue
+                            } else {
+                                Log.e(tag, "Both cert orders failed. PIN might be wrong.")
+                                fail("Incorrect PIN or pairing failed.", "WRONG_PIN")
+                                return@withContext
+                            }
+                        }
+                        PairingMessage.Status.STATUS_BAD_CONFIGURATION -> {
+                            fail("Pairing configuration rejected by TV", "BAD_CONFIGURATION")
+                            return@withContext
+                        }
+                        else -> {
+                            fail("Pairing error: ${result.status}", "PAIRING_ERROR")
+                            return@withContext
+                        }
                     }
                 }
 
