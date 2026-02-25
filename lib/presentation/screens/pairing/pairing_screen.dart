@@ -13,6 +13,7 @@ import 'package:atv_remote/presentation/screens/pairing/pairing_screen_notifier.
 import 'package:atv_remote/presentation/screens/pairing/widgets/pin_countdown_timer.dart';
 import 'package:atv_remote/presentation/screens/pairing/widgets/pin_input_row.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
   final _focusNode = FocusNode();
   final _shakeNotifier = ValueNotifier<bool>(false);
   ProviderSubscription<PairingStatus>? _connectionSubscription;
-  Timer? _popTimer;
 
   @override
   void initState() {
@@ -45,7 +45,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
   @override
   void dispose() {
     _connectionSubscription?.close();
-    _popTimer?.cancel();
     _pinController.dispose();
     _focusNode.dispose();
     _shakeNotifier.dispose();
@@ -60,7 +59,13 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
 
   void _onConnectionChanged(PairingStatus? previous, PairingStatus next) {
     if (!mounted) return;
-    if (next is Connected) {
+    if (next is AwaitingPin && previous is! AwaitingPin) {
+      ref.read(pairingScreenNotifierProvider.notifier).prepareForRetry();
+      _pinController.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    } else if (next is Connected) {
       context.go('/remote');
     } else if (next is Paired) {
       unawaited(_handlePaired(next.device));
@@ -78,9 +83,11 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
             backgroundColor: AppColors.error,
           ),
         );
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted && context.mounted) context.go('/discovery');
-        });
+        unawaited(
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted && context.mounted) context.go('/discovery');
+          }),
+        );
       }
     } else if (next is ConnectionFailed) {
       ref
@@ -93,10 +100,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
           backgroundColor: AppColors.error,
         ),
       );
-      _popTimer?.cancel();
-      _popTimer = Timer(const Duration(seconds: 2), () {
-        if (mounted && context.mounted && context.canPop()) context.pop();
-      });
     } else if (next is Disconnected && next.reason.contains('expired')) {
       if (context.canPop()) context.pop();
     }
@@ -107,17 +110,16 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
     final savedDevicesNotifier = ref.read(
       savedDevicesNotifierProvider.notifier,
     );
-    await saveDevice(device);
+    await saveDevice(device.copyWith(isPaired: true));
     if (!mounted) return;
     await savedDevicesNotifier.refresh();
-    if (!mounted) return;
-    context.go('/remote');
   }
 
   @override
   Widget build(BuildContext context) {
     final status = ref.watch(connectionNotifierProvider);
     final pairingState = ref.watch(pairingScreenNotifierProvider);
+    final showRetryAction = status is ConnectionFailed;
 
     if (pairingState.pin.isEmpty && _pinController.text.isNotEmpty) {
       _pinController.clear();
@@ -137,6 +139,16 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
         deviceName = device.name;
         deviceIp = device.ipAddress;
         title = 'Connecting...';
+      },
+      paired: (device) {
+        deviceName = device.name;
+        deviceIp = device.ipAddress;
+        title = 'Finalizing Connection...';
+      },
+      reconnecting: (device, attempt) {
+        deviceName = device.name;
+        deviceIp = device.ipAddress;
+        title = attempt <= 0 ? 'Finalizing Connection...' : 'Reconnecting...';
       },
       orElse: () {},
     );
@@ -223,13 +235,25 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
 
                 /// Instruction
                 Text(
-                  'Enter the 6-digit code shown on your TV',
+                  'Enter the 6-character code shown on your TV (0-9, A-F)',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
+
+                if (status is Paired ||
+                    (status is Reconnecting && status.attempt <= 0)) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'PIN accepted. Establishing remote session...',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.muted),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
 
                 const SizedBox(height: 40),
 
@@ -261,6 +285,11 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                                   showCursor: false,
                                   keyboardType: TextInputType.text,
                                   maxLength: 6,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9a-fA-F]'),
+                                    ),
+                                  ],
                                   onChanged: (value) {
                                     ref
                                         .read(
@@ -297,6 +326,27 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                             fontSize: 12,
                           ),
                         ).animate().fadeIn(),
+                      if (showRetryAction) ...[
+                        const SizedBox(height: 10),
+                        TextButton.icon(
+                          onPressed: pairingState.isSubmitting
+                              ? null
+                              : () async {
+                                  unawaited(HapticService.heavy());
+                                  ref
+                                      .read(
+                                        pairingScreenNotifierProvider.notifier,
+                                      )
+                                      .prepareForRetry();
+                                  _pinController.clear();
+                                  await ref
+                                      .read(connectionNotifierProvider.notifier)
+                                      .retryPairing();
+                                },
+                          icon: const Icon(Icons.refresh_rounded, size: 16),
+                          label: const Text('Retry pairing'),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -355,13 +405,15 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                                   pairingState.pin.length == 6 &&
                                       !pairingState.isSubmitting
                                   ? () {
-                                      HapticService.heavy();
-                                      ref
-                                          .read(
-                                            pairingScreenNotifierProvider
-                                                .notifier,
-                                          )
-                                          .submitPin();
+                                      unawaited(HapticService.heavy());
+                                      unawaited(
+                                        ref
+                                            .read(
+                                              pairingScreenNotifierProvider
+                                                  .notifier,
+                                            )
+                                            .submitPin(),
+                                      );
                                     }
                                   : null,
                               style:

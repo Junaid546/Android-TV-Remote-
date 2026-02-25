@@ -85,6 +85,11 @@ RemoteConnectionAliveStreamUseCase remoteConnectionAliveStreamUseCase(
   Ref ref,
 ) => RemoteConnectionAliveStreamUseCase(ref.watch(remoteRepositoryProvider));
 
+@Riverpod(keepAlive: true)
+RemoteConnectionStateStreamUseCase remoteConnectionStateStreamUseCase(
+  Ref ref,
+) => RemoteConnectionStateStreamUseCase(ref.watch(remoteRepositoryProvider));
+
 // Settings Use Cases
 @Riverpod(keepAlive: true)
 GetThemeModeUseCase getThemeModeUseCase(Ref ref) =>

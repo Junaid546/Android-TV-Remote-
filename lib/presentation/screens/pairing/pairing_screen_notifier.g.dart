@@ -7,7 +7,7 @@ part of 'pairing_screen_notifier.dart';
 // **************************************************************************
 
 String _$pairingScreenNotifierHash() =>
-    r'593c93e32768e8ef60f8fb52afabce045bfc2ca2';
+    r'a82fa278d6284e75d47ff494425b1072e500cea7';
 
 /// See also [PairingScreenNotifier].
 @ProviderFor(PairingScreenNotifier)

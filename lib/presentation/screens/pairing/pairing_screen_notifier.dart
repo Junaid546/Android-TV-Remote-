@@ -20,6 +20,7 @@ class PairingScreenState with _$PairingScreenState {
 
 @riverpod
 class PairingScreenNotifier extends _$PairingScreenNotifier {
+  static final RegExp _hexPinPattern = RegExp(r'^[0-9A-F]{0,6}$');
   bool _disposed = false;
 
   @override
@@ -36,11 +37,9 @@ class PairingScreenNotifier extends _$PairingScreenNotifier {
   void updatePin(String value) {
     if (state.isSubmitting) return;
 
-    // Allow uppercase alphanumeric characters for the PIN
     final chars = value.trim().toUpperCase();
-    if (chars.length <= 6) {
-      state = state.copyWith(pin: chars, errorMessage: null);
-    }
+    if (!_hexPinPattern.hasMatch(chars)) return;
+    state = state.copyWith(pin: chars, errorMessage: null);
     if (chars.length == 6) _autoSubmit();
   }
 
@@ -71,5 +70,14 @@ class PairingScreenNotifier extends _$PairingScreenNotifier {
           : state.attemptsLeft,
     );
     HapticService.error();
+  }
+
+  void prepareForRetry() {
+    state = state.copyWith(
+      pin: '',
+      isSubmitting: false,
+      errorMessage: null,
+      attemptsLeft: 3,
+    );
   }
 }

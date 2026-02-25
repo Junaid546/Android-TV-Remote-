@@ -29,14 +29,25 @@ part 'router.g.dart';
 class RouterChangeNotifier extends ChangeNotifier {
   bool _hasWifi = true;
   bool _isConnected = false;
+  bool _hasActiveSession = false;
 
   bool get hasWifi => _hasWifi;
   bool get isConnected => _isConnected;
+  bool get hasActiveSession => _hasActiveSession;
 
-  void update({required bool hasWifi, required bool isConnected}) {
-    if (hasWifi == _hasWifi && isConnected == _isConnected) return;
+  void update({
+    required bool hasWifi,
+    required bool isConnected,
+    required bool hasActiveSession,
+  }) {
+    if (hasWifi == _hasWifi &&
+        isConnected == _isConnected &&
+        hasActiveSession == _hasActiveSession) {
+      return;
+    }
     _hasWifi = hasWifi;
     _isConnected = isConnected;
+    _hasActiveSession = hasActiveSession;
     notifyListeners();
   }
 }
@@ -61,6 +72,7 @@ RouterChangeNotifier routerListenable(RouterListenableRef ref) {
     notifier.update(
       hasWifi: wifiAsync.valueOrNull ?? true,
       isConnected: connectionState is Connected,
+      hasActiveSession: connectionState.hasActiveSession,
     );
   }
 
@@ -105,7 +117,7 @@ GoRouter appRouter(AppRouterRef ref) {
       }
 
       // Guard: Not connected and trying to access remote → go to discovery
-      if (state.matchedLocation == '/remote' && !listenable.isConnected) {
+      if (state.matchedLocation == '/remote' && !listenable.hasActiveSession) {
         return '/discovery';
       }
 

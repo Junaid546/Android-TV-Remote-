@@ -17,5 +17,8 @@ class SavedDevicesNotifier extends _$SavedDevicesNotifier {
     result.fold((_) {}, (_) => ref.invalidateSelf());
   }
 
-  Future<void> refresh() => ref.invalidateSelf() as Future<void>;
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
 }

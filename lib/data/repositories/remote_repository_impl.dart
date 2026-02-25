@@ -1,6 +1,7 @@
 import 'package:atv_remote/core/errors/failures.dart';
 import 'package:atv_remote/data/datasources/native/remote_native_datasource.dart';
 import 'package:atv_remote/domain/entities/remote_command.dart';
+import 'package:atv_remote/domain/entities/remote_session_status.dart';
 import 'package:atv_remote/domain/entities/tv_device.dart';
 import 'package:atv_remote/domain/repositories/remote_repository.dart';
 import 'package:fpdart/fpdart.dart';
@@ -11,12 +12,37 @@ class RemoteRepositoryImpl implements RemoteRepository {
   RemoteRepositoryImpl(this._nativeDataSource);
 
   @override
-  Stream<Either<Failure, bool>> get connectionAlive {
+  Stream<Either<Failure, RemoteSessionStatus>> get connectionState {
     return _nativeDataSource.connectionStateStream
-        .map<Either<Failure, bool>>((event) {
+        .map<Either<Failure, RemoteSessionStatus>>((event) {
           try {
-            final state = event['state'] as String;
-            return Right(state == 'CONNECTED');
+            final state = event['state'] as String?;
+            final ip = (event['ip'] ?? event['deviceIp'] ?? '') as String;
+            final name =
+                (event['name'] ?? event['deviceName'] ?? 'TV') as String;
+            final attempt = (event['attempt'] as int?) ?? 0;
+            final maxAttempts = (event['maxAttempts'] as int?) ?? 0;
+            final reason =
+                (event['reason'] as String?) ?? 'Remote session failed';
+
+            switch (state) {
+              case 'DISCONNECTED':
+                return const Right(RemoteSessionDisconnected());
+              case 'CONNECTING':
+                return Right(RemoteSessionConnecting(ip));
+              case 'CONNECTED':
+                return Right(RemoteSessionConnected(ip, name));
+              case 'RECONNECTING':
+                return Right(
+                  RemoteSessionReconnecting(ip, attempt, maxAttempts),
+                );
+              case 'FAILED':
+                return Right(RemoteSessionFailed(ip, reason));
+              default:
+                return Left(
+                  UnknownFailure('Unknown remote connection state: $state'),
+                );
+            }
           } catch (e) {
             return Left(UnknownFailure(e.toString()));
           }
@@ -25,6 +51,12 @@ class RemoteRepositoryImpl implements RemoteRepository {
           return Left(UnknownFailure(e.toString()));
         });
   }
+
+  @override
+  Stream<Either<Failure, bool>> get connectionAlive =>
+      connectionState.map((either) {
+        return either.map((status) => status is RemoteSessionConnected);
+      });
 
   @override
   Future<Either<Failure, void>> connect(TvDevice device) async {

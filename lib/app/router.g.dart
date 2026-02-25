@@ -6,7 +6,7 @@ part of 'router.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$routerListenableHash() => r'e763071a086bef6a12af5f1bbc14572dcaa9c810';
+String _$routerListenableHash() => r'd57fba82b3b795e2292a73b57c1521bef5e51adf';
 
 /// See also [routerListenable].
 @ProviderFor(routerListenable)
@@ -21,7 +21,7 @@ final routerListenableProvider = Provider<RouterChangeNotifier>.internal(
 );
 
 typedef RouterListenableRef = ProviderRef<RouterChangeNotifier>;
-String _$appRouterHash() => r'6001007fac60956e353111f9bef8cb372c8b3968';
+String _$appRouterHash() => r'a74f4c597d74840daf70bd8123a5404db400275f';
 
 /// See also [appRouter].
 @ProviderFor(appRouter)

@@ -286,6 +286,24 @@ final remoteConnectionAliveStreamUseCaseProvider =
 
 typedef RemoteConnectionAliveStreamUseCaseRef
     = ProviderRef<RemoteConnectionAliveStreamUseCase>;
+String _$remoteConnectionStateStreamUseCaseHash() =>
+    r'cc7eac3bcdd2c85766403c603c742643207f0ba8';
+
+/// See also [remoteConnectionStateStreamUseCase].
+@ProviderFor(remoteConnectionStateStreamUseCase)
+final remoteConnectionStateStreamUseCaseProvider =
+    Provider<RemoteConnectionStateStreamUseCase>.internal(
+  remoteConnectionStateStreamUseCase,
+  name: r'remoteConnectionStateStreamUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$remoteConnectionStateStreamUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef RemoteConnectionStateStreamUseCaseRef
+    = ProviderRef<RemoteConnectionStateStreamUseCase>;
 String _$getThemeModeUseCaseHash() =>
     r'44873de7f37ec1f63da7a56da443fb944215587c';
 

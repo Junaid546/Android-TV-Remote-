@@ -38,6 +38,7 @@ class _TvHeaderBarState extends ConsumerState<TvHeaderBar>
   Widget build(BuildContext context) {
     final connectionState = ref.watch(connectionNotifierProvider);
     final isConnected = connectionState is Connected;
+    final hasSession = connectionState.hasActiveSession;
     final device = connectionState.device;
 
     return SizedBox(
@@ -79,7 +80,11 @@ class _TvHeaderBarState extends ConsumerState<TvHeaderBar>
                   isConnected
                       ? Icons.cast_connected_rounded
                       : Icons.cast_rounded,
-                  color: isConnected ? AppColors.primary : AppColors.muted,
+                  color: isConnected
+                      ? AppColors.primary
+                      : hasSession
+                      ? AppColors.warning
+                      : AppColors.muted,
                   size: 22,
                 ),
               ),

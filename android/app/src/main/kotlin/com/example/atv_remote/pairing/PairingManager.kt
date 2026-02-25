@@ -2,14 +2,26 @@ package com.example.atv_remote.pairing
 
 import android.util.Log
 import com.google.protobuf.ByteString
-import com.tvremote.app.proto.PairingProto.*
-import kotlinx.coroutines.*
+import com.google.protobuf.InvalidProtocolBufferException
+import com.tvremote.app.proto.PairingProto.PairingConfiguration
+import com.tvremote.app.proto.PairingProto.PairingEncoding
+import com.tvremote.app.proto.PairingProto.PairingMessage
+import com.tvremote.app.proto.PairingProto.PairingOption
+import com.tvremote.app.proto.PairingProto.PairingRequest
+import com.tvremote.app.proto.PairingProto.PairingSecret
+import com.tvremote.app.proto.PairingProto.RoleType
+import com.tvremote.app.proto.PairingProto.EncodingType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLSocket
 
@@ -41,20 +53,18 @@ class PairingManager(
     private var currentDeviceIp: String = ""
     private var pinExpiryJob: Job? = null
 
-    // ─────────────────────────────────────────────────────────────
-    // Start Pairing
-    // ─────────────────────────────────────────────────────────────
+    private class ProtocolReadException(message: String, cause: Throwable? = null) :
+        Exception(message, cause)
 
     suspend fun startPairing(ip: String, deviceName: String) {
+        closeSocket()
         currentDeviceIp = ip
         _state.value = PairingState.Connecting(ip)
 
         withContext(Dispatchers.IO) {
             try {
-                // Ensure client identity exists (idempotent)
                 certStore.generateIdentityIfNeeded()
 
-                // Connect and capture server cert
                 val newSocket = TlsSocketFactory.createPairingSocket(
                     host = ip,
                     certStore = certStore,
@@ -68,7 +78,6 @@ class PairingManager(
                 output = DataOutputStream(newSocket.outputStream)
                 input = DataInputStream(newSocket.inputStream)
 
-                // Step 1 — Send PairingRequest
                 val request = PairingMessage.newBuilder()
                     .setProtocolVersion(2)
                     .setStatus(PairingMessage.Status.STATUS_OK)
@@ -84,7 +93,6 @@ class PairingManager(
                 if (!validateAck(reqAck, "request")) return@withContext
                 Log.d(tag, "Request Ack status: ${reqAck!!.status}")
 
-                // Step 2 — Send PairingOption
                 val option = PairingMessage.newBuilder()
                     .setProtocolVersion(2)
                     .setStatus(PairingMessage.Status.STATUS_OK)
@@ -105,7 +113,6 @@ class PairingManager(
                 if (!validateAck(optAck, "option")) return@withContext
                 Log.d(tag, "Option Ack status: ${optAck!!.status}")
 
-                // Step 3 — Send PairingConfiguration
                 val config = PairingMessage.newBuilder()
                     .setProtocolVersion(2)
                     .setStatus(PairingMessage.Status.STATUS_OK)
@@ -126,10 +133,11 @@ class PairingManager(
                 if (!validateAck(confAck, "configuration")) return@withContext
                 Log.d(tag, "Config Ack status: ${confAck!!.status}")
 
-                // Ready for PIN
                 _state.value = PairingState.AwaitingPin
                 startPinCountdown()
-
+            } catch (e: ProtocolReadException) {
+                Log.e(tag, "startPairing protocol read failed", e)
+                fail("Pairing protocol error: ${e.message}", "PROTOCOL_ERROR")
             } catch (e: Exception) {
                 Log.e(tag, "startPairing failed", e)
                 if (_state.value !is PairingState.Failed) {
@@ -138,12 +146,6 @@ class PairingManager(
             }
         }
     }
-
-    // Socket creation delegated to TlsSocketFactory.createPairingSocket()
-
-    // ─────────────────────────────────────────────────────────────
-    // Submit PIN
-    // ─────────────────────────────────────────────────────────────
 
     suspend fun submitPin(pin: String) {
         if (_state.value !is PairingState.AwaitingPin) {
@@ -158,83 +160,59 @@ class PairingManager(
             try {
                 val serverCert = capturedServerCert
                     ?: throw IllegalStateException("Server cert not captured")
-
+                val normalizedPin = PairingSecretGenerator.normalizeHexPin(pin)
                 val clientCert = certStore.getClientCertificate()
 
-                var isClientFirst = certStore.isClientFirst(currentDeviceIp)
-                var attemptCount = 1
-
-                while (attemptCount <= 2) {
-                    val digest = MessageDigest.getInstance("SHA-256")
-                    if (isClientFirst) {
-                        digest.update(clientCert.encoded)
-                        digest.update(serverCert.encoded)
-                        Log.i(tag, "Attempt $attemptCount: Trying CLIENT_SERVER order...")
-                    } else {
-                        digest.update(serverCert.encoded)
-                        digest.update(clientCert.encoded)
-                        Log.i(tag, "Attempt $attemptCount: Trying SERVER_CLIENT order...")
-                    }
-
-                    // Include PIN in the hash. Most TVs use the ASCII bytes of the PIN string.
-                    digest.update(pin.toByteArray(Charsets.UTF_8))
-                    
-                    val secretBytes = digest.digest()
-
-                    val secretMsg = PairingMessage.newBuilder()
-                        .setProtocolVersion(2)
-                        .setStatus(PairingMessage.Status.STATUS_OK)
-                        .setPairingSecret(
-                            PairingSecret.newBuilder()
-                                .setSecret(ByteString.copyFrom(secretBytes))
-                                .build()
-                        )
-                        .build()
-
-                    writeMessage(secretMsg)
-                    Log.d(tag, "PairingSecret sent. Waiting for result...")
-
-                    val result = readMessage(5000) // 5s timeout
-                    Log.d(tag, "TV Response: ${result?.status}")
-
-                    if (result == null) {
-                        fail("Timed out waiting for pairing result", "PROTOCOL_TIMEOUT")
-                        return@withContext
-                    } 
-                    
-                    when (result.status) {
-                        PairingMessage.Status.STATUS_OK -> {
-                            certStore.setClientFirst(currentDeviceIp, isClientFirst)
-                            certStore.saveServerCertificate(currentDeviceIp, serverCert)
-                            Log.i(tag, "Pairing SUCCESS for $currentDeviceIp")
-                            
-                            delay(1000) 
-                            _state.value = PairingState.Success
-                            return@withContext
-                        }
-                        PairingMessage.Status.STATUS_BAD_SECRET -> {
-                            if (attemptCount == 1) {
-                                Log.w(tag, "TV rejected secret. Trying alternative cert order...")
-                                isClientFirst = !isClientFirst
-                                attemptCount++
-                                continue
-                            } else {
-                                Log.e(tag, "Both cert orders failed. PIN might be wrong.")
-                                fail("Incorrect PIN or pairing failed.", "WRONG_PIN")
-                                return@withContext
-                            }
-                        }
-                        PairingMessage.Status.STATUS_BAD_CONFIGURATION -> {
-                            fail("Pairing configuration rejected by TV", "BAD_CONFIGURATION")
-                            return@withContext
-                        }
-                        else -> {
-                            fail("Pairing error: ${result.status}", "PAIRING_ERROR")
-                            return@withContext
-                        }
-                    }
+                val secretBytes =
+                    PairingSecretGenerator.deriveSecret(clientCert, serverCert, normalizedPin)
+                if (!PairingSecretGenerator.matchesPinPrefix(secretBytes, normalizedPin)) {
+                    fail("Incorrect PIN or pairing failed.", "WRONG_PIN")
+                    return@withContext
                 }
 
+                val secretMsg = PairingMessage.newBuilder()
+                    .setProtocolVersion(2)
+                    .setStatus(PairingMessage.Status.STATUS_OK)
+                    .setPairingSecret(
+                        PairingSecret.newBuilder()
+                            .setSecret(ByteString.copyFrom(secretBytes))
+                            .build()
+                    )
+                    .build()
+
+                writeMessage(secretMsg)
+                Log.d(tag, "PairingSecret sent. Waiting for result...")
+
+                val result = readMessage(5000)
+                Log.d(tag, "TV Response: ${result?.status}")
+
+                if (result == null) {
+                    fail("Timed out waiting for pairing result", "PROTOCOL_TIMEOUT")
+                    return@withContext
+                }
+
+                when (result.status) {
+                    PairingMessage.Status.STATUS_OK -> {
+                        certStore.saveServerCertificate(currentDeviceIp, serverCert)
+                        Log.i(tag, "Pairing SUCCESS for $currentDeviceIp")
+                        _state.value = PairingState.Success
+                    }
+                    PairingMessage.Status.STATUS_BAD_SECRET -> {
+                        fail("Incorrect PIN or pairing failed.", "WRONG_PIN")
+                    }
+                    PairingMessage.Status.STATUS_BAD_CONFIGURATION -> {
+                        fail("Pairing configuration rejected by TV", "BAD_CONFIGURATION")
+                    }
+                    else -> {
+                        fail("Pairing error: ${result.status}", "PAIRING_ERROR")
+                    }
+                }
+            } catch (e: IllegalArgumentException) {
+                Log.e(tag, "submitPin invalid input", e)
+                fail(e.message ?: "PIN should be 6 hex characters.", "INVALID_PIN_FORMAT")
+            } catch (e: ProtocolReadException) {
+                Log.e(tag, "submitPin protocol read failed", e)
+                fail("Pairing protocol error: ${e.message}", "PROTOCOL_ERROR")
             } catch (e: Exception) {
                 Log.e(tag, "submitPin failed", e)
                 fail("PIN submission error: ${e.message}", "SUBMIT_ERROR")
@@ -243,10 +221,6 @@ class PairingManager(
             }
         }
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // PIN Countdown
-    // ─────────────────────────────────────────────────────────────
 
     private fun startPinCountdown(seconds: Int = 60) {
         _pinExpiry.value = seconds
@@ -264,10 +238,6 @@ class PairingManager(
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Cancel
-    // ─────────────────────────────────────────────────────────────
-
     fun cancel() {
         pinExpiryJob?.cancel()
         closeSocket()
@@ -275,10 +245,6 @@ class PairingManager(
         _state.value = PairingState.Idle
         Log.d(tag, "Pairing cancelled")
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // Message Framing
-    // ─────────────────────────────────────────────────────────────
 
     private fun writeMessage(msg: PairingMessage) {
         val out = output ?: throw IllegalStateException("Output stream is null")
@@ -309,22 +275,31 @@ class PairingManager(
         if (timeoutMs > 0) socket?.soTimeout = timeoutMs
 
         try {
-            // parseDelimitedFrom automatically reads the varint length and the exact payload
             return PairingMessage.parseDelimitedFrom(inp)
-        } catch (e: java.net.SocketTimeoutException) {
-            Log.w(tag, "Timeout reading message, assuming TV waiting...")
-            return null
         } catch (e: Exception) {
-            Log.e(tag, "Error reading message", e)
-            return null
+            if (isSocketTimeout(e)) {
+                Log.w(tag, "Timeout reading pairing message")
+                return null
+            }
+            val protocolError = when (e) {
+                is InvalidProtocolBufferException ->
+                    ProtocolReadException("Malformed pairing protobuf", e)
+                else -> ProtocolReadException("Failed to read pairing message", e)
+            }
+            throw protocolError
         } finally {
             if (timeoutMs > 0) socket?.soTimeout = oldTimeout
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────
+    private fun isSocketTimeout(error: Throwable?): Boolean {
+        var current = error
+        while (current != null) {
+            if (current is java.net.SocketTimeoutException) return true
+            current = current.cause
+        }
+        return false
+    }
 
     private fun fail(reason: String, code: String = "UNKNOWN") {
         Log.e(tag, "FAILED [$code]: $reason")

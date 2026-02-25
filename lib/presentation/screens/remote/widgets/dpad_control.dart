@@ -44,191 +44,229 @@ class _DpadControlState extends ConsumerState<DpadControl>
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     final isConnected = ref.watch(
       connectionNotifierProvider.select((s) => s.isConnected),
     );
-    final ringSize = math.min(screenWidth * 0.65, 260.0);
-    final okSize = ringSize * 0.35;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        const baseSideButton = 44.0;
+        const baseSideHorizontalPadding = 4.0;
+        const baseSideVerticalPadding = 16.0;
+        const baseGap = 20.0;
+        const baseDirectionIcon = 32.0;
+        const baseSideIcon = 16.0;
+        const baseLabelSize = 13.0;
 
-    return Center(
-      child: SizedBox(
-        width: screenWidth * 0.9,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Left Side: Volume Controls
-            _SideColumn(
-              children: [
-                RemoteButton(
-                  icon: const Icon(Icons.add_rounded),
-                  size: 44,
-                  onPressed: isConnected
-                      ? () => _sendKey('KEYCODE_VOLUME_UP')
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                const Icon(
-                  Icons.volume_up_rounded,
-                  color: AppColors.muted,
-                  size: 16,
-                ),
-                const SizedBox(height: 12),
-                RemoteButton(
-                  icon: const Icon(Icons.remove_rounded),
-                  size: 44,
-                  onPressed: isConnected
-                      ? () => _sendKey('KEYCODE_VOLUME_DOWN')
-                      : null,
-                ),
-              ],
-            ),
+        final preferredRingSize = math.min(availableWidth * 0.65, 260.0);
+        const baseSideWidth = baseSideButton + (baseSideHorizontalPadding * 2);
+        final baseTotalWidth =
+            preferredRingSize + (baseSideWidth * 2) + (baseGap * 2);
+        final scale = baseTotalWidth > availableWidth
+            ? availableWidth / baseTotalWidth
+            : 1.0;
 
-            const SizedBox(width: 20),
+        final ringSize = preferredRingSize * scale;
+        final okSize = ringSize * 0.35;
+        final sideButtonSize = baseSideButton * scale;
+        final sideHorizontalPadding = baseSideHorizontalPadding * scale;
+        final sideVerticalPadding = baseSideVerticalPadding * scale;
+        final sideGap = 12.0 * scale;
+        final columnGap = baseGap * scale;
+        final directionIconSize = baseDirectionIcon * scale;
+        final sideIconSize = baseSideIcon * scale;
+        final sideLabelSize = baseLabelSize * scale;
 
-            // Center: Circular D-Pad
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                // Layer 1: The Ring
-                Container(
-                  width: ringSize,
-                  height: ringSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.surface,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        blurRadius: 30,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Layer 2: Direction Icons (Visual only, wrapping in buttons later)
-                _DirectionButton(
-                  alignment: Alignment.topCenter,
-                  icon: Icons.keyboard_arrow_up_rounded,
-                  ringSize: ringSize,
-                  onPressed: isConnected
-                      ? () => _sendKey('KEYCODE_DPAD_UP')
-                      : null,
-                ),
-                _DirectionButton(
-                  alignment: Alignment.bottomCenter,
-                  icon: Icons.keyboard_arrow_down_rounded,
-                  ringSize: ringSize,
-                  onPressed: isConnected
-                      ? () => _sendKey('KEYCODE_DPAD_DOWN')
-                      : null,
-                ),
-                _DirectionButton(
-                  alignment: Alignment.centerLeft,
-                  icon: Icons.keyboard_arrow_left_rounded,
-                  ringSize: ringSize,
-                  onPressed: isConnected
-                      ? () => _sendKey('KEYCODE_DPAD_LEFT')
-                      : null,
-                ),
-                _DirectionButton(
-                  alignment: Alignment.centerRight,
-                  icon: Icons.keyboard_arrow_right_rounded,
-                  ringSize: ringSize,
-                  onPressed: isConnected
-                      ? () => _sendKey('KEYCODE_DPAD_RIGHT')
-                      : null,
-                ),
-
-                // Layer 3: Center OK Button
-                AnimatedBuilder(
-                  animation: _glowPulse,
-                  builder: (context, child) {
-                    final glowOpacity = isConnected
-                        ? (0.3 + (_glowPulse.value * 0.3))
-                        : 0.0;
-                    return Container(
-                      width: okSize,
-                      height: okSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(
-                              alpha: glowOpacity,
-                            ),
-                            blurRadius: 25,
-                            spreadRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: child,
-                    );
-                  },
-                  child: RemoteButton(
-                    label: 'OK',
-                    size: okSize,
-                    style: RemoteButtonStyle.primary,
-                    enableLongPress: true,
+        return Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Left Side: Volume Controls
+              _SideColumn(
+                horizontalPadding: sideHorizontalPadding,
+                verticalPadding: sideVerticalPadding,
+                children: [
+                  RemoteButton(
+                    icon: const Icon(Icons.add_rounded),
+                    size: sideButtonSize,
                     onPressed: isConnected
-                        ? () => _sendKey('KEYCODE_DPAD_CENTER')
+                        ? () => _sendKey('KEYCODE_VOLUME_UP')
                         : null,
                   ),
-                ),
-              ],
-            ),
-
-            const SizedBox(width: 20),
-
-            // Right Side: Channel Controls
-            _SideColumn(
-              children: [
-                RemoteButton(
-                  icon: const Icon(Icons.keyboard_arrow_up_rounded),
-                  size: 44,
-                  onPressed: isConnected
-                      ? () => _sendKey('KEYCODE_CHANNEL_UP')
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'CH',
-                  style: TextStyle(
+                  SizedBox(height: sideGap),
+                  Icon(
+                    Icons.volume_up_rounded,
                     color: AppColors.muted,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    size: sideIconSize,
                   ),
-                ),
-                const SizedBox(height: 12),
-                RemoteButton(
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                  size: 44,
-                  onPressed: isConnected
-                      ? () => _sendKey('KEYCODE_CHANNEL_DOWN')
-                      : null,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+                  SizedBox(height: sideGap),
+                  RemoteButton(
+                    icon: const Icon(Icons.remove_rounded),
+                    size: sideButtonSize,
+                    onPressed: isConnected
+                        ? () => _sendKey('KEYCODE_VOLUME_DOWN')
+                        : null,
+                  ),
+                ],
+              ),
+
+              SizedBox(width: columnGap),
+
+              // Center: Circular D-Pad
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: ringSize,
+                    height: ringSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.surface,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          blurRadius: 30 * scale,
+                          spreadRadius: 5 * scale,
+                        ),
+                      ],
+                    ),
+                  ),
+                  _DirectionButton(
+                    alignment: Alignment.topCenter,
+                    icon: Icons.keyboard_arrow_up_rounded,
+                    ringSize: ringSize,
+                    iconSize: directionIconSize,
+                    onPressed: isConnected
+                        ? () => _sendKey('KEYCODE_DPAD_UP')
+                        : null,
+                  ),
+                  _DirectionButton(
+                    alignment: Alignment.bottomCenter,
+                    icon: Icons.keyboard_arrow_down_rounded,
+                    ringSize: ringSize,
+                    iconSize: directionIconSize,
+                    onPressed: isConnected
+                        ? () => _sendKey('KEYCODE_DPAD_DOWN')
+                        : null,
+                  ),
+                  _DirectionButton(
+                    alignment: Alignment.centerLeft,
+                    icon: Icons.keyboard_arrow_left_rounded,
+                    ringSize: ringSize,
+                    iconSize: directionIconSize,
+                    onPressed: isConnected
+                        ? () => _sendKey('KEYCODE_DPAD_LEFT')
+                        : null,
+                  ),
+                  _DirectionButton(
+                    alignment: Alignment.centerRight,
+                    icon: Icons.keyboard_arrow_right_rounded,
+                    ringSize: ringSize,
+                    iconSize: directionIconSize,
+                    onPressed: isConnected
+                        ? () => _sendKey('KEYCODE_DPAD_RIGHT')
+                        : null,
+                  ),
+                  AnimatedBuilder(
+                    animation: _glowPulse,
+                    builder: (context, child) {
+                      final glowOpacity = isConnected
+                          ? (0.3 + (_glowPulse.value * 0.3))
+                          : 0.0;
+                      return Container(
+                        width: okSize,
+                        height: okSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(
+                                alpha: glowOpacity,
+                              ),
+                              blurRadius: 25 * scale,
+                              spreadRadius: 8 * scale,
+                            ),
+                          ],
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: RemoteButton(
+                      label: 'OK',
+                      size: okSize,
+                      style: RemoteButtonStyle.primary,
+                      enableLongPress: true,
+                      onPressed: isConnected
+                          ? () => _sendKey('KEYCODE_DPAD_CENTER')
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(width: columnGap),
+
+              // Right Side: Channel Controls
+              _SideColumn(
+                horizontalPadding: sideHorizontalPadding,
+                verticalPadding: sideVerticalPadding,
+                children: [
+                  RemoteButton(
+                    icon: const Icon(Icons.keyboard_arrow_up_rounded),
+                    size: sideButtonSize,
+                    onPressed: isConnected
+                        ? () => _sendKey('KEYCODE_CHANNEL_UP')
+                        : null,
+                  ),
+                  SizedBox(height: sideGap),
+                  Text(
+                    'CH',
+                    style: TextStyle(
+                      color: AppColors.muted,
+                      fontSize: sideLabelSize,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: sideGap),
+                  RemoteButton(
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    size: sideButtonSize,
+                    onPressed: isConnected
+                        ? () => _sendKey('KEYCODE_CHANNEL_DOWN')
+                        : null,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
 class _SideColumn extends StatelessWidget {
   final List<Widget> children;
-  const _SideColumn({required this.children});
+  final double horizontalPadding;
+  final double verticalPadding;
+
+  const _SideColumn({
+    required this.children,
+    required this.horizontalPadding,
+    required this.verticalPadding,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: verticalPadding,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(24),
@@ -243,12 +281,14 @@ class _DirectionButton extends StatefulWidget {
   final Alignment alignment;
   final IconData icon;
   final double ringSize;
+  final double iconSize;
   final VoidCallback? onPressed;
 
   const _DirectionButton({
     required this.alignment,
     required this.icon,
     required this.ringSize,
+    required this.iconSize,
     this.onPressed,
   });
 
@@ -307,7 +347,7 @@ class _DirectionButtonState extends State<_DirectionButton> {
             child: Icon(
               widget.icon,
               color: _isPressed ? AppColors.primary : AppColors.muted,
-              size: 32,
+              size: widget.iconSize,
             ),
           ),
         ),

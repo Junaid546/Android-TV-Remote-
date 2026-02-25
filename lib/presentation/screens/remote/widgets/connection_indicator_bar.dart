@@ -1,3 +1,4 @@
+import 'package:atv_remote/core/errors/failures.dart';
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/presentation/providers/connection_provider.dart';
 import 'package:flutter/material.dart';
@@ -40,75 +41,115 @@ class _ConnectionIndicatorBarState extends ConsumerState<ConnectionIndicatorBar>
 
     return connectionState.maybeWhen(
       connected: (_) => const SizedBox.shrink(),
-      reconnecting: (device, attempt) => AnimatedBuilder(
-        animation: _pulseAnim,
-        builder: (context, child) {
-          return Opacity(opacity: _pulseAnim.value, child: child);
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-          decoration: BoxDecoration(
-            color: AppColors.warning.withValues(alpha: 0.15),
-            border: Border(
-              bottom: BorderSide(
-                color: AppColors.warning.withValues(alpha: 0.4),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(
-                width: 12,
-                height: 12,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.warning,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Reconnecting… (attempt $attempt)',
-                style: const TextStyle(
-                  color: AppColors.warning,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
+      reconnecting: (_, attempt) => _buildStatusBar(
+        color: AppColors.warning,
+        text: attempt <= 0
+            ? 'Establishing remote session...'
+            : 'Reconnecting... (attempt $attempt)',
+        pulse: true,
+        showReconnectAction: attempt <= 0,
+      ),
+      paired: (_) => _buildStatusBar(
+        color: AppColors.warning,
+        text: 'Finalizing remote connection...',
+        pulse: true,
+        showReconnectAction: false,
+      ),
+      connectionFailed: (_, failure) => _buildStatusBar(
+        color: AppColors.error,
+        text: _failureMessage(failure),
+        pulse: false,
+        showReconnectAction: true,
+      ),
+      disconnected: (_, reason) => _buildStatusBar(
+        color: AppColors.error,
+        text: reason.isEmpty ? 'Remote disconnected' : reason,
+        pulse: false,
+        showReconnectAction: true,
+      ),
+      orElse: () => _buildStatusBar(
+        color: AppColors.warning,
+        text: 'Waiting for remote connection...',
+        pulse: true,
+        showReconnectAction: false,
+      ),
+    );
+  }
+
+  String _failureMessage(Failure failure) {
+    if (failure is PairingFailure && failure.reason.isNotEmpty) {
+      return failure.reason;
+    }
+    return failure.toString();
+  }
+
+  Widget _buildStatusBar({
+    required Color color,
+    required String text,
+    required bool pulse,
+    required bool showReconnectAction,
+  }) {
+    final child = Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        border: Border(
+          bottom: BorderSide(color: color.withValues(alpha: 0.32), width: 1),
         ),
       ),
-      orElse: () => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-        decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.12),
-          border: Border(
-            bottom: BorderSide(
-              color: AppColors.error.withValues(alpha: 0.3),
-              width: 1,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (pulse) ...[
+            const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
-          ),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.wifi_off_rounded, color: AppColors.error, size: 14),
-            SizedBox(width: 8),
-            Text(
-              'Disconnected',
+            const SizedBox(width: 8),
+          ] else ...[
+            Icon(Icons.wifi_off_rounded, color: color, size: 14),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: AppColors.error,
+                color: color,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),
+          ),
+          if (showReconnectAction) ...[
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () {
+                ref.read(connectionNotifierProvider.notifier).reconnectRemote();
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: color,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: const Size(0, 24),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Reconnect'),
+            ),
           ],
-        ),
+        ],
       ),
+    );
+
+    if (!pulse) return child;
+    return AnimatedBuilder(
+      animation: _pulseAnim,
+      builder: (context, widget) {
+        return Opacity(opacity: _pulseAnim.value, child: widget);
+      },
+      child: child,
     );
   }
 }
