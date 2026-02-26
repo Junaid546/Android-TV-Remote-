@@ -36,6 +36,7 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.debug
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 
@@ -55,10 +56,11 @@ flutter {
 dependencies {
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
     implementation "com.google.protobuf:protobuf-javalite:3.25.3"
+    implementation "com.github.MuntashirAkon:libadb-android:3.1.1"
     
-    // BouncyCastle for robust software-based RSA key generation (bypasses Android Keystore hardware crashes)
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.77'
-    implementation 'org.bouncycastle:bcpkix-jdk18on:1.77'
+    // Keep BouncyCastle family aligned with libadb transitive dependencies.
+    implementation "org.bouncycastle:bcprov-jdk15to18:1.81"
+    implementation "org.bouncycastle:bcpkix-jdk15to18:1.81"
     testImplementation "junit:junit:4.13.2"
 }
 

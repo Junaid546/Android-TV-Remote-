@@ -7,5 +7,9 @@ class ChannelConstants {
   static const kPairingEventChannel = 'com.tvremote.app/pairing/events';
   static const kRemoteMethodChannel = 'com.tvremote.app/remote';
   static const kRemoteEventChannel = 'com.tvremote.app/remote/events';
+  static const kRemoteVolumeEventChannel =
+      'com.tvremote.app/remote/volume/events';
+  static const kAdbMethodChannel = 'com.tvremote.app/adb';
+  static const kAdbEventChannel = 'com.tvremote.app/adb/events';
   static const kNetworkEventChannel = 'com.tvremote.app/network/events';
 }

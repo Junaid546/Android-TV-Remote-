@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 
 abstract interface class RemoteNativeDataSource {
   Future<void> connect(String ip, String name, int port);
-  void sendKey(int keyCode, int direction);
+  Future<void> sendKey(int keyCode, int direction);
+  Future<void> setAutoReconnect(bool enabled);
   Future<void> disconnect();
   Stream<Map<String, dynamic>> get connectionStateStream;
+  Stream<Map<String, dynamic>> get volumeStateStream;
 }
 
 class RemoteNativeDataSourceImpl implements RemoteNativeDataSource {
@@ -16,6 +18,9 @@ class RemoteNativeDataSourceImpl implements RemoteNativeDataSource {
   );
   static const _eventChannel = EventChannel(
     ChannelConstants.kRemoteEventChannel,
+  );
+  static const _volumeEventChannel = EventChannel(
+    ChannelConstants.kRemoteVolumeEventChannel,
   );
 
   @override
@@ -30,6 +35,22 @@ class RemoteNativeDataSourceImpl implements RemoteNativeDataSource {
             throw NativeChannelException(
               error.code,
               error.message ?? 'Remote stream error',
+            );
+          }
+          throw error;
+        });
+  }
+
+  @override
+  Stream<Map<String, dynamic>> get volumeStateStream {
+    return _volumeEventChannel
+        .receiveBroadcastStream()
+        .map((event) => Map<String, dynamic>.from(event as Map))
+        .handleError((error) {
+          if (error is PlatformException) {
+            throw NativeChannelException(
+              error.code,
+              error.message ?? 'Remote volume stream error',
             );
           }
           throw error;
@@ -53,15 +74,29 @@ class RemoteNativeDataSourceImpl implements RemoteNativeDataSource {
   }
 
   @override
-  void sendKey(int keyCode, int direction) {
-    // Fire and forget - don't await
-    unawaited(
-      _methodChannel
-          .invokeMethod('sendKey', {'keyCode': keyCode, 'direction': direction})
-          .catchError((e) {
-            // Log error or handle silently as per requirement
-          }),
-    );
+  Future<void> sendKey(int keyCode, int direction) async {
+    try {
+      await _methodChannel.invokeMethod('sendKey', {
+        'keyCode': keyCode,
+        'direction': direction,
+      });
+    } on PlatformException catch (e) {
+      throw NativeChannelException(e.code, e.message ?? 'Failed to send key');
+    }
+  }
+
+  @override
+  Future<void> setAutoReconnect(bool enabled) async {
+    try {
+      await _methodChannel.invokeMethod('setAutoReconnect', {
+        'enabled': enabled,
+      });
+    } on PlatformException catch (e) {
+      throw NativeChannelException(
+        e.code,
+        e.message ?? 'Failed to set auto reconnect',
+      );
+    }
   }
 
   @override

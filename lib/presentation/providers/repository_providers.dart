@@ -1,4 +1,5 @@
 import 'package:atv_remote/data/datasources/local/hive_device_datasource.dart';
+import 'package:atv_remote/data/datasources/native/adb_native_datasource.dart';
 import 'package:atv_remote/data/datasources/native/discovery_native_datasource.dart';
 import 'package:atv_remote/data/datasources/native/network_native_datasource.dart';
 import 'package:atv_remote/data/datasources/native/pairing_native_datasource.dart';
@@ -34,6 +35,10 @@ PairingNativeDataSource pairingNativeDataSource(Ref ref) =>
 @Riverpod(keepAlive: true)
 RemoteNativeDataSource remoteNativeDataSource(Ref ref) =>
     RemoteNativeDataSourceImpl();
+
+final adbNativeDataSourceProvider = Provider<AdbNativeDataSource>(
+  (ref) => AdbNativeDataSourceImpl(),
+);
 
 @Riverpod(keepAlive: true)
 HiveDeviceDatasource hiveDeviceDatasource(Ref ref) => HiveDeviceDatasource();

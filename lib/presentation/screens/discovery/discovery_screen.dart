@@ -8,6 +8,7 @@ import 'package:atv_remote/domain/entities/tv_device.dart';
 import 'package:atv_remote/presentation/providers/connection_provider.dart';
 import 'package:atv_remote/presentation/providers/discovery_provider.dart';
 import 'package:atv_remote/presentation/providers/network_provider.dart';
+import 'package:atv_remote/presentation/providers/saved_devices_provider.dart';
 import 'package:atv_remote/presentation/screens/discovery/widgets/connecting_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,9 +16,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Discovery Screen (main screen widget)
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
   const DiscoveryScreen({super.key});
@@ -36,6 +37,12 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _discoveryNotifier.startDiscovery();
@@ -94,14 +101,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
-
-    // ── WiFi guard ──
+    // â”€â”€ WiFi guard â”€â”€
     ref.listen<AsyncValue<bool>>(wifiStatusProvider, (_, next) {
       next.whenData((connected) {
         if (!connected && mounted) {
@@ -110,10 +110,11 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
       });
     });
 
-    // ── Connection state reactions ──
+    // â”€â”€ Connection state reactions â”€â”€
     ref.listen<PairingStatus>(connectionNotifierProvider, (prev, next) {
       next.maybeWhen(
         connecting: (device) => _showOverlay(context, device),
+        reconnecting: (device, _) => _showOverlay(context, device),
         awaitingPin: (device, _) {
           if (prev is AwaitingPin) return;
           _removeOverlay();
@@ -166,7 +167,26 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
 
     final discoveryState = ref.watch(discoveryNotifierProvider);
     final isLoading = discoveryState.isLoading;
-    final devices = discoveryState.valueOrNull ?? const [];
+    final discoveredDevices = discoveryState.valueOrNull ?? const [];
+    final savedDevices =
+        ref.watch(savedDevicesNotifierProvider).valueOrNull ?? const [];
+    final savedByIp = {
+      for (final d in savedDevices)
+        if (d.ipAddress.isNotEmpty) d.ipAddress: d,
+    };
+    final devices = discoveredDevices
+        .map((device) {
+          final saved = savedByIp[device.ipAddress];
+          if (saved == null) return device;
+          return device.copyWith(
+            id: saved.id,
+            name: saved.name.isNotEmpty ? saved.name : device.name,
+            isPaired: saved.isPaired,
+            lastConnected: saved.lastConnected,
+            certificateFingerprint: saved.certificateFingerprint,
+          );
+        })
+        .toList(growable: false);
     final hasDevices = devices.isNotEmpty;
     final showEmpty = _timedOut && !hasDevices && !isLoading;
 
@@ -177,17 +197,17 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
         bottom: false,
         child: Column(
           children: [
-            // ── Top bar ──
+            // â”€â”€ Top bar â”€â”€
             _TopBar(),
 
-            // ── Scan header (radar + status text) ──
+            // â”€â”€ Scan header (radar + status text) â”€â”€
             _ScanHeaderSection(
               isLoading: isLoading,
               deviceCount: devices.length,
               timedOut: showEmpty,
             ),
 
-            // ── Device list / empty state ──
+            // â”€â”€ Device list / empty state â”€â”€
             Expanded(
               child: RefreshIndicator(
                 color: AppColors.primary,
@@ -199,11 +219,10 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
               ),
             ),
 
-            // ── Manual IP button ──
+            // â”€â”€ Manual IP button â”€â”€
             _ManualIpButton(),
 
-            // ── Bottom nav ──
-            const _BottomNavBar(currentIndex: 0),
+            const SizedBox(height: AppSpacing.s12),
           ],
         ),
       ),
@@ -211,9 +230,9 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Top bar
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _TopBar extends StatelessWidget {
   @override
@@ -300,9 +319,9 @@ class _IconActionButtonState extends State<_IconActionButton> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Scan header – animation + status text
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Scan header â€“ animation + status text
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ScanHeaderSection extends StatelessWidget {
   final bool isLoading;
@@ -356,9 +375,9 @@ class _ScanHeaderSection extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Radar scan animation widget
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ScanAnimationWidget extends ConsumerStatefulWidget {
   final bool isScanning;
@@ -559,9 +578,9 @@ class _RingPainter extends CustomPainter {
       old.radius != radius || old.opacity != opacity;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Device list
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _DeviceList extends StatelessWidget {
   final List<TvDevice> devices;
@@ -598,9 +617,9 @@ class _DeviceList extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Device tile
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _DeviceTile extends ConsumerWidget {
   final TvDevice device;
@@ -612,6 +631,10 @@ class _DeviceTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hasPreviousConnected =
         device.lastConnected != null && !device.isPaired;
+    final canForgetSavedDevice =
+        device.isPaired ||
+        device.lastConnected != null ||
+        device.certificateFingerprint != null;
 
     return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.s12),
@@ -640,7 +663,7 @@ class _DeviceTile extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    // ── Icon container ──
+                    // â”€â”€ Icon container â”€â”€
                     Container(
                       width: 40,
                       height: 40,
@@ -667,7 +690,7 @@ class _DeviceTile extends ConsumerWidget {
                     ),
                     const SizedBox(width: AppSpacing.s12),
 
-                    // ── Name + IP ──
+                    // â”€â”€ Name + IP â”€â”€
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -709,10 +732,51 @@ class _DeviceTile extends ConsumerWidget {
                     ),
                     const SizedBox(width: AppSpacing.s8),
 
-                    // ── Status badge ──
+                    // â”€â”€ Status badge â”€â”€
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
+                        if (canForgetSavedDevice)
+                          PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.more_vert_rounded,
+                              color: AppColors.muted.withValues(alpha: 0.8),
+                              size: 18,
+                            ),
+                            padding: EdgeInsets.zero,
+                            color: AppColors.surfaceElevated,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            onSelected: (value) async {
+                              if (value != 'forget') return;
+                              try {
+                                await ref
+                                    .read(connectionNotifierProvider.notifier)
+                                    .forgetDevice(device);
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${device.name} removed'),
+                                  ),
+                                );
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(e.toString()),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            },
+                            itemBuilder: (context) => const [
+                              PopupMenuItem<String>(
+                                value: 'forget',
+                                child: Text('Remove saved device'),
+                              ),
+                            ],
+                          ),
                         if (device.isPaired)
                           const _StatusBadge(label: 'Paired', filled: true)
                         else if (hasPreviousConnected)
@@ -775,7 +839,7 @@ class _StatusBadge extends StatelessWidget {
 }
 
 class _SignalDots extends StatelessWidget {
-  final int strength; // 0–4
+  final int strength; // 0â€“4
 
   const _SignalDots({required this.strength});
 
@@ -800,9 +864,9 @@ class _SignalDots extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Skeleton tile shimmer
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _SkeletonTile extends StatelessWidget {
   const _SkeletonTile();
@@ -885,9 +949,9 @@ class _SkeletonTile extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Empty state (timeout, no devices)
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _EmptyState extends StatelessWidget {
   final VoidCallback onTryAgain;
@@ -969,9 +1033,9 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Manual IP button
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ManualIpButton extends StatelessWidget {
   @override
@@ -1013,9 +1077,9 @@ class _ManualIpButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Manual IP bottom sheet
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ManualIpBottomSheet extends ConsumerStatefulWidget {
   const _ManualIpBottomSheet();
@@ -1121,7 +1185,7 @@ class _ManualIpBottomSheetState extends ConsumerState<_ManualIpBottomSheet> {
 
             // Subtitle
             Text(
-              'Find IP: TV Settings → About → Status → IP address',
+              'Find IP: TV Settings â†’ About â†’ Status â†’ IP address',
               style: TextStyle(
                 fontFamily: 'Satoshi',
                 fontSize: 12,
@@ -1294,9 +1358,9 @@ class _ManualIpBottomSheetState extends ConsumerState<_ManualIpBottomSheet> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // IP address input formatter
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _IpAddressFormatter extends TextInputFormatter {
   @override
@@ -1310,92 +1374,5 @@ class _IpAddressFormatter extends TextInputFormatter {
     final cleaned = text.replaceAll(RegExp(r'[^0-9.]'), '');
     if (cleaned == text) return newValue;
     return newValue.copyWith(text: cleaned);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom navigation bar
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _BottomNavBar extends StatelessWidget {
-  final int currentIndex;
-
-  const _BottomNavBar({required this.currentIndex});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 0.6)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: NavigationBar(
-          height: 64,
-          backgroundColor: Colors.transparent,
-          indicatorColor: AppColors.primary.withValues(alpha: 0.15),
-          selectedIndex: currentIndex,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-          onDestinationSelected: (i) {
-            if (i == currentIndex) return;
-            switch (i) {
-              case 0:
-                context.go('/discovery');
-              case 2:
-                context.go('/remote');
-              case 3:
-                context.push('/settings');
-            }
-          },
-          destinations: [
-            NavigationDestination(
-              icon: Icon(
-                Icons.wifi_find_rounded,
-                color: AppColors.muted.withValues(alpha: 0.6),
-              ),
-              selectedIcon: const Icon(
-                Icons.wifi_find_rounded,
-                color: AppColors.primary,
-              ),
-              label: 'Remote',
-            ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.grid_view_rounded,
-                color: AppColors.muted.withValues(alpha: 0.6),
-              ),
-              selectedIcon: const Icon(
-                Icons.grid_view_rounded,
-                color: AppColors.primary,
-              ),
-              label: 'Apps',
-            ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.live_tv_rounded,
-                color: AppColors.muted.withValues(alpha: 0.6),
-              ),
-              selectedIcon: const Icon(
-                Icons.live_tv_rounded,
-                color: AppColors.primary,
-              ),
-              label: 'Channel',
-            ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.settings_outlined,
-                color: AppColors.muted.withValues(alpha: 0.6),
-              ),
-              selectedIcon: const Icon(
-                Icons.settings_rounded,
-                color: AppColors.primary,
-              ),
-              label: 'Settings',
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

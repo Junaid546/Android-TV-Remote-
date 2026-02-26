@@ -7,7 +7,7 @@ part 'network_provider.g.dart';
 @riverpod
 Stream<bool> wifiStatus(Ref ref) {
   final datasource = ref.watch(networkNativeDataSourceProvider);
-  return datasource.wifiStatusStream;
+  return datasource.wifiStatusStream.distinct();
 }
 
 @riverpod

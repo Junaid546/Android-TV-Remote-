@@ -2,15 +2,8 @@ package com.example.atv_remote
 
 import android.util.Log
 import androidx.annotation.NonNull
-import com.example.atv_remote.channels.DiscoveryChannel
-import com.example.atv_remote.channels.NetworkChannel
-import com.example.atv_remote.channels.PairingChannel
-import com.example.atv_remote.channels.RemoteChannel
-import com.example.atv_remote.discovery.NsdDiscoveryEngine
-import com.example.atv_remote.pairing.CertificateStore
-import com.example.atv_remote.pairing.PairingManager
-import com.example.atv_remote.remote.RemoteSession
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.RenderMode
 import io.flutter.embedding.engine.FlutterEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +28,12 @@ class MainActivity : FlutterActivity() {
             scope = scope
         )
         channelManager.registerAll()
+    }
+
+    override fun getRenderMode(): RenderMode {
+        // Texture mode is more compatible with devices that struggle with
+        // SurfaceView buffer formats (seen as gralloc format allocation errors).
+        return RenderMode.texture
     }
 
     override fun onDestroy() {

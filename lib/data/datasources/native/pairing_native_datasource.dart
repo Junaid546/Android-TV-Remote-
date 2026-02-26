@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 abstract interface class PairingNativeDataSource {
   Future<void> startPairing(String ip, int port, String name);
   Future<void> submitPin(String pin);
+  Future<void> forgetDevice(String ip);
+  Future<bool> isDevicePaired(String ip);
   Future<void> disconnect();
   Stream<Map<String, dynamic>> get pairingEventStream;
 }
@@ -57,6 +59,33 @@ class PairingNativeDataSourceImpl implements PairingNativeDataSource {
       await _methodChannel.invokeMethod('submitPin', {'pin': pin});
     } on PlatformException catch (e) {
       throw NativeChannelException(e.code, e.message ?? 'Failed to submit PIN');
+    }
+  }
+
+  @override
+  Future<void> forgetDevice(String ip) async {
+    try {
+      await _methodChannel.invokeMethod('forgetDevice', {'ip': ip});
+    } on PlatformException catch (e) {
+      throw NativeChannelException(
+        e.code,
+        e.message ?? 'Failed to forget paired device',
+      );
+    }
+  }
+
+  @override
+  Future<bool> isDevicePaired(String ip) async {
+    try {
+      final result = await _methodChannel.invokeMethod<bool>('isDevicePaired', {
+        'ip': ip,
+      });
+      return result ?? false;
+    } on PlatformException catch (e) {
+      throw NativeChannelException(
+        e.code,
+        e.message ?? 'Failed to read native pairing state',
+      );
     }
   }
 

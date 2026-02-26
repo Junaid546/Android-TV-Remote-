@@ -55,7 +55,15 @@ class PairingRepositoryImpl implements PairingRepository {
             break;
           case 'SUCCESS':
             if (device != null) {
-              final normalized = _normalizeRemoteDevice(device);
+              final ip = event['ip'] as String? ?? device.ipAddress;
+              final fingerprint = event['certificateFingerprint'] as String?;
+              final normalized = _normalizeRemoteDevice(
+                device.copyWith(
+                  ipAddress: ip,
+                  id: ip,
+                  certificateFingerprint: fingerprint,
+                ),
+              );
               _currentDevice = normalized;
               mappedStatus = PairingStatus.paired(normalized);
             }
@@ -120,6 +128,29 @@ class PairingRepositoryImpl implements PairingRepository {
       _currentDevice = null;
       _lastStatus = const PairingStatus.idle();
       return const Right(null);
+    } catch (e) {
+      return Left(PairingFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> forgetDevice(String ipAddress) async {
+    try {
+      await _nativeDataSource.forgetDevice(ipAddress);
+      if (_currentDevice?.ipAddress == ipAddress) {
+        _currentDevice = null;
+      }
+      return const Right(null);
+    } catch (e) {
+      return Left(PairingFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isDevicePaired(String ipAddress) async {
+    try {
+      final paired = await _nativeDataSource.isDevicePaired(ipAddress);
+      return Right(paired);
     } catch (e) {
       return Left(PairingFailure(e.toString()));
     }

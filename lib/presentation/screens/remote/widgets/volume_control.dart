@@ -3,16 +3,16 @@ import 'dart:async';
 import 'package:atv_remote/core/constants/app_constants.dart';
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/core/theme/app_spacing.dart';
+import 'package:atv_remote/core/utils/haptic_service.dart';
 import 'package:atv_remote/presentation/providers/remote_provider.dart';
 import 'package:atv_remote/presentation/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void _sendCommand(WidgetRef ref, String commandName) {
   final hapticEnabled = ref.read(settingsNotifierProvider).hapticEnabled;
   if (hapticEnabled) {
-    HapticFeedback.lightImpact();
+    HapticService.light();
   }
   ref.read(remoteNotifierProvider.notifier).sendKey(commandName);
 }

@@ -1,30 +1,20 @@
 import 'package:atv_remote/domain/entities/pairing_status.dart';
 import 'package:atv_remote/presentation/providers/connection_provider.dart';
 import 'package:atv_remote/presentation/providers/network_provider.dart';
+import 'package:atv_remote/presentation/screens/apps/apps_screen.dart';
 import 'package:atv_remote/presentation/screens/connection_error/connection_error_screen.dart';
 import 'package:atv_remote/presentation/screens/discovery/discovery_screen.dart';
 import 'package:atv_remote/presentation/screens/network_error/network_error_screen.dart';
 import 'package:atv_remote/presentation/screens/pairing/pairing_screen.dart';
+import 'package:atv_remote/presentation/screens/privacy/privacy_policy_screen.dart';
 import 'package:atv_remote/presentation/screens/remote/remote_screen.dart';
 import 'package:atv_remote/presentation/screens/settings/settings_screen.dart';
 import 'package:atv_remote/presentation/screens/splash/splash_screen.dart';
 import 'package:flutter/foundation.dart';
-// ignore: unnecessary_import — flutter_riverpod re-exports Ref but not ChangeNotifier
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router.g.dart';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// RouterChangeNotifier
-//
-// A plain ChangeNotifier that holds the routing-relevant state.
-// Riverpod drives this object from the outside (see routerListenableProvider).
-// GoRouter holds a reference to this notifier via refreshListenable, so it
-// re-evaluates redirect() ONLY when notifyListeners() is called — without
-// ever recreating the GoRouter instance itself.
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RouterChangeNotifier extends ChangeNotifier {
   bool _hasWifi = true;
@@ -40,9 +30,9 @@ class RouterChangeNotifier extends ChangeNotifier {
     required bool isConnected,
     required bool hasActiveSession,
   }) {
-    if (hasWifi == _hasWifi &&
-        isConnected == _isConnected &&
-        hasActiveSession == _hasActiveSession) {
+    if (_hasWifi == hasWifi &&
+        _isConnected == isConnected &&
+        _hasActiveSession == hasActiveSession) {
       return;
     }
     _hasWifi = hasWifi;
@@ -52,19 +42,10 @@ class RouterChangeNotifier extends ChangeNotifier {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// routerListenableProvider
-//
-// Keeps the RouterChangeNotifier alive, and watches the Riverpod providers
-// that affect routing. When they change it calls .update(), which triggers
-// GoRouter's refreshListenable without rebuilding the router itself.
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Riverpod(keepAlive: true)
 RouterChangeNotifier routerListenable(RouterListenableRef ref) {
   final notifier = RouterChangeNotifier();
 
-  // Keep a reference so we can always update from within _listen closures below
   void sync() {
     final wifiAsync = ref.read(wifiStatusProvider);
     final connectionState = ref.read(connectionNotifierProvider);
@@ -76,23 +57,14 @@ RouterChangeNotifier routerListenable(RouterListenableRef ref) {
     );
   }
 
-  // Listen — fires every time the value changes, does NOT cause a rebuild here
   ref.listen<AsyncValue<bool>>(wifiStatusProvider, (prev, next) => sync());
   ref.listen<PairingStatus>(connectionNotifierProvider, (prev, next) => sync());
 
-  // Initial sync
   sync();
 
   ref.onDispose(notifier.dispose);
   return notifier;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// appRouter
-//
-// Created ONCE (keepAlive: true). Uses refreshListenable instead of ref.watch,
-// so state changes trigger redirect re-evaluation, not router recreation.
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(AppRouterRef ref) {
@@ -105,18 +77,18 @@ GoRouter appRouter(AppRouterRef ref) {
     redirect: (context, state) {
       final isOnSplash = state.matchedLocation == '/splash';
       final isOnNetworkError = state.matchedLocation == '/network-error';
+      final discoveryManageMode = state.uri.queryParameters['manage'] == '1';
 
-      // Guard: no WiFi → go to network-error screen
       if (!listenable.hasWifi && !isOnSplash && !isOnNetworkError) {
         return '/network-error?returnTo=${state.matchedLocation}';
       }
 
-      // Guard: already connected → skip discovery, go to remote
-      if (state.matchedLocation == '/discovery' && listenable.isConnected) {
+      if (state.matchedLocation == '/discovery' &&
+          listenable.isConnected &&
+          !discoveryManageMode) {
         return '/remote';
       }
 
-      // Guard: Not connected and trying to access remote → go to discovery
       if (state.matchedLocation == '/remote' && !listenable.hasActiveSession) {
         return '/discovery';
       }
@@ -149,6 +121,7 @@ GoRouter appRouter(AppRouterRef ref) {
         path: '/remote',
         builder: (context, state) => const RemoteScreen(),
       ),
+      GoRoute(path: '/apps', builder: (context, state) => const AppsScreen()),
       GoRoute(
         path: '/connection-error',
         builder: (context, state) => const ConnectionErrorScreen(),
@@ -156,6 +129,10 @@ GoRouter appRouter(AppRouterRef ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/privacy-policy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
       ),
     ],
   );

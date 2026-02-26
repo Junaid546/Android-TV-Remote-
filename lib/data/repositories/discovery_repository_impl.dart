@@ -22,7 +22,6 @@ class DiscoveryRepositoryImpl implements DiscoveryRepository {
                 ipAddress: m['ip'] as String,
                 port: (m['port'] as num?)?.toInt() ?? 6466,
                 isPaired: false,
-                lastConnected: DateTime.now(),
               );
             }).toList();
             return Right(devices);
@@ -68,7 +67,6 @@ class DiscoveryRepositoryImpl implements DiscoveryRepository {
         ipAddress: result['ip'] as String,
         port: (result['port'] as num?)?.toInt() ?? 6466,
         isPaired: false,
-        lastConnected: DateTime.now(),
       );
       return Right(device);
     } catch (e) {

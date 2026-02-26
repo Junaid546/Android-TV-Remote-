@@ -1,6 +1,7 @@
 import 'package:atv_remote/core/constants/key_codes.dart';
 import 'package:atv_remote/core/errors/failures.dart';
 import 'package:atv_remote/domain/entities/remote_command.dart';
+import 'package:atv_remote/presentation/providers/repository_providers.dart';
 import 'package:atv_remote/presentation/providers/use_case_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -30,6 +31,35 @@ class RemoteNotifier extends _$RemoteNotifier {
     await sendCommand(command);
   }
 }
+
+class RemoteVolumeState {
+  const RemoteVolumeState({
+    required this.level,
+    required this.max,
+    required this.muted,
+  });
+
+  final int level;
+  final int max;
+  final bool muted;
+
+  int get levelOnTen {
+    if (max <= 0) return 0;
+    return ((level / max) * 10).round().clamp(0, 10);
+  }
+}
+
+final remoteVolumeStateStreamProvider = StreamProvider<RemoteVolumeState>((
+  ref,
+) {
+  final dataSource = ref.watch(remoteNativeDataSourceProvider);
+  return dataSource.volumeStateStream.map((event) {
+    final level = (event['level'] as int?) ?? 0;
+    final max = (event['max'] as int?) ?? 0;
+    final muted = (event['muted'] as bool?) ?? false;
+    return RemoteVolumeState(level: level, max: max, muted: muted);
+  });
+});
 
 @riverpod
 class RemoteError extends _$RemoteError {

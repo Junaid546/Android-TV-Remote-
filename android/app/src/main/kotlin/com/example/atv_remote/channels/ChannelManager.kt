@@ -1,7 +1,8 @@
-package com.example.atv_remote.channels
+﻿package com.example.atv_remote.channels
 
 import android.content.Context
 import android.util.Log
+import com.example.atv_remote.adb.AdbSessionManager
 import com.example.atv_remote.discovery.NsdDiscoveryEngine
 import com.example.atv_remote.pairing.CertificateStore
 import com.example.atv_remote.pairing.PairingManager
@@ -23,6 +24,7 @@ class ChannelManager(
 
     private var discoveryEngine: NsdDiscoveryEngine? = null
     private var remoteSession: RemoteSession? = null
+    private var adbSessionManager: AdbSessionManager? = null
 
     fun registerAll() {
         Log.i(tag, "Registering all platform channels...")
@@ -56,11 +58,17 @@ class ChannelManager(
             RemoteChannel(session, messenger, scope).register()
             Log.d(tag, "RemoteChannel registered")
 
-            // 5. Network Monitoring
+            // 5. ADB / App Launch
+            val adbManager = AdbSessionManager(context, certStore, scope)
+            adbSessionManager = adbManager
+            AdbChannel(adbManager, messenger, scope).register()
+            Log.d(tag, "AdbChannel registered")
+
+            // 6. Network Monitoring
             NetworkChannel(context, messenger, scope).register()
             Log.d(tag, "NetworkChannel registered")
 
-            Log.i(tag, "All channels registered successfully ✅")
+            Log.i(tag, "All channels registered successfully")
         } catch (e: Exception) {
             Log.e(tag, "CRITICAL: Channel registration failed entirely", e)
         }
@@ -71,10 +79,13 @@ class ChannelManager(
         try {
             discoveryEngine?.destroy()
             remoteSession?.disconnect()
+            adbSessionManager?.disconnect()
             discoveryEngine = null
             remoteSession = null
+            adbSessionManager = null
         } catch (e: Exception) {
             Log.e(tag, "Error during channel destruction", e)
         }
     }
 }
+

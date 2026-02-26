@@ -30,7 +30,7 @@ sealed class PairingState {
     data class Connecting(val ip: String) : PairingState()
     object AwaitingPin : PairingState()
     data class Verifying(val ip: String) : PairingState()
-    object Success : PairingState()
+    data class Success(val ip: String, val certificateFingerprint: String) : PairingState()
     data class Failed(val reason: String, val code: String = "UNKNOWN") : PairingState()
 }
 
@@ -193,9 +193,10 @@ class PairingManager(
 
                 when (result.status) {
                     PairingMessage.Status.STATUS_OK -> {
+                        val fingerprint = CertificateStore.getFingerprint(serverCert)
                         certStore.saveServerCertificate(currentDeviceIp, serverCert)
                         Log.i(tag, "Pairing SUCCESS for $currentDeviceIp")
-                        _state.value = PairingState.Success
+                        _state.value = PairingState.Success(currentDeviceIp, fingerprint)
                     }
                     PairingMessage.Status.STATUS_BAD_SECRET -> {
                         fail("Incorrect PIN or pairing failed.", "WRONG_PIN")
@@ -245,6 +246,18 @@ class PairingManager(
         _state.value = PairingState.Idle
         Log.d(tag, "Pairing cancelled")
     }
+
+    fun forgetDevice(ip: String) {
+        certStore.clearServerCertificate(ip)
+        if (ip == currentDeviceIp) {
+            capturedServerCert = null
+            if (_state.value !is PairingState.Idle) {
+                _state.value = PairingState.Idle
+            }
+        }
+    }
+
+    fun isDevicePaired(ip: String): Boolean = certStore.isPaired(ip)
 
     private fun writeMessage(msg: PairingMessage) {
         val out = output ?: throw IllegalStateException("Output stream is null")

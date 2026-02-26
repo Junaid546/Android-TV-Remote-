@@ -7,5 +7,7 @@ abstract interface class PairingRepository {
   Stream<Either<Failure, PairingStatus>> get statusStream;
   Future<Either<Failure, void>> connectToDevice(TvDevice device);
   Future<Either<Failure, void>> submitPin(String pin);
+  Future<Either<Failure, void>> forgetDevice(String ipAddress);
+  Future<Either<Failure, bool>> isDevicePaired(String ipAddress);
   Future<Either<Failure, void>> disconnect();
 }

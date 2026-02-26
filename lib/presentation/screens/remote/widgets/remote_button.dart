@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:atv_remote/core/utils/haptic_service.dart';
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 enum RemoteButtonStyle { normal, primary, ghost, danger }
 
@@ -81,7 +81,7 @@ class _RemoteButtonState extends State<RemoteButton> {
   void _fire() {
     if (_debouncing && !_longPressing) return;
     _debouncing = true;
-    HapticFeedback.lightImpact();
+    HapticService.light();
     widget.onPressed?.call();
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 100), () {

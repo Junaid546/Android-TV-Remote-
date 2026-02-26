@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _FakePairingNativeDataSource implements PairingNativeDataSource {
   final _controller = StreamController<Map<String, dynamic>>.broadcast();
+  final Set<String> pairedIps = <String>{};
 
   @override
   Stream<Map<String, dynamic>> get pairingEventStream => _controller.stream;
@@ -22,6 +23,14 @@ class _FakePairingNativeDataSource implements PairingNativeDataSource {
 
   @override
   Future<void> submitPin(String pin) async {}
+
+  @override
+  Future<void> forgetDevice(String ip) async {
+    pairedIps.remove(ip);
+  }
+
+  @override
+  Future<bool> isDevicePaired(String ip) async => pairedIps.contains(ip);
 
   void emit(Map<String, dynamic> event) => _controller.add(event);
 
@@ -66,7 +75,12 @@ void main() {
 
     test('maps SUCCESS to paired status on remote port', () async {
       final nextEvent = repository.statusStream.first;
-      native.emit(const {'type': 'STATE', 'state': 'SUCCESS'});
+      native.emit(const {
+        'type': 'STATE',
+        'state': 'SUCCESS',
+        'ip': '192.168.1.8',
+        'certificateFingerprint': 'AA:BB:CC',
+      });
 
       final either = await nextEvent;
       late PairingStatus status;
@@ -79,6 +93,7 @@ void main() {
       final paired = status as Paired;
       expect(paired.device.port, AppConstants.kRemotePort);
       expect(paired.device.isPaired, isTrue);
+      expect(paired.device.certificateFingerprint, 'AA:BB:CC');
     });
 
     test('does not fall back to idle for unknown state', () async {
@@ -146,6 +161,19 @@ void main() {
       expect(
         (failed.failure as PairingFailure).reason,
         'PIN must be 6 hexadecimal characters (0-9, A-F).',
+      );
+    });
+
+    test('forgetDevice clears native pairing state', () async {
+      native.pairedIps.add(device.ipAddress);
+
+      final forgetResult = await repository.forgetDevice(device.ipAddress);
+      expect(forgetResult.isRight(), isTrue);
+
+      final pairedResult = await repository.isDevicePaired(device.ipAddress);
+      pairedResult.match(
+        (failure) => fail('Expected pairing state, got failure: $failure'),
+        (isPaired) => expect(isPaired, isFalse),
       );
     });
   });

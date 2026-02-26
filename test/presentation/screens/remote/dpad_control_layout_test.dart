@@ -15,7 +15,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 
 class _SilentPairingRepository implements PairingRepository {
-  final _controller = StreamController<Either<Failure, PairingStatus>>.broadcast();
+  final _controller =
+      StreamController<Either<Failure, PairingStatus>>.broadcast();
 
   @override
   Stream<Either<Failure, PairingStatus>> get statusStream => _controller.stream;
@@ -28,7 +29,16 @@ class _SilentPairingRepository implements PairingRepository {
   Future<Either<Failure, void>> disconnect() async => const Right(null);
 
   @override
-  Future<Either<Failure, void>> submitPin(String pin) async => const Right(null);
+  Future<Either<Failure, void>> submitPin(String pin) async =>
+      const Right(null);
+
+  @override
+  Future<Either<Failure, void>> forgetDevice(String ipAddress) async =>
+      const Right(null);
+
+  @override
+  Future<Either<Failure, bool>> isDevicePaired(String ipAddress) async =>
+      const Right(false);
 
   Future<void> dispose() => _controller.close();
 }

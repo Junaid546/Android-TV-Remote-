@@ -59,6 +59,14 @@ ConnectToDeviceUseCase connectToDeviceUseCase(Ref ref) =>
 SubmitPinUseCase submitPinUseCase(Ref ref) =>
     SubmitPinUseCase(ref.watch(pairingRepositoryProvider));
 
+final forgetPairedDeviceUseCaseProvider = Provider<ForgetPairedDeviceUseCase>(
+  (ref) => ForgetPairedDeviceUseCase(ref.watch(pairingRepositoryProvider)),
+);
+
+final isDevicePairedUseCaseProvider = Provider<IsDevicePairedUseCase>(
+  (ref) => IsDevicePairedUseCase(ref.watch(pairingRepositoryProvider)),
+);
+
 @Riverpod(keepAlive: true)
 DisconnectUseCase disconnectUseCase(Ref ref) =>
     DisconnectUseCase(ref.watch(pairingRepositoryProvider));

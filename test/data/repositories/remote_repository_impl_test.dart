@@ -8,9 +8,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _FakeRemoteNativeDataSource implements RemoteNativeDataSource {
   final _controller = StreamController<Map<String, dynamic>>.broadcast();
+  final _volumeController = StreamController<Map<String, dynamic>>.broadcast();
 
   @override
   Stream<Map<String, dynamic>> get connectionStateStream => _controller.stream;
+
+  @override
+  Stream<Map<String, dynamic>> get volumeStateStream =>
+      _volumeController.stream;
 
   @override
   Future<void> connect(String ip, String name, int port) async {}
@@ -19,11 +24,17 @@ class _FakeRemoteNativeDataSource implements RemoteNativeDataSource {
   Future<void> disconnect() async {}
 
   @override
-  void sendKey(int keyCode, int direction) {}
+  Future<void> sendKey(int keyCode, int direction) async {}
+
+  @override
+  Future<void> setAutoReconnect(bool enabled) async {}
 
   void emit(Map<String, dynamic> event) => _controller.add(event);
 
-  Future<void> dispose() => _controller.close();
+  Future<void> dispose() async {
+    await _controller.close();
+    await _volumeController.close();
+  }
 }
 
 void main() {

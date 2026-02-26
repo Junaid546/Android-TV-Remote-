@@ -52,6 +52,17 @@ class PairingChannel(
                         withContext(Dispatchers.Main) { result.success(null) }
                     }
                 }
+                "forgetDevice" -> {
+                    val ip = call.argument<String>("ip")
+                        ?: return@setMethodCallHandler result.error("INVALID_ARGS", "ip required", null)
+                    pairingManager.forgetDevice(ip)
+                    result.success(null)
+                }
+                "isDevicePaired" -> {
+                    val ip = call.argument<String>("ip")
+                        ?: return@setMethodCallHandler result.error("INVALID_ARGS", "ip required", null)
+                    result.success(pairingManager.isDevicePaired(ip))
+                }
                 "cancelPairing" -> {
                     Log.d(tag, "cancelPairing")
                     pairingManager.cancel()
@@ -112,7 +123,12 @@ class PairingChannel(
         is PairingState.Verifying ->
             mapOf("type" to "STATE", "state" to "VERIFYING", "ip" to this.ip)
         is PairingState.Success ->
-            mapOf("type" to "STATE", "state" to "SUCCESS")
+            mapOf(
+                "type" to "STATE",
+                "state" to "SUCCESS",
+                "ip" to this.ip,
+                "certificateFingerprint" to this.certificateFingerprint,
+            )
         is PairingState.Failed ->
             mapOf(
                 "type" to "STATE",

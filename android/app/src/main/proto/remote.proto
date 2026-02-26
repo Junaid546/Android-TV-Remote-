@@ -7,10 +7,65 @@ option optimize_for = LITE_RUNTIME;
 
 message RemoteMessage {
   oneof union {
-    RemoteKeyInject remote_key_inject = 1;
-    RemotePingRequest remote_ping_request = 7;
-    RemotePingResponse remote_ping_response = 8;
+    RemoteConfigure remote_configure = 1;
+    RemoteSetActive remote_set_active = 2;
+    RemoteError remote_error = 3;
+    RemotePingRequest remote_ping_request = 8;
+    RemotePingResponse remote_ping_response = 9;
+    RemoteKeyInject remote_key_inject = 10;
+    RemoteStart remote_start = 40;
+    RemoteSetVolumeLevel remote_set_volume_level = 50;
+    RemoteAdjustVolumeLevel remote_adjust_volume_level = 51;
   }
+}
+
+message RemoteConfigure {
+  int32 code1 = 1;
+  RemoteDeviceInfo device_info = 2;
+}
+
+message RemoteDeviceInfo {
+  string model = 1;
+  string vendor = 2;
+  int32 unknown1 = 3;
+  int32 unknown2 = 4;
+  string package_name = 5;
+  string app_version = 6;
+}
+
+message RemoteSetActive {
+  int32 active = 1;
+}
+
+message RemoteAdjustVolumeLevel {}
+
+message RemoteSetVolumeLevel {
+  uint32 unknown1 = 1;
+  uint32 unknown2 = 2;
+  string player_model = 3;
+  uint32 unknown4 = 4;
+  uint32 unknown5 = 5;
+  uint32 volume_max = 6;
+  uint32 volume_level = 7;
+  bool volume_muted = 8;
+}
+
+message RemoteError {
+  bool value = 1;
+  string message = 2;
+}
+
+message RemotePingRequest {
+  int32 val1 = 1;
+  int32 val2 = 2;
+}
+
+message RemotePingResponse {
+  int32 val1 = 1;
+}
+
+message RemoteStart {
+  bool started = 1;
 }
 
 message RemoteKeyInject {
@@ -18,36 +73,38 @@ message RemoteKeyInject {
   RemoteDirection direction = 2;
 }
 
+enum RemoteDirection {
+  UNKNOWN_DIRECTION = 0;
+  START_LONG = 1;
+  END_LONG = 2;
+  SHORT = 3;
+}
+
 enum RemoteKeyCode {
   KEYCODE_UNKNOWN = 0;
+  KEYCODE_HOME = 3;
+  KEYCODE_BACK = 4;
   KEYCODE_DPAD_UP = 19;
   KEYCODE_DPAD_DOWN = 20;
   KEYCODE_DPAD_LEFT = 21;
   KEYCODE_DPAD_RIGHT = 22;
   KEYCODE_DPAD_CENTER = 23;
-  KEYCODE_BACK = 4;
-  KEYCODE_HOME = 3;
   KEYCODE_VOLUME_UP = 24;
   KEYCODE_VOLUME_DOWN = 25;
-  KEYCODE_VOLUME_MUTE = 164;
   KEYCODE_POWER = 26;
-  KEYCODE_CHANNEL_UP = 166;
-  KEYCODE_CHANNEL_DOWN = 167;
-  KEYCODE_MEDIA_PLAY_PAUSE = 85;
+  KEYCODE_MEDIA_NEXT = 87;
+  KEYCODE_MEDIA_PREVIOUS = 88;
   KEYCODE_MEDIA_REWIND = 89;
   KEYCODE_MEDIA_FAST_FORWARD = 90;
-}
-
-enum RemoteDirection {
-  REMOTE_DIRECTION_UNKNOWN = 0;
-  REMOTE_DIRECTION_DOWN = 1;
-  REMOTE_DIRECTION_UP = 2;
-}
-
-message RemotePingRequest {
-  int32 val1 = 1;
-}
-
-message RemotePingResponse {
-  int32 val1 = 1;
+  KEYCODE_MEDIA_PLAY_PAUSE = 85;
+  KEYCODE_MEDIA_STOP = 86;
+  KEYCODE_ENTER = 66;
+  KEYCODE_DEL = 67;
+  KEYCODE_ESCAPE = 111;
+  KEYCODE_VOLUME_MUTE = 164;
+  KEYCODE_CHANNEL_UP = 166;
+  KEYCODE_CHANNEL_DOWN = 167;
+  KEYCODE_CAPTIONS = 175;
+  KEYCODE_SETTINGS = 176;
+  KEYCODE_TV_INPUT = 178;
 }

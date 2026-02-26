@@ -52,6 +52,12 @@ class _NetworkErrorScreenState extends ConsumerState<NetworkErrorScreen> {
   void initState() {
     super.initState();
     _errorType = _parseErrorType(widget.errorTypeRaw);
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
     _startPolling();
   }
 
@@ -117,13 +123,6 @@ class _NetworkErrorScreenState extends ConsumerState<NetworkErrorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
-
     // Auto-navigate when WiFi is restored
     ref.listen(wifiStatusProvider, (_, next) {
       next.whenData((connected) {

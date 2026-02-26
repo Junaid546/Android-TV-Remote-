@@ -31,6 +31,22 @@ class SubmitPinUseCase {
   Future<Either<Failure, void>> call(String pin) => _repository.submitPin(pin);
 }
 
+class ForgetPairedDeviceUseCase {
+  final PairingRepository _repository;
+  const ForgetPairedDeviceUseCase(this._repository);
+
+  Future<Either<Failure, void>> call(String ipAddress) =>
+      _repository.forgetDevice(ipAddress);
+}
+
+class IsDevicePairedUseCase {
+  final PairingRepository _repository;
+  const IsDevicePairedUseCase(this._repository);
+
+  Future<Either<Failure, bool>> call(String ipAddress) =>
+      _repository.isDevicePaired(ipAddress);
+}
+
 class DisconnectUseCase {
   final PairingRepository _repository;
   const DisconnectUseCase(this._repository);

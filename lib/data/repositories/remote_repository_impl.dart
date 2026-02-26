@@ -75,15 +75,15 @@ class RemoteRepositoryImpl implements RemoteRepository {
   @override
   Future<Either<Failure, void>> sendCommand(RemoteCommand command) async {
     try {
-      command.when(
-        keyCommand: (keyCode, action) {
-          final direction = _mapAction(action);
-          _nativeDataSource.sendKey(keyCode, direction);
+      await command.map(
+        keyCommand: (value) async {
+          final direction = _mapAction(value.action);
+          await _nativeDataSource.sendKey(value.keyCode, direction);
         },
-        textCommand: (text) {
+        textCommand: (value) async {
           // Future expansion
         },
-        wakeCommand: () {
+        wakeCommand: (value) async {
           // Future expansion
         },
       );

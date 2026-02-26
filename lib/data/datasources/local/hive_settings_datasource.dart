@@ -36,4 +36,59 @@ class HiveSettingsDatasource {
     settings.themeMode = mode;
     await settings.save();
   }
+
+  bool get autoReconnectEnabled => getSettings().autoReconnectEnabled;
+
+  Future<void> setAutoReconnectEnabled(bool value) async {
+    final settings = getSettings();
+    settings.autoReconnectEnabled = value;
+    await settings.save();
+  }
+
+  String? get adbHost => getSettings().adbHost;
+
+  int get adbConnectPort => getSettings().adbConnectPort;
+
+  int get adbPairPort => getSettings().adbPairPort;
+
+  Future<void> setAdbConfig({
+    required String host,
+    required int connectPort,
+    required int pairPort,
+  }) async {
+    final settings = getSettings();
+    settings.adbHost = host;
+    settings.adbConnectPort = connectPort;
+    settings.adbPairPort = pairPort;
+    await settings.save();
+  }
+
+  Future<void> clearAdbConfig() async {
+    final settings = getSettings();
+    settings.adbHost = null;
+    settings.adbConnectPort = 5555;
+    settings.adbPairPort = 0;
+    await settings.save();
+  }
+
+  Map<String, String> get appPackageOverrides {
+    return Map<String, String>.from(getSettings().appPackageOverrides);
+  }
+
+  String? getAppPackageOverride(String appId) {
+    return getSettings().appPackageOverrides[appId];
+  }
+
+  Future<void> setAppPackageOverride(String appId, String packageName) async {
+    final settings = getSettings();
+    final overrides = Map<String, String>.from(settings.appPackageOverrides);
+    final normalizedPackage = packageName.trim();
+    if (normalizedPackage.isEmpty) {
+      overrides.remove(appId);
+    } else {
+      overrides[appId] = normalizedPackage;
+    }
+    settings.appPackageOverrides = overrides;
+    await settings.save();
+  }
 }
