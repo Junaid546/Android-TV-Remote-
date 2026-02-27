@@ -58,24 +58,6 @@ class _RemoteScreenState extends ConsumerState<RemoteScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 2),
-              child: Row(
-                children: [
-                  _TopActionButton(
-                    icon: Icons.arrow_back_rounded,
-                    tooltip: 'Return',
-                    onTap: () {
-                      if (context.canPop()) {
-                        context.pop();
-                        return;
-                      }
-                      context.go('/discovery');
-                    },
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
@@ -147,6 +129,14 @@ class _RemoteScreenState extends ConsumerState<RemoteScreen> {
                   color: Colors.white24,
                   borderRadius: BorderRadius.circular(20),
                 ),
+              ),
+              _ActionTile(
+                icon: Icons.keyboard_return_rounded,
+                title: 'Return',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _sendKey('KEYCODE_BACK');
+                },
               ),
               _ActionTile(
                 icon: Icons.subtitles_rounded,
@@ -302,6 +292,10 @@ class _RemoteShell extends StatelessWidget {
                   icon: Icons.home_rounded,
                   onPressed: onHome,
                 ),
+                _CircleActionButton(
+                  icon: Icons.keyboard_return_rounded,
+                  onPressed: onBack,
+                ),
               ],
             ),
             const SizedBox(height: 22),
@@ -330,12 +324,8 @@ class _RemoteShell extends StatelessWidget {
             ),
             const SizedBox(height: 26),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _CircleActionButton(
-                  icon: Icons.arrow_back_rounded,
-                  onPressed: onBack,
-                ),
                 _CircleActionButton(
                   icon: Icons.volume_off_rounded,
                   onPressed: onMute,
@@ -816,39 +806,6 @@ class _ActionTile extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       tileColor: AppColors.surfaceElevated,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-    );
-  }
-}
-
-class _TopActionButton extends StatelessWidget {
-  const _TopActionButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Ink(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: const Color(0xFF17191E),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Icon(icon, color: const Color(0xFFA8B1C2), size: 22),
-        ),
-      ),
     );
   }
 }

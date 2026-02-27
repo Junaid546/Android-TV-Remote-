@@ -84,7 +84,7 @@ class AdbNotifier extends StateNotifier<AdbState> {
     try {
       await _datasource.pair(host, port, pairingCode);
       state = state.copyWith(isBusy: false, clearReason: true);
-    } on NativeChannelException catch (e) {
+    } catch (e) {
       state = state.copyWith(
         isBusy: false,
         connectionState: 'FAILED',
@@ -107,7 +107,7 @@ class AdbNotifier extends StateNotifier<AdbState> {
     try {
       await _datasource.connect(host, port);
       state = state.copyWith(isBusy: false, clearReason: true);
-    } on NativeChannelException catch (e) {
+    } catch (e) {
       state = state.copyWith(
         isBusy: false,
         connectionState: 'FAILED',
@@ -139,11 +139,19 @@ class AdbNotifier extends StateNotifier<AdbState> {
   }
 
   void _onStateEvent(Map<String, dynamic> event) {
+    final rawPort = event['port'];
+    final parsedPort = rawPort is int
+        ? rawPort
+        : rawPort is num
+        ? rawPort.toInt()
+        : state.port;
+    final rawReason = event['reason'];
+
     state = state.copyWith(
       connectionState: event['state'] as String? ?? state.connectionState,
       host: event['host'] as String? ?? state.host,
-      port: event['port'] as int? ?? state.port,
-      reason: event['reason'] as String?,
+      port: parsedPort,
+      reason: rawReason?.toString(),
       isBusy: false,
     );
   }

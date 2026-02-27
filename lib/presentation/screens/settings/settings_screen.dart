@@ -102,15 +102,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             .setHaptic(value),
                       ),
                       _ToggleRow(
-                        icon: Icons.dark_mode_rounded,
-                        title: 'Dark theme',
-                        subtitle: 'Use dark appearance across the app',
-                        value: settings.themeMode == 'dark',
-                        onChanged: (value) => ref
-                            .read(settingsNotifierProvider.notifier)
-                            .setThemeMode(value ? 'dark' : 'light'),
-                      ),
-                      _ToggleRow(
                         icon: Icons.sync_rounded,
                         title: 'Auto reconnect',
                         subtitle: 'Retry remote socket automatically on drop',

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:atv_remote/core/theme/app_colors.dart';
 import 'package:atv_remote/core/theme/app_spacing.dart';
 import 'package:atv_remote/core/utils/haptic_service.dart';
+import 'package:atv_remote/core/utils/network_permission_service.dart';
 import 'package:atv_remote/domain/entities/pairing_status.dart';
 import 'package:atv_remote/domain/entities/tv_device.dart';
 import 'package:atv_remote/presentation/providers/connection_provider.dart';
@@ -45,8 +46,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _discoveryNotifier.startDiscovery();
-      _scheduleTimeout();
+      unawaited(_startDiscoveryWithPermissionCheck());
     });
   }
 
@@ -95,7 +95,21 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
     setState(() => _timedOut = false);
     await _discoveryNotifier.stopDiscovery();
     if (!mounted) return;
+    await _startDiscoveryWithPermissionCheck();
+  }
+
+  Future<void> _startDiscoveryWithPermissionCheck() async {
+    final hasPermission =
+        await NetworkPermissionService.ensureRequiredPermissions();
+    if (!mounted) return;
+
+    if (!hasPermission) {
+      context.go('/network-error?returnTo=/discovery&type=permissionDenied');
+      return;
+    }
+
     await _discoveryNotifier.startDiscovery();
+    if (!mounted) return;
     _scheduleTimeout();
   }
 

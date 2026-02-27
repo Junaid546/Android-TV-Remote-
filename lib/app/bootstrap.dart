@@ -8,6 +8,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
+const _enableProviderLogs = bool.fromEnvironment(
+  'RIVERPOD_LOGS',
+  defaultValue: false,
+);
+
 Future<ProviderContainer> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -35,7 +40,7 @@ Future<ProviderContainer> bootstrap() async {
   // Create ProviderContainer with overrides and observers
   final container = ProviderContainer(
     overrides: [],
-    observers: [if (kDebugMode) _ProviderLogger()],
+    observers: [if (kDebugMode && _enableProviderLogs) _ProviderLogger()],
   );
 
   return container;
@@ -49,10 +54,9 @@ class _ProviderLogger extends ProviderObserver {
     Object? newValue,
     ProviderContainer container,
   ) {
-    if (kDebugMode) {
-      debugPrint(
-        '[Riverpod] ${provider.name ?? provider.runtimeType}: $newValue',
-      );
-    }
+    if (!kDebugMode) return;
+    final providerLabel = provider.name ?? provider.runtimeType.toString();
+    if (providerLabel.startsWith('StreamProvider')) return;
+    debugPrint('[Riverpod] $providerLabel: $newValue');
   }
 }

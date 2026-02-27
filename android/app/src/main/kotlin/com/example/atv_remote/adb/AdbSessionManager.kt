@@ -18,7 +18,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.ConnectException
+import java.net.NoRouteToHostException
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.security.PrivateKey
 import java.security.cert.Certificate
 import java.util.concurrent.TimeUnit
@@ -97,6 +99,7 @@ class AdbSessionManager(
                     Unit
                 }.onFailure { e ->
                     val reason = mapConnectFailure(host, connectPort, e)
+                    resetManager()
                     _state.value = AdbSessionState.Failed(
                         host = host,
                         port = connectPort,
@@ -253,7 +256,8 @@ class AdbSessionManager(
     }
 
     private fun mapConnectFailure(host: String, port: Int, error: Throwable): String {
-        return when (error) {
+        val root = rootCause(error)
+        return when (root) {
             is AdbPairingRequiredException ->
                 "ADB pairing is required. Pair this phone from TV Wireless debugging first."
 
@@ -263,16 +267,47 @@ class AdbSessionManager(
             is ConnectException ->
                 "Cannot reach ADB at $host:$port. Verify TV IP and Wireless debugging connect port."
 
+            is NoRouteToHostException, is UnknownHostException ->
+                "Cannot reach $host. Verify TV IP address and that both devices are on the same Wi-Fi."
+
             is SocketTimeoutException ->
                 "ADB connection timed out for $host:$port. Ensure phone and TV are on same Wi-Fi."
 
             is InterruptedException ->
                 "ADB discovery timed out. Open Wireless debugging on TV and try again."
 
-            else -> error.message
+            is IOException ->
+                when {
+                    root.message?.contains("ECONNREFUSED", ignoreCase = true) == true ->
+                        "Cannot reach ADB at $host:$port. Verify TV IP and Wireless debugging connect port."
+
+                    root.message?.contains("timed out", ignoreCase = true) == true ->
+                        "ADB connection timed out for $host:$port. Ensure phone and TV are on same Wi-Fi."
+
+                    else ->
+                        root.message
+                            ?.takeIf { it.isNotBlank() }
+                            ?: "ADB connection failed for $host:$port. Verify host and connect port on TV."
+                }
+
+            else -> root.message
                 ?.takeIf { it.isNotBlank() }
                 ?: "ADB connection failed for $host:$port. Verify host and connect port on TV."
         }
+    }
+
+    private fun resetManager() {
+        runCatching { manager?.disconnect() }
+            .onFailure { e -> Log.w(tag, "ADB reset warning: ${e.message}") }
+        manager = null
+    }
+
+    private fun rootCause(error: Throwable): Throwable {
+        var current = error
+        while (current.cause != null && current.cause !== current) {
+            current = current.cause!!
+        }
+        return current
     }
 
     private inner class TvAdbConnectionManager : AbsAdbConnectionManager() {

@@ -11,18 +11,13 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.read(appRouterProvider);
-    final themeMode = ref.watch(
-      settingsNotifierProvider.select((settings) => settings.themeMode),
-    );
     final hapticEnabled = ref.watch(
       settingsNotifierProvider.select((settings) => settings.hapticEnabled),
     );
     HapticService.setEnabled(hapticEnabled);
     return MaterialApp.router(
       title: 'TV Remote',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: themeMode == 'dark' ? ThemeMode.dark : ThemeMode.light,
+      theme: AppTheme.dark,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {

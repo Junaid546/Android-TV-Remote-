@@ -72,7 +72,7 @@ GoRouter appRouter(AppRouterRef ref) {
 
   final router = GoRouter(
     initialLocation: '/splash',
-    debugLogDiagnostics: kDebugMode,
+    debugLogDiagnostics: false,
     refreshListenable: listenable,
     redirect: (context, state) {
       final isOnSplash = state.matchedLocation == '/splash';

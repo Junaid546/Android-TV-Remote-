@@ -1,10 +1,12 @@
 package com.example.atv_remote.channels
 
+import android.util.Log
 import com.example.atv_remote.adb.AdbSessionManager
 import com.example.atv_remote.adb.AdbSessionState
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,6 +18,8 @@ class AdbChannel(
     private val binaryMessenger: BinaryMessenger,
     private val scope: CoroutineScope,
 ) {
+    private val tag = "TvAdbChannel"
+
     companion object {
         const val METHOD_CHANNEL_NAME = "com.tvremote.app/adb"
         const val EVENT_CHANNEL_NAME = "com.tvremote.app/adb/events"
@@ -37,7 +41,11 @@ class AdbChannel(
                     val code = call.argument<String>("pairingCode")
                         ?: return@setMethodCallHandler result.error("INVALID_ARGS", "pairingCode required", null)
 
-                    scope.launch {
+                    launchSafely(
+                        result = result,
+                        errorCode = "ADB_PAIR_FAILED",
+                        fallbackMessage = "ADB pairing failed",
+                    ) {
                         val pairResult = adbSessionManager.pair(host, port, code)
                         withContext(Dispatchers.Main) {
                             pairResult.fold(
@@ -60,7 +68,11 @@ class AdbChannel(
                     val port = call.argument<Int>("port")
                         ?: return@setMethodCallHandler result.error("INVALID_ARGS", "port required", null)
 
-                    scope.launch {
+                    launchSafely(
+                        result = result,
+                        errorCode = "ADB_CONNECT_FAILED",
+                        fallbackMessage = "ADB connection failed",
+                    ) {
                         val connectResult = adbSessionManager.connect(host, port)
                         withContext(Dispatchers.Main) {
                             connectResult.fold(
@@ -78,15 +90,29 @@ class AdbChannel(
                 }
 
                 "disconnect" -> {
-                    adbSessionManager.disconnect()
-                    result.success(null)
+                    runCatching {
+                        adbSessionManager.disconnect()
+                    }.onSuccess {
+                        result.success(null)
+                    }.onFailure { error ->
+                        Log.e(tag, "ADB disconnect failed: ${error.message}", error)
+                        result.error(
+                            "ADB_DISCONNECT_FAILED",
+                            error.message ?: "ADB disconnect failed",
+                            null,
+                        )
+                    }
                 }
 
                 "runShell" -> {
                     val command = call.argument<String>("command")
                         ?: return@setMethodCallHandler result.error("INVALID_ARGS", "command required", null)
 
-                    scope.launch {
+                    launchSafely(
+                        result = result,
+                        errorCode = "ADB_SHELL_FAILED",
+                        fallbackMessage = "ADB shell failed",
+                    ) {
                         val shellResult = adbSessionManager.runShell(command)
                         withContext(Dispatchers.Main) {
                             shellResult.fold(
@@ -111,7 +137,11 @@ class AdbChannel(
                     val activityName = call.argument<String>("activityName")
                     val playStoreFallback = call.argument<Boolean>("playStoreFallback") ?: true
 
-                    scope.launch {
+                    launchSafely(
+                        result = result,
+                        errorCode = "ADB_LAUNCH_FAILED",
+                        fallbackMessage = "App launch failed",
+                    ) {
                         val launchResult = adbSessionManager.launchApp(
                             packageName = packageName,
                             activityName = activityName,
@@ -145,9 +175,21 @@ class AdbChannel(
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink?) {
                     job?.cancel()
                     job = scope.launch {
-                        adbSessionManager.state.collect { state ->
+                        try {
+                            adbSessionManager.state.collect { state ->
+                                withContext(Dispatchers.Main) {
+                                    sink?.success(state.toMap())
+                                }
+                            }
+                        } catch (error: Throwable) {
+                            if (error is CancellationException) return@launch
+                            Log.e(tag, "ADB state stream failed: ${error.message}", error)
                             withContext(Dispatchers.Main) {
-                                sink?.success(state.toMap())
+                                sink?.error(
+                                    "ADB_STATE_STREAM_FAILED",
+                                    error.message ?: "ADB state stream failed",
+                                    null,
+                                )
                             }
                         }
                     }
@@ -159,6 +201,29 @@ class AdbChannel(
                 }
             },
         )
+    }
+
+    private fun launchSafely(
+        result: MethodChannel.Result,
+        errorCode: String,
+        fallbackMessage: String,
+        block: suspend () -> Unit,
+    ) {
+        scope.launch {
+            try {
+                block()
+            } catch (error: Throwable) {
+                if (error is CancellationException) return@launch
+                Log.e(tag, "$fallbackMessage: ${error.message}", error)
+                withContext(Dispatchers.Main) {
+                    result.error(
+                        errorCode,
+                        error.message ?: fallbackMessage,
+                        null,
+                    )
+                }
+            }
+        }
     }
 
     private fun AdbSessionState.toMap(): Map<String, Any?> = when (this) {

@@ -27,13 +27,11 @@ class AdbNativeDataSourceImpl implements AdbNativeDataSource {
         .receiveBroadcastStream()
         .map((event) => Map<String, dynamic>.from(event as Map))
         .handleError((error) {
-          if (error is PlatformException) {
-            throw NativeChannelException(
-              error.code,
-              error.message ?? 'ADB state stream error',
-            );
-          }
-          throw error;
+          throw _toNativeChannelException(
+            error,
+            defaultCode: 'ADB_STATE_STREAM_ERROR',
+            defaultMessage: 'ADB state stream error',
+          );
         });
   }
 
@@ -45,8 +43,12 @@ class AdbNativeDataSourceImpl implements AdbNativeDataSource {
         'port': port,
         'pairingCode': pairingCode,
       });
-    } on PlatformException catch (e) {
-      throw NativeChannelException(e.code, e.message ?? 'ADB pairing failed');
+    } catch (error) {
+      throw _toNativeChannelException(
+        error,
+        defaultCode: 'ADB_PAIR_FAILED',
+        defaultMessage: 'ADB pairing failed',
+      );
     }
   }
 
@@ -57,10 +59,11 @@ class AdbNativeDataSourceImpl implements AdbNativeDataSource {
         'host': host,
         'port': port,
       });
-    } on PlatformException catch (e) {
-      throw NativeChannelException(
-        e.code,
-        e.message ?? 'ADB connection failed',
+    } catch (error) {
+      throw _toNativeChannelException(
+        error,
+        defaultCode: 'ADB_CONNECT_FAILED',
+        defaultMessage: 'ADB connection failed',
       );
     }
   }
@@ -69,10 +72,11 @@ class AdbNativeDataSourceImpl implements AdbNativeDataSource {
   Future<void> disconnect() async {
     try {
       await _methodChannel.invokeMethod('disconnect');
-    } on PlatformException catch (e) {
-      throw NativeChannelException(
-        e.code,
-        e.message ?? 'ADB disconnect failed',
+    } catch (error) {
+      throw _toNativeChannelException(
+        error,
+        defaultCode: 'ADB_DISCONNECT_FAILED',
+        defaultMessage: 'ADB disconnect failed',
       );
     }
   }
@@ -86,8 +90,12 @@ class AdbNativeDataSourceImpl implements AdbNativeDataSource {
       );
       final map = Map<String, dynamic>.from(result ?? const {});
       return (map['output'] as String? ?? '').trim();
-    } on PlatformException catch (e) {
-      throw NativeChannelException(e.code, e.message ?? 'ADB shell failed');
+    } catch (error) {
+      throw _toNativeChannelException(
+        error,
+        defaultCode: 'ADB_SHELL_FAILED',
+        defaultMessage: 'ADB shell failed',
+      );
     }
   }
 
@@ -105,8 +113,27 @@ class AdbNativeDataSourceImpl implements AdbNativeDataSource {
             'playStoreFallback': playStoreFallback,
           });
       return Map<String, dynamic>.from(result ?? const {});
-    } on PlatformException catch (e) {
-      throw NativeChannelException(e.code, e.message ?? 'App launch failed');
+    } catch (error) {
+      throw _toNativeChannelException(
+        error,
+        defaultCode: 'ADB_LAUNCH_FAILED',
+        defaultMessage: 'App launch failed',
+      );
     }
+  }
+
+  NativeChannelException _toNativeChannelException(
+    Object error, {
+    required String defaultCode,
+    required String defaultMessage,
+  }) {
+    if (error is NativeChannelException) return error;
+    if (error is PlatformException) {
+      return NativeChannelException(
+        error.code,
+        error.message ?? defaultMessage,
+      );
+    }
+    return NativeChannelException(defaultCode, error.toString());
   }
 }
