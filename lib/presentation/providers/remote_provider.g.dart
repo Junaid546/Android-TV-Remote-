@@ -27,13 +27,14 @@ String _$remoteErrorHash() => r'8c57d21a07143cf474ea6d758ae8f303405a21f1';
 @ProviderFor(RemoteError)
 final remoteErrorProvider =
     AutoDisposeNotifierProvider<RemoteError, Failure?>.internal(
-  RemoteError.new,
-  name: r'remoteErrorProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$remoteErrorHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      RemoteError.new,
+      name: r'remoteErrorProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$remoteErrorHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$RemoteError = AutoDisposeNotifier<Failure?>;
 // ignore_for_file: type=lint

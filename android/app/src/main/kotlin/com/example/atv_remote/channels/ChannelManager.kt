@@ -53,9 +53,9 @@ class ChannelManager(
             Log.d(tag, "PairingChannel registered")
 
             // 4. Remote Control
-            val session = RemoteSession(certStore, scope)
+            val session = RemoteSession(context, certStore, scope)
             remoteSession = session
-            RemoteChannel(session, messenger, scope).register()
+            RemoteChannel(context, session, messenger, scope).register()
             Log.d(tag, "RemoteChannel registered")
 
             // 5. ADB / App Launch
@@ -78,7 +78,7 @@ class ChannelManager(
         Log.d(tag, "Destroying channels...")
         try {
             discoveryEngine?.destroy()
-            remoteSession?.disconnect()
+            remoteSession?.destroy()
             adbSessionManager?.disconnect()
             discoveryEngine = null
             remoteSession = null

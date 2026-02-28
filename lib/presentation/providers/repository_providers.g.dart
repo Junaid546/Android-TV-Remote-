@@ -13,14 +13,14 @@ String _$discoveryNativeDataSourceHash() =>
 @ProviderFor(discoveryNativeDataSource)
 final discoveryNativeDataSourceProvider =
     Provider<DiscoveryNativeDataSource>.internal(
-  discoveryNativeDataSource,
-  name: r'discoveryNativeDataSourceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$discoveryNativeDataSourceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      discoveryNativeDataSource,
+      name: r'discoveryNativeDataSourceProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$discoveryNativeDataSourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef DiscoveryNativeDataSourceRef = ProviderRef<DiscoveryNativeDataSource>;
 String _$pairingNativeDataSourceHash() =>
@@ -30,14 +30,14 @@ String _$pairingNativeDataSourceHash() =>
 @ProviderFor(pairingNativeDataSource)
 final pairingNativeDataSourceProvider =
     Provider<PairingNativeDataSource>.internal(
-  pairingNativeDataSource,
-  name: r'pairingNativeDataSourceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$pairingNativeDataSourceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      pairingNativeDataSource,
+      name: r'pairingNativeDataSourceProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$pairingNativeDataSourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef PairingNativeDataSourceRef = ProviderRef<PairingNativeDataSource>;
 String _$remoteNativeDataSourceHash() =>
@@ -47,14 +47,14 @@ String _$remoteNativeDataSourceHash() =>
 @ProviderFor(remoteNativeDataSource)
 final remoteNativeDataSourceProvider =
     Provider<RemoteNativeDataSource>.internal(
-  remoteNativeDataSource,
-  name: r'remoteNativeDataSourceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$remoteNativeDataSourceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      remoteNativeDataSource,
+      name: r'remoteNativeDataSourceProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$remoteNativeDataSourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef RemoteNativeDataSourceRef = ProviderRef<RemoteNativeDataSource>;
 String _$hiveDeviceDatasourceHash() =>
@@ -80,14 +80,14 @@ String _$networkNativeDataSourceHash() =>
 @ProviderFor(networkNativeDataSource)
 final networkNativeDataSourceProvider =
     Provider<NetworkNativeDataSource>.internal(
-  networkNativeDataSource,
-  name: r'networkNativeDataSourceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$networkNativeDataSourceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      networkNativeDataSource,
+      name: r'networkNativeDataSourceProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$networkNativeDataSourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef NetworkNativeDataSourceRef = ProviderRef<NetworkNativeDataSource>;
 String _$hiveSettingsDatasourceHash() =>
@@ -97,14 +97,14 @@ String _$hiveSettingsDatasourceHash() =>
 @ProviderFor(hiveSettingsDatasource)
 final hiveSettingsDatasourceProvider =
     Provider<HiveSettingsDatasource>.internal(
-  hiveSettingsDatasource,
-  name: r'hiveSettingsDatasourceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$hiveSettingsDatasourceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      hiveSettingsDatasource,
+      name: r'hiveSettingsDatasourceProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$hiveSettingsDatasourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef HiveSettingsDatasourceRef = ProviderRef<HiveSettingsDatasource>;
 String _$deviceStorageRepositoryHash() =>
@@ -114,14 +114,14 @@ String _$deviceStorageRepositoryHash() =>
 @ProviderFor(deviceStorageRepository)
 final deviceStorageRepositoryProvider =
     Provider<DeviceStorageRepository>.internal(
-  deviceStorageRepository,
-  name: r'deviceStorageRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$deviceStorageRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      deviceStorageRepository,
+      name: r'deviceStorageRepositoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$deviceStorageRepositoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef DeviceStorageRepositoryRef = ProviderRef<DeviceStorageRepository>;
 String _$discoveryRepositoryHash() =>

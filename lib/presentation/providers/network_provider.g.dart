@@ -13,8 +13,9 @@ String _$wifiStatusHash() => r'33c79e2ebc7cb963e1980137732d623af755ecdd';
 final wifiStatusProvider = AutoDisposeStreamProvider<bool>.internal(
   wifiStatus,
   name: r'wifiStatusProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$wifiStatusHash,
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$wifiStatusHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
@@ -26,14 +27,14 @@ String _$networkNotifierHash() => r'd7b17fe389a830164869a7a224ba94c2c0834e6c';
 @ProviderFor(NetworkNotifier)
 final networkNotifierProvider =
     AutoDisposeNotifierProvider<NetworkNotifier, bool>.internal(
-  NetworkNotifier.new,
-  name: r'networkNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$networkNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      NetworkNotifier.new,
+      name: r'networkNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$networkNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$NetworkNotifier = AutoDisposeNotifier<bool>;
 // ignore_for_file: type=lint

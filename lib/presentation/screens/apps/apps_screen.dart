@@ -1,5 +1,4 @@
 import 'package:atv_remote/core/theme/app_colors.dart';
-import 'package:atv_remote/core/errors/exceptions.dart';
 import 'package:atv_remote/data/models/settings_model.dart';
 import 'package:atv_remote/presentation/providers/adb_provider.dart';
 import 'package:atv_remote/presentation/providers/connection_provider.dart';
@@ -364,14 +363,17 @@ class _AppsScreenState extends ConsumerState<AppsScreen> {
       return;
     }
 
-    try {
-      await ref
-          .read(adbNotifierProvider.notifier)
-          .pair(host: host, port: pairPort!, pairingCode: pairingCode);
+    final result = await ref
+        .read(adbNotifierProvider.notifier)
+        .pair(host: host, port: pairPort!, pairingCode: pairingCode);
+    if (result.isSuccess) {
       _showMessage('ADB paired successfully');
-    } catch (e) {
-      _showMessage(_formatAdbError(e), isError: true);
+      return;
     }
+    _showMessage(
+      result.errorMessage ?? 'ADB pairing failed. Try again.',
+      isError: true,
+    );
   }
 
   Future<void> _connectAdb() async {
@@ -391,46 +393,66 @@ class _AppsScreenState extends ConsumerState<AppsScreen> {
       return;
     }
 
-    try {
-      await ref
-          .read(adbNotifierProvider.notifier)
-          .connect(host: host, port: connectPort!);
-      await ref
-          .read(settingsNotifierProvider.notifier)
-          .saveAdbConfig(
-            host: host,
-            connectPort: connectPort,
-            pairPort: pairPort,
-          );
-      _showMessage('ADB connected');
-    } catch (e) {
-      _showMessage(_formatAdbError(e), isError: true);
+    final connectResult = await _connectWithRetryDialog(
+      dialogContext: context,
+      host: host,
+      port: connectPort!,
+    );
+    if (connectResult.isFailure) {
+      return;
     }
+
+    final saveResult = await _saveAdbConfigSafely(
+      host: host,
+      connectPort: connectPort,
+      pairPort: pairPort,
+    );
+    if (saveResult.isFailure) {
+      _showMessage(
+        saveResult.errorMessage ??
+            'ADB connected, but settings could not be saved.',
+        isError: true,
+      );
+      return;
+    }
+    _showMessage('ADB connected');
   }
 
   Future<void> _disconnectAdb() async {
-    await ref.read(adbNotifierProvider.notifier).disconnect();
-    _showMessage('ADB disconnected');
+    final result = await ref.read(adbNotifierProvider.notifier).disconnect();
+    if (result.isSuccess) {
+      _showMessage('ADB disconnected');
+      return;
+    }
+    _showMessage(
+      result.errorMessage ?? 'ADB disconnect failed. Try again.',
+      isError: true,
+    );
   }
 
   Future<void> _launchApp(TvAppDefinition app, String packageName) async {
-    try {
-      final result = await ref
-          .read(adbNotifierProvider.notifier)
-          .launchApp(
-            packageName: packageName,
-            activityName: app.activityName,
-            playStoreFallback: true,
-          );
+    final result = await ref
+        .read(adbNotifierProvider.notifier)
+        .launchApp(
+          packageName: packageName,
+          activityName: app.activityName,
+          playStoreFallback: true,
+        );
 
-      final openedPlayStore = result['openedPlayStore'] == true;
-      if (openedPlayStore) {
-        _showMessage('${app.name} not installed. Opened Play Store listing.');
-      } else {
-        _showMessage('Opened ${app.name}');
-      }
-    } catch (e) {
-      _showMessage(_formatAdbError(e), isError: true);
+    if (result.isFailure) {
+      _showMessage(
+        result.errorMessage ?? 'App launch failed. Try again.',
+        isError: true,
+      );
+      return;
+    }
+
+    final payload = result.data ?? const <String, dynamic>{};
+    final openedPlayStore = payload['openedPlayStore'] == true;
+    if (openedPlayStore) {
+      _showMessage('${app.name} not installed. Opened Play Store listing.');
+    } else {
+      _showMessage('Opened ${app.name}');
     }
   }
 
@@ -579,32 +601,41 @@ class _AppsScreenState extends ConsumerState<AppsScreen> {
                                     inlineError = null;
                                   });
 
-                                  try {
-                                    await ref
-                                        .read(adbNotifierProvider.notifier)
-                                        .connect(
-                                          host: resolvedHost,
-                                          port: connectPort,
-                                        );
-                                    await ref
-                                        .read(settingsNotifierProvider.notifier)
-                                        .saveAdbConfig(
-                                          host: resolvedHost,
-                                          connectPort: connectPort,
-                                          pairPort:
-                                              _parsePort(
-                                                _pairPortController.text.trim(),
-                                              ) ??
-                                              settings.adbPairPort,
-                                        );
-                                    if (sheetContext.mounted) {
-                                      Navigator.pop(sheetContext, true);
-                                    }
-                                  } catch (e) {
+                                  final connectResult =
+                                      await _connectWithRetryDialog(
+                                        dialogContext: sheetContext,
+                                        host: resolvedHost,
+                                        port: connectPort,
+                                      );
+                                  if (!sheetContext.mounted) return;
+                                  if (connectResult.isFailure) {
                                     setSheetState(() {
                                       busy = false;
-                                      inlineError = _formatAdbError(e);
+                                      inlineError =
+                                          connectResult.errorMessage ??
+                                          'ADB connection failed. Try again.';
                                     });
+                                    return;
+                                  }
+
+                                  final saveResult = await _saveAdbConfigSafely(
+                                    host: resolvedHost,
+                                    connectPort: connectPort,
+                                    pairPort:
+                                        _parsePort(
+                                          _pairPortController.text.trim(),
+                                        ) ??
+                                        settings.adbPairPort,
+                                  );
+                                  if (saveResult.isFailure) {
+                                    _showMessage(
+                                      saveResult.errorMessage ??
+                                          'ADB connected, but settings could not be saved.',
+                                      isError: true,
+                                    );
+                                  }
+                                  if (sheetContext.mounted) {
+                                    Navigator.pop(sheetContext, true);
                                   }
                                 },
                           style: FilledButton.styleFrom(
@@ -633,6 +664,92 @@ class _AppsScreenState extends ConsumerState<AppsScreen> {
     );
 
     return result ?? false;
+  }
+
+  Future<AdbResult<void>> _connectWithRetryDialog({
+    required BuildContext dialogContext,
+    required String host,
+    required int port,
+  }) async {
+    var attemptResult = const AdbResult<void>.failure(
+      'ADB connection failed. Try again.',
+    );
+    while (mounted) {
+      attemptResult = await ref
+          .read(adbNotifierProvider.notifier)
+          .connect(host: host, port: port);
+      if (attemptResult.isSuccess) {
+        return attemptResult;
+      }
+
+      if (!dialogContext.mounted) {
+        return attemptResult;
+      }
+      final shouldRetry = await _showAdbRetryDialog(
+        dialogContext,
+        attemptResult.errorMessage ?? 'ADB connection failed. Try again.',
+      );
+      if (!shouldRetry) {
+        return attemptResult;
+      }
+    }
+    return attemptResult;
+  }
+
+  Future<bool> _showAdbRetryDialog(
+    BuildContext dialogContext,
+    String message,
+  ) async {
+    final shouldRetry = await showDialog<bool>(
+      context: dialogContext,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: const Text(
+            'ADB Connection Failed',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            message,
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text('Retry'),
+            ),
+          ],
+        );
+      },
+    );
+    return shouldRetry ?? false;
+  }
+
+  Future<AdbResult<void>> _saveAdbConfigSafely({
+    required String host,
+    required int connectPort,
+    required int pairPort,
+  }) async {
+    try {
+      await ref
+          .read(settingsNotifierProvider.notifier)
+          .saveAdbConfig(
+            host: host,
+            connectPort: connectPort,
+            pairPort: pairPort,
+          );
+      return const AdbResult<void>.success();
+    } catch (_) {
+      return const AdbResult<void>.failure(
+        'ADB connected, but settings could not be saved.',
+      );
+    }
   }
 
   Future<void> _editPackageOverride(
@@ -722,13 +839,6 @@ class _AppsScreenState extends ConsumerState<AppsScreen> {
     if (code.isEmpty) return 'Pair code is required';
     if (!RegExp(r'^\d{6}$').hasMatch(code)) return 'Use 6 digits';
     return null;
-  }
-
-  String _formatAdbError(Object error) {
-    if (error is NativeChannelException) {
-      return error.message;
-    }
-    return error.toString();
   }
 
   String? _resolveAdbHost({

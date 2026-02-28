@@ -11,16 +11,19 @@ String _$savedDevicesNotifierHash() =>
 
 /// See also [SavedDevicesNotifier].
 @ProviderFor(SavedDevicesNotifier)
-final savedDevicesNotifierProvider = AutoDisposeAsyncNotifierProvider<
-    SavedDevicesNotifier, List<TvDevice>>.internal(
-  SavedDevicesNotifier.new,
-  name: r'savedDevicesNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$savedDevicesNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final savedDevicesNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<
+      SavedDevicesNotifier,
+      List<TvDevice>
+    >.internal(
+      SavedDevicesNotifier.new,
+      name: r'savedDevicesNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$savedDevicesNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$SavedDevicesNotifier = AutoDisposeAsyncNotifier<List<TvDevice>>;
 // ignore_for_file: type=lint

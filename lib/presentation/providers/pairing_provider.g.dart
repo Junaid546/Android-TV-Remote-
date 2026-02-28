@@ -12,14 +12,14 @@ String _$pairingNotifierHash() => r'11313b34460035891251302db4407c04d920cb91';
 @ProviderFor(PairingNotifier)
 final pairingNotifierProvider =
     AutoDisposeStreamNotifierProvider<PairingNotifier, PairingStatus>.internal(
-  PairingNotifier.new,
-  name: r'pairingNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$pairingNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      PairingNotifier.new,
+      name: r'pairingNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$pairingNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$PairingNotifier = AutoDisposeStreamNotifier<PairingStatus>;
 // ignore_for_file: type=lint

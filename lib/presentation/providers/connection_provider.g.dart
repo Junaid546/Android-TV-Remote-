@@ -13,14 +13,14 @@ String _$connectionNotifierHash() =>
 @ProviderFor(ConnectionNotifier)
 final connectionNotifierProvider =
     NotifierProvider<ConnectionNotifier, PairingStatus>.internal(
-  ConnectionNotifier.new,
-  name: r'connectionNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$connectionNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      ConnectionNotifier.new,
+      name: r'connectionNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$connectionNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$ConnectionNotifier = Notifier<PairingStatus>;
 // ignore_for_file: type=lint

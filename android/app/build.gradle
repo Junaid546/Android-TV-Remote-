@@ -59,6 +59,7 @@ dependencies {
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
     implementation "com.google.protobuf:protobuf-javalite:3.25.3"
     implementation "com.github.MuntashirAkon:libadb-android:3.1.1"
+    implementation "androidx.media:media:1.7.0"
     
     // Keep BouncyCastle family aligned with libadb transitive dependencies.
     implementation "org.bouncycastle:bcprov-jdk15to18:1.81"

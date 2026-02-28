@@ -12,7 +12,8 @@ part of 'pairing_screen_notifier.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$PairingScreenState {
@@ -29,11 +30,16 @@ mixin _$PairingScreenState {
 /// @nodoc
 abstract class $PairingScreenStateCopyWith<$Res> {
   factory $PairingScreenStateCopyWith(
-          PairingScreenState value, $Res Function(PairingScreenState) then) =
-      _$PairingScreenStateCopyWithImpl<$Res, PairingScreenState>;
+    PairingScreenState value,
+    $Res Function(PairingScreenState) then,
+  ) = _$PairingScreenStateCopyWithImpl<$Res, PairingScreenState>;
   @useResult
-  $Res call(
-      {String pin, bool isSubmitting, String? errorMessage, int attemptsLeft});
+  $Res call({
+    String pin,
+    bool isSubmitting,
+    String? errorMessage,
+    int attemptsLeft,
+  });
 }
 
 /// @nodoc
@@ -54,46 +60,55 @@ class _$PairingScreenStateCopyWithImpl<$Res, $Val extends PairingScreenState>
     Object? errorMessage = freezed,
     Object? attemptsLeft = null,
   }) {
-    return _then(_value.copyWith(
-      pin: null == pin
-          ? _value.pin
-          : pin // ignore: cast_nullable_to_non_nullable
-              as String,
-      isSubmitting: null == isSubmitting
-          ? _value.isSubmitting
-          : isSubmitting // ignore: cast_nullable_to_non_nullable
-              as bool,
-      errorMessage: freezed == errorMessage
-          ? _value.errorMessage
-          : errorMessage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      attemptsLeft: null == attemptsLeft
-          ? _value.attemptsLeft
-          : attemptsLeft // ignore: cast_nullable_to_non_nullable
-              as int,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            pin: null == pin
+                ? _value.pin
+                : pin // ignore: cast_nullable_to_non_nullable
+                      as String,
+            isSubmitting: null == isSubmitting
+                ? _value.isSubmitting
+                : isSubmitting // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            errorMessage: freezed == errorMessage
+                ? _value.errorMessage
+                : errorMessage // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            attemptsLeft: null == attemptsLeft
+                ? _value.attemptsLeft
+                : attemptsLeft // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$PairingScreenStateImplCopyWith<$Res>
     implements $PairingScreenStateCopyWith<$Res> {
-  factory _$$PairingScreenStateImplCopyWith(_$PairingScreenStateImpl value,
-          $Res Function(_$PairingScreenStateImpl) then) =
-      __$$PairingScreenStateImplCopyWithImpl<$Res>;
+  factory _$$PairingScreenStateImplCopyWith(
+    _$PairingScreenStateImpl value,
+    $Res Function(_$PairingScreenStateImpl) then,
+  ) = __$$PairingScreenStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {String pin, bool isSubmitting, String? errorMessage, int attemptsLeft});
+  $Res call({
+    String pin,
+    bool isSubmitting,
+    String? errorMessage,
+    int attemptsLeft,
+  });
 }
 
 /// @nodoc
 class __$$PairingScreenStateImplCopyWithImpl<$Res>
     extends _$PairingScreenStateCopyWithImpl<$Res, _$PairingScreenStateImpl>
     implements _$$PairingScreenStateImplCopyWith<$Res> {
-  __$$PairingScreenStateImplCopyWithImpl(_$PairingScreenStateImpl _value,
-      $Res Function(_$PairingScreenStateImpl) _then)
-      : super(_value, _then);
+  __$$PairingScreenStateImplCopyWithImpl(
+    _$PairingScreenStateImpl _value,
+    $Res Function(_$PairingScreenStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -103,35 +118,38 @@ class __$$PairingScreenStateImplCopyWithImpl<$Res>
     Object? errorMessage = freezed,
     Object? attemptsLeft = null,
   }) {
-    return _then(_$PairingScreenStateImpl(
-      pin: null == pin
-          ? _value.pin
-          : pin // ignore: cast_nullable_to_non_nullable
-              as String,
-      isSubmitting: null == isSubmitting
-          ? _value.isSubmitting
-          : isSubmitting // ignore: cast_nullable_to_non_nullable
-              as bool,
-      errorMessage: freezed == errorMessage
-          ? _value.errorMessage
-          : errorMessage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      attemptsLeft: null == attemptsLeft
-          ? _value.attemptsLeft
-          : attemptsLeft // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+    return _then(
+      _$PairingScreenStateImpl(
+        pin: null == pin
+            ? _value.pin
+            : pin // ignore: cast_nullable_to_non_nullable
+                  as String,
+        isSubmitting: null == isSubmitting
+            ? _value.isSubmitting
+            : isSubmitting // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        errorMessage: freezed == errorMessage
+            ? _value.errorMessage
+            : errorMessage // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        attemptsLeft: null == attemptsLeft
+            ? _value.attemptsLeft
+            : attemptsLeft // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$PairingScreenStateImpl implements _PairingScreenState {
-  const _$PairingScreenStateImpl(
-      {required this.pin,
-      required this.isSubmitting,
-      this.errorMessage,
-      required this.attemptsLeft});
+  const _$PairingScreenStateImpl({
+    required this.pin,
+    required this.isSubmitting,
+    this.errorMessage,
+    required this.attemptsLeft,
+  });
 
   @override
   final String pin;
@@ -170,15 +188,18 @@ class _$PairingScreenStateImpl implements _PairingScreenState {
   @pragma('vm:prefer-inline')
   _$$PairingScreenStateImplCopyWith<_$PairingScreenStateImpl> get copyWith =>
       __$$PairingScreenStateImplCopyWithImpl<_$PairingScreenStateImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 }
 
 abstract class _PairingScreenState implements PairingScreenState {
-  const factory _PairingScreenState(
-      {required final String pin,
-      required final bool isSubmitting,
-      final String? errorMessage,
-      required final int attemptsLeft}) = _$PairingScreenStateImpl;
+  const factory _PairingScreenState({
+    required final String pin,
+    required final bool isSubmitting,
+    final String? errorMessage,
+    required final int attemptsLeft,
+  }) = _$PairingScreenStateImpl;
 
   @override
   String get pin;

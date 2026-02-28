@@ -12,7 +12,8 @@ part of 'remote_command.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$RemoteCommand {
@@ -21,52 +22,47 @@ mixin _$RemoteCommand {
     required TResult Function(int keyCode, KeyAction action) keyCommand,
     required TResult Function(String text) textCommand,
     required TResult Function() wakeCommand,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(int keyCode, KeyAction action)? keyCommand,
     TResult? Function(String text)? textCommand,
     TResult? Function()? wakeCommand,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(int keyCode, KeyAction action)? keyCommand,
     TResult Function(String text)? textCommand,
     TResult Function()? wakeCommand,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(KeyCommand value) keyCommand,
     required TResult Function(TextCommand value) textCommand,
     required TResult Function(WakeCommand value) wakeCommand,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(KeyCommand value)? keyCommand,
     TResult? Function(TextCommand value)? textCommand,
     TResult? Function(WakeCommand value)? wakeCommand,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(KeyCommand value)? keyCommand,
     TResult Function(TextCommand value)? textCommand,
     TResult Function(WakeCommand value)? wakeCommand,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $RemoteCommandCopyWith<$Res> {
   factory $RemoteCommandCopyWith(
-          RemoteCommand value, $Res Function(RemoteCommand) then) =
-      _$RemoteCommandCopyWithImpl<$Res, RemoteCommand>;
+    RemoteCommand value,
+    $Res Function(RemoteCommand) then,
+  ) = _$RemoteCommandCopyWithImpl<$Res, RemoteCommand>;
 }
 
 /// @nodoc
@@ -83,8 +79,9 @@ class _$RemoteCommandCopyWithImpl<$Res, $Val extends RemoteCommand>
 /// @nodoc
 abstract class _$$KeyCommandImplCopyWith<$Res> {
   factory _$$KeyCommandImplCopyWith(
-          _$KeyCommandImpl value, $Res Function(_$KeyCommandImpl) then) =
-      __$$KeyCommandImplCopyWithImpl<$Res>;
+    _$KeyCommandImpl value,
+    $Res Function(_$KeyCommandImpl) then,
+  ) = __$$KeyCommandImplCopyWithImpl<$Res>;
   @useResult
   $Res call({int keyCode, KeyAction action});
 }
@@ -94,25 +91,25 @@ class __$$KeyCommandImplCopyWithImpl<$Res>
     extends _$RemoteCommandCopyWithImpl<$Res, _$KeyCommandImpl>
     implements _$$KeyCommandImplCopyWith<$Res> {
   __$$KeyCommandImplCopyWithImpl(
-      _$KeyCommandImpl _value, $Res Function(_$KeyCommandImpl) _then)
-      : super(_value, _then);
+    _$KeyCommandImpl _value,
+    $Res Function(_$KeyCommandImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? keyCode = null,
-    Object? action = null,
-  }) {
-    return _then(_$KeyCommandImpl(
-      keyCode: null == keyCode
-          ? _value.keyCode
-          : keyCode // ignore: cast_nullable_to_non_nullable
-              as int,
-      action: null == action
-          ? _value.action
-          : action // ignore: cast_nullable_to_non_nullable
-              as KeyAction,
-    ));
+  $Res call({Object? keyCode = null, Object? action = null}) {
+    return _then(
+      _$KeyCommandImpl(
+        keyCode: null == keyCode
+            ? _value.keyCode
+            : keyCode // ignore: cast_nullable_to_non_nullable
+                  as int,
+        action: null == action
+            ? _value.action
+            : action // ignore: cast_nullable_to_non_nullable
+                  as KeyAction,
+      ),
+    );
   }
 }
 
@@ -219,9 +216,10 @@ class _$KeyCommandImpl implements KeyCommand {
 }
 
 abstract class KeyCommand implements RemoteCommand {
-  const factory KeyCommand(
-      {required final int keyCode,
-      required final KeyAction action}) = _$KeyCommandImpl;
+  const factory KeyCommand({
+    required final int keyCode,
+    required final KeyAction action,
+  }) = _$KeyCommandImpl;
 
   int get keyCode;
   KeyAction get action;
@@ -233,8 +231,9 @@ abstract class KeyCommand implements RemoteCommand {
 /// @nodoc
 abstract class _$$TextCommandImplCopyWith<$Res> {
   factory _$$TextCommandImplCopyWith(
-          _$TextCommandImpl value, $Res Function(_$TextCommandImpl) then) =
-      __$$TextCommandImplCopyWithImpl<$Res>;
+    _$TextCommandImpl value,
+    $Res Function(_$TextCommandImpl) then,
+  ) = __$$TextCommandImplCopyWithImpl<$Res>;
   @useResult
   $Res call({String text});
 }
@@ -244,20 +243,21 @@ class __$$TextCommandImplCopyWithImpl<$Res>
     extends _$RemoteCommandCopyWithImpl<$Res, _$TextCommandImpl>
     implements _$$TextCommandImplCopyWith<$Res> {
   __$$TextCommandImplCopyWithImpl(
-      _$TextCommandImpl _value, $Res Function(_$TextCommandImpl) _then)
-      : super(_value, _then);
+    _$TextCommandImpl _value,
+    $Res Function(_$TextCommandImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? text = null,
-  }) {
-    return _then(_$TextCommandImpl(
-      text: null == text
-          ? _value.text
-          : text // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+  $Res call({Object? text = null}) {
+    return _then(
+      _$TextCommandImpl(
+        text: null == text
+            ? _value.text
+            : text // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
   }
 }
 
@@ -372,8 +372,9 @@ abstract class TextCommand implements RemoteCommand {
 /// @nodoc
 abstract class _$$WakeCommandImplCopyWith<$Res> {
   factory _$$WakeCommandImplCopyWith(
-          _$WakeCommandImpl value, $Res Function(_$WakeCommandImpl) then) =
-      __$$WakeCommandImplCopyWithImpl<$Res>;
+    _$WakeCommandImpl value,
+    $Res Function(_$WakeCommandImpl) then,
+  ) = __$$WakeCommandImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
@@ -381,8 +382,9 @@ class __$$WakeCommandImplCopyWithImpl<$Res>
     extends _$RemoteCommandCopyWithImpl<$Res, _$WakeCommandImpl>
     implements _$$WakeCommandImplCopyWith<$Res> {
   __$$WakeCommandImplCopyWithImpl(
-      _$WakeCommandImpl _value, $Res Function(_$WakeCommandImpl) _then)
-      : super(_value, _then);
+    _$WakeCommandImpl _value,
+    $Res Function(_$WakeCommandImpl) _then,
+  ) : super(_value, _then);
 }
 
 /// @nodoc

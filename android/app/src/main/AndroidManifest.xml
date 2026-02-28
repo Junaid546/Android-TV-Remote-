@@ -14,6 +14,22 @@
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true">
+        
+        <service 
+            android:name=".remote.AtvMediaService" 
+            android:foregroundServiceType="mediaPlayback" 
+            android:exported="false" />
+
+        <service
+            android:name=".remote.AtvTileService"
+            android:label="TV Remote"
+            android:icon="@mipmap/ic_launcher"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true"

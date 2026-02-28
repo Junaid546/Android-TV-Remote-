@@ -2,6 +2,11 @@ package com.example.atv_remote.remote
 
 import android.os.Build
 import android.util.Log
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import com.example.atv_remote.pairing.CertificateStore
 import com.google.protobuf.InvalidProtocolBufferException
 import com.tvremote.app.proto.RemoteProto.RemoteDirection
@@ -39,6 +44,7 @@ import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.SSLSocket
 
 class RemoteSession(
+    private val context: Context,
     private val certStore: CertificateStore,
     private val scope: CoroutineScope,
 ) {
@@ -99,6 +105,37 @@ class RemoteSession(
     private val lastInboundFrameAt = AtomicLong(0L)
     private val lastOutboundFrameAt = AtomicLong(0L)
     private val negotiatedFeatures = AtomicInteger(DEFAULT_ACTIVE_FEATURES)
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+
+    init {
+        setupNetworkCallback()
+    }
+
+    private fun setupNetworkCallback() {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkRequest = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            .build()
+
+        networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                if (!handlingDisconnection.get() && currentDeviceIp != null && _connectionState.value is RemoteConnectionState.Disconnected) {
+                    ConnectionSupervisor.dispatch(RemoteAction.NetworkAvailable)
+                    scope.launch(Dispatchers.IO) {
+                        currentDeviceIp?.let { connect(it, currentDeviceName, currentDevicePort) }
+                    }
+                }
+            }
+
+            override fun onLost(network: Network) {
+                ConnectionSupervisor.dispatch(RemoteAction.NetworkLost)
+                disconnect() // Immediately halt traffic
+            }
+        }
+        connectivityManager.registerNetworkCallback(networkRequest, networkCallback!!)
+    }
 
     suspend fun connect(
         deviceIp: String,
@@ -114,6 +151,7 @@ class RemoteSession(
             val attemptNumber = if (reconnectAttempts <= 0) 1 else reconnectAttempts
             Log.d(tag, "connect() -> $deviceIp:$port (attempt $attemptNumber)")
             _connectionState.value = RemoteConnectionState.Connecting(deviceIp)
+            ConnectionSupervisor.dispatch(RemoteAction.StartConnection)
 
             reconnectJob?.cancel()
             idleWatchdogJob?.cancel()
@@ -158,11 +196,13 @@ class RemoteSession(
                         remoteReady.set(false)
                         _connectionState.value =
                             RemoteConnectionState.Failed(deviceIp, "REPAIRING_NEEDED")
+                        ConnectionSupervisor.dispatch(RemoteAction.AuthRejected("REPAIRING_NEEDED"))
                     } else if (handshakeFailure) {
                         reconnectAttempts = 0
                         remoteReady.set(false)
                         certStore.clearServerCertificate(deviceIp)
                         _connectionState.value = RemoteConnectionState.Failed(deviceIp, "REPAIRING_NEEDED")
+                        ConnectionSupervisor.dispatch(RemoteAction.AuthRejected("REPAIRING_NEEDED"))
                     } else {
                         scheduleReconnectOrFail("Connect failed: ${e.message.orEmpty()}")
                     }
@@ -281,6 +321,7 @@ class RemoteSession(
         idleWatchdogJob?.cancel()
         receiveJob?.cancel()
         negotiationTimeoutJob?.cancel()
+        ConnectionSupervisor.dispatch(RemoteAction.StopRequested)
         closeSocket()
         currentDeviceIp = null
         reconnectAttempts = 0
@@ -505,6 +546,7 @@ class RemoteSession(
         negotiationTimeoutJob?.cancel()
         reconnectAttempts = 0
         _connectionState.value = RemoteConnectionState.Connected(ip, currentDeviceName)
+        ConnectionSupervisor.dispatch(RemoteAction.ConnectionSuccess(ip, currentDeviceName))
         Log.i(tag, "Remote session ready for $ip with features=${negotiatedFeatures.get()}")
     }
 
@@ -550,9 +592,13 @@ class RemoteSession(
 
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
             reconnectAttempts++
+            
+            // Exponential backoff strategy
+            val backoffMs = java.lang.Math.min(1000L * (1 shl (reconnectAttempts - 1)), 30_000L)
+            
             Log.d(
                 tag,
-                "Reconnecting in ${RECONNECT_DELAY_MS}ms (attempt $reconnectAttempts/$MAX_RECONNECT_ATTEMPTS)",
+                "Reconnecting in ${backoffMs}ms (attempt $reconnectAttempts/$MAX_RECONNECT_ATTEMPTS)",
             )
             _connectionState.value = RemoteConnectionState.Reconnecting(
                 ip,
@@ -561,7 +607,7 @@ class RemoteSession(
             )
             reconnectJob?.cancel()
             reconnectJob = scope.launch(Dispatchers.IO) {
-                delay(RECONNECT_DELAY_MS)
+                delay(backoffMs)
                 if (manualDisconnect.get()) {
                     handlingDisconnection.set(false)
                     return@launch
@@ -572,6 +618,7 @@ class RemoteSession(
         } else {
             Log.e(tag, "Max reconnect attempts reached for $ip")
             _connectionState.value = RemoteConnectionState.Failed(ip, reason)
+            ConnectionSupervisor.dispatch(RemoteAction.ConnectionFailed(reason))
             handlingDisconnection.set(false)
         }
     }
@@ -596,5 +643,13 @@ class RemoteSession(
         outputStream = null
         inputStream = null
         Log.d(tag, "Socket closed")
+    }
+
+    fun destroy() {
+        networkCallback?.let {
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            try { connectivityManager.unregisterNetworkCallback(it) } catch (e: Exception) {}
+        }
+        disconnect()
     }
 }

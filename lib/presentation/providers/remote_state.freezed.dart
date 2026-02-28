@@ -12,7 +12,8 @@ part of 'remote_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$RemoteState {
@@ -29,8 +30,9 @@ mixin _$RemoteState {
 /// @nodoc
 abstract class $RemoteStateCopyWith<$Res> {
   factory $RemoteStateCopyWith(
-          RemoteState value, $Res Function(RemoteState) then) =
-      _$RemoteStateCopyWithImpl<$Res, RemoteState>;
+    RemoteState value,
+    $Res Function(RemoteState) then,
+  ) = _$RemoteStateCopyWithImpl<$Res, RemoteState>;
   @useResult
   $Res call({TvDevice? device, bool isConnected, bool isMuted, double volume});
 
@@ -55,24 +57,27 @@ class _$RemoteStateCopyWithImpl<$Res, $Val extends RemoteState>
     Object? isMuted = null,
     Object? volume = null,
   }) {
-    return _then(_value.copyWith(
-      device: freezed == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice?,
-      isConnected: null == isConnected
-          ? _value.isConnected
-          : isConnected // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isMuted: null == isMuted
-          ? _value.isMuted
-          : isMuted // ignore: cast_nullable_to_non_nullable
-              as bool,
-      volume: null == volume
-          ? _value.volume
-          : volume // ignore: cast_nullable_to_non_nullable
-              as double,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            device: freezed == device
+                ? _value.device
+                : device // ignore: cast_nullable_to_non_nullable
+                      as TvDevice?,
+            isConnected: null == isConnected
+                ? _value.isConnected
+                : isConnected // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isMuted: null == isMuted
+                ? _value.isMuted
+                : isMuted // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            volume: null == volume
+                ? _value.volume
+                : volume // ignore: cast_nullable_to_non_nullable
+                      as double,
+          )
+          as $Val,
+    );
   }
 
   @override
@@ -92,8 +97,9 @@ class _$RemoteStateCopyWithImpl<$Res, $Val extends RemoteState>
 abstract class _$$RemoteStateImplCopyWith<$Res>
     implements $RemoteStateCopyWith<$Res> {
   factory _$$RemoteStateImplCopyWith(
-          _$RemoteStateImpl value, $Res Function(_$RemoteStateImpl) then) =
-      __$$RemoteStateImplCopyWithImpl<$Res>;
+    _$RemoteStateImpl value,
+    $Res Function(_$RemoteStateImpl) then,
+  ) = __$$RemoteStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({TvDevice? device, bool isConnected, bool isMuted, double volume});
@@ -107,8 +113,9 @@ class __$$RemoteStateImplCopyWithImpl<$Res>
     extends _$RemoteStateCopyWithImpl<$Res, _$RemoteStateImpl>
     implements _$$RemoteStateImplCopyWith<$Res> {
   __$$RemoteStateImplCopyWithImpl(
-      _$RemoteStateImpl _value, $Res Function(_$RemoteStateImpl) _then)
-      : super(_value, _then);
+    _$RemoteStateImpl _value,
+    $Res Function(_$RemoteStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -118,35 +125,38 @@ class __$$RemoteStateImplCopyWithImpl<$Res>
     Object? isMuted = null,
     Object? volume = null,
   }) {
-    return _then(_$RemoteStateImpl(
-      device: freezed == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice?,
-      isConnected: null == isConnected
-          ? _value.isConnected
-          : isConnected // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isMuted: null == isMuted
-          ? _value.isMuted
-          : isMuted // ignore: cast_nullable_to_non_nullable
-              as bool,
-      volume: null == volume
-          ? _value.volume
-          : volume // ignore: cast_nullable_to_non_nullable
-              as double,
-    ));
+    return _then(
+      _$RemoteStateImpl(
+        device: freezed == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice?,
+        isConnected: null == isConnected
+            ? _value.isConnected
+            : isConnected // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isMuted: null == isMuted
+            ? _value.isMuted
+            : isMuted // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        volume: null == volume
+            ? _value.volume
+            : volume // ignore: cast_nullable_to_non_nullable
+                  as double,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$RemoteStateImpl implements _RemoteState {
-  const _$RemoteStateImpl(
-      {this.device,
-      this.isConnected = false,
-      this.isMuted = false,
-      this.volume = 0.5});
+  const _$RemoteStateImpl({
+    this.device,
+    this.isConnected = false,
+    this.isMuted = false,
+    this.volume = 0.5,
+  });
 
   @override
   final TvDevice? device;
@@ -189,11 +199,12 @@ class _$RemoteStateImpl implements _RemoteState {
 }
 
 abstract class _RemoteState implements RemoteState {
-  const factory _RemoteState(
-      {final TvDevice? device,
-      final bool isConnected,
-      final bool isMuted,
-      final double volume}) = _$RemoteStateImpl;
+  const factory _RemoteState({
+    final TvDevice? device,
+    final bool isConnected,
+    final bool isMuted,
+    final double volume,
+  }) = _$RemoteStateImpl;
 
   @override
   TvDevice? get device;

@@ -12,7 +12,8 @@ part of 'pairing_status.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$PairingStatus {
@@ -23,18 +24,17 @@ mixin _$PairingStatus {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
-  }) =>
-      throw _privateConstructorUsedError;
+    pinError,
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? idle,
@@ -49,9 +49,8 @@ mixin _$PairingStatus {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
-  }) =>
-      throw _privateConstructorUsedError;
+    pinError,
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? idle,
@@ -66,10 +65,9 @@ mixin _$PairingStatus {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(Idle value) idle,
@@ -84,8 +82,7 @@ mixin _$PairingStatus {
     required TResult Function(Disconnected value) disconnected,
     required TResult Function(ConnectionFailed value) connectionFailed,
     required TResult Function(PinError value) pinError,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(Idle value)? idle,
@@ -100,8 +97,7 @@ mixin _$PairingStatus {
     TResult? Function(Disconnected value)? disconnected,
     TResult? Function(ConnectionFailed value)? connectionFailed,
     TResult? Function(PinError value)? pinError,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(Idle value)? idle,
@@ -117,15 +113,15 @@ mixin _$PairingStatus {
     TResult Function(ConnectionFailed value)? connectionFailed,
     TResult Function(PinError value)? pinError,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $PairingStatusCopyWith<$Res> {
   factory $PairingStatusCopyWith(
-          PairingStatus value, $Res Function(PairingStatus) then) =
-      _$PairingStatusCopyWithImpl<$Res, PairingStatus>;
+    PairingStatus value,
+    $Res Function(PairingStatus) then,
+  ) = _$PairingStatusCopyWithImpl<$Res, PairingStatus>;
 }
 
 /// @nodoc
@@ -142,8 +138,9 @@ class _$PairingStatusCopyWithImpl<$Res, $Val extends PairingStatus>
 /// @nodoc
 abstract class _$$IdleImplCopyWith<$Res> {
   factory _$$IdleImplCopyWith(
-          _$IdleImpl value, $Res Function(_$IdleImpl) then) =
-      __$$IdleImplCopyWithImpl<$Res>;
+    _$IdleImpl value,
+    $Res Function(_$IdleImpl) then,
+  ) = __$$IdleImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
@@ -151,7 +148,7 @@ class __$$IdleImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$IdleImpl>
     implements _$$IdleImplCopyWith<$Res> {
   __$$IdleImplCopyWithImpl(_$IdleImpl _value, $Res Function(_$IdleImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 }
 
 /// @nodoc
@@ -181,16 +178,16 @@ class _$IdleImpl implements Idle {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return idle();
   }
@@ -210,7 +207,7 @@ class _$IdleImpl implements Idle {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return idle?.call();
   }
@@ -230,7 +227,7 @@ class _$IdleImpl implements Idle {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (idle != null) {
@@ -307,18 +304,20 @@ abstract class Idle implements PairingStatus {
 
 /// @nodoc
 abstract class _$$DiscoveryStartedImplCopyWith<$Res> {
-  factory _$$DiscoveryStartedImplCopyWith(_$DiscoveryStartedImpl value,
-          $Res Function(_$DiscoveryStartedImpl) then) =
-      __$$DiscoveryStartedImplCopyWithImpl<$Res>;
+  factory _$$DiscoveryStartedImplCopyWith(
+    _$DiscoveryStartedImpl value,
+    $Res Function(_$DiscoveryStartedImpl) then,
+  ) = __$$DiscoveryStartedImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
 class __$$DiscoveryStartedImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$DiscoveryStartedImpl>
     implements _$$DiscoveryStartedImplCopyWith<$Res> {
-  __$$DiscoveryStartedImplCopyWithImpl(_$DiscoveryStartedImpl _value,
-      $Res Function(_$DiscoveryStartedImpl) _then)
-      : super(_value, _then);
+  __$$DiscoveryStartedImplCopyWithImpl(
+    _$DiscoveryStartedImpl _value,
+    $Res Function(_$DiscoveryStartedImpl) _then,
+  ) : super(_value, _then);
 }
 
 /// @nodoc
@@ -348,16 +347,16 @@ class _$DiscoveryStartedImpl implements DiscoveryStarted {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return discoveryStarted();
   }
@@ -377,7 +376,7 @@ class _$DiscoveryStartedImpl implements DiscoveryStarted {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return discoveryStarted?.call();
   }
@@ -397,7 +396,7 @@ class _$DiscoveryStartedImpl implements DiscoveryStarted {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (discoveryStarted != null) {
@@ -475,8 +474,9 @@ abstract class DiscoveryStarted implements PairingStatus {
 /// @nodoc
 abstract class _$$DevicesFoundImplCopyWith<$Res> {
   factory _$$DevicesFoundImplCopyWith(
-          _$DevicesFoundImpl value, $Res Function(_$DevicesFoundImpl) then) =
-      __$$DevicesFoundImplCopyWithImpl<$Res>;
+    _$DevicesFoundImpl value,
+    $Res Function(_$DevicesFoundImpl) then,
+  ) = __$$DevicesFoundImplCopyWithImpl<$Res>;
   @useResult
   $Res call({List<TvDevice> devices});
 }
@@ -486,20 +486,21 @@ class __$$DevicesFoundImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$DevicesFoundImpl>
     implements _$$DevicesFoundImplCopyWith<$Res> {
   __$$DevicesFoundImplCopyWithImpl(
-      _$DevicesFoundImpl _value, $Res Function(_$DevicesFoundImpl) _then)
-      : super(_value, _then);
+    _$DevicesFoundImpl _value,
+    $Res Function(_$DevicesFoundImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? devices = null,
-  }) {
-    return _then(_$DevicesFoundImpl(
-      null == devices
-          ? _value._devices
-          : devices // ignore: cast_nullable_to_non_nullable
-              as List<TvDevice>,
-    ));
+  $Res call({Object? devices = null}) {
+    return _then(
+      _$DevicesFoundImpl(
+        null == devices
+            ? _value._devices
+            : devices // ignore: cast_nullable_to_non_nullable
+                  as List<TvDevice>,
+      ),
+    );
   }
 }
 
@@ -547,16 +548,16 @@ class _$DevicesFoundImpl implements DevicesFound {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return devicesFound(devices);
   }
@@ -576,7 +577,7 @@ class _$DevicesFoundImpl implements DevicesFound {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return devicesFound?.call(devices);
   }
@@ -596,7 +597,7 @@ class _$DevicesFoundImpl implements DevicesFound {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (devicesFound != null) {
@@ -679,8 +680,9 @@ abstract class DevicesFound implements PairingStatus {
 /// @nodoc
 abstract class _$$ConnectingImplCopyWith<$Res> {
   factory _$$ConnectingImplCopyWith(
-          _$ConnectingImpl value, $Res Function(_$ConnectingImpl) then) =
-      __$$ConnectingImplCopyWithImpl<$Res>;
+    _$ConnectingImpl value,
+    $Res Function(_$ConnectingImpl) then,
+  ) = __$$ConnectingImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -692,20 +694,21 @@ class __$$ConnectingImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$ConnectingImpl>
     implements _$$ConnectingImplCopyWith<$Res> {
   __$$ConnectingImplCopyWithImpl(
-      _$ConnectingImpl _value, $Res Function(_$ConnectingImpl) _then)
-      : super(_value, _then);
+    _$ConnectingImpl _value,
+    $Res Function(_$ConnectingImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? device = null,
-  }) {
-    return _then(_$ConnectingImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-    ));
+  $Res call({Object? device = null}) {
+    return _then(
+      _$ConnectingImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+      ),
+    );
   }
 
   @override
@@ -755,16 +758,16 @@ class _$ConnectingImpl implements Connecting {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return connecting(device);
   }
@@ -784,7 +787,7 @@ class _$ConnectingImpl implements Connecting {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return connecting?.call(device);
   }
@@ -804,7 +807,7 @@ class _$ConnectingImpl implements Connecting {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (connecting != null) {
@@ -887,8 +890,9 @@ abstract class Connecting implements PairingStatus {
 /// @nodoc
 abstract class _$$AwaitingPinImplCopyWith<$Res> {
   factory _$$AwaitingPinImplCopyWith(
-          _$AwaitingPinImpl value, $Res Function(_$AwaitingPinImpl) then) =
-      __$$AwaitingPinImplCopyWithImpl<$Res>;
+    _$AwaitingPinImpl value,
+    $Res Function(_$AwaitingPinImpl) then,
+  ) = __$$AwaitingPinImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device, int expiresInSeconds});
 
@@ -900,25 +904,25 @@ class __$$AwaitingPinImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$AwaitingPinImpl>
     implements _$$AwaitingPinImplCopyWith<$Res> {
   __$$AwaitingPinImplCopyWithImpl(
-      _$AwaitingPinImpl _value, $Res Function(_$AwaitingPinImpl) _then)
-      : super(_value, _then);
+    _$AwaitingPinImpl _value,
+    $Res Function(_$AwaitingPinImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? device = null,
-    Object? expiresInSeconds = null,
-  }) {
-    return _then(_$AwaitingPinImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-      null == expiresInSeconds
-          ? _value.expiresInSeconds
-          : expiresInSeconds // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+  $Res call({Object? device = null, Object? expiresInSeconds = null}) {
+    return _then(
+      _$AwaitingPinImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+        null == expiresInSeconds
+            ? _value.expiresInSeconds
+            : expiresInSeconds // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
   }
 
   @override
@@ -972,16 +976,16 @@ class _$AwaitingPinImpl implements AwaitingPin {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return awaitingPin(device, expiresInSeconds);
   }
@@ -1001,7 +1005,7 @@ class _$AwaitingPinImpl implements AwaitingPin {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return awaitingPin?.call(device, expiresInSeconds);
   }
@@ -1021,7 +1025,7 @@ class _$AwaitingPinImpl implements AwaitingPin {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (awaitingPin != null) {
@@ -1106,8 +1110,9 @@ abstract class AwaitingPin implements PairingStatus {
 /// @nodoc
 abstract class _$$PinVerifiedImplCopyWith<$Res> {
   factory _$$PinVerifiedImplCopyWith(
-          _$PinVerifiedImpl value, $Res Function(_$PinVerifiedImpl) then) =
-      __$$PinVerifiedImplCopyWithImpl<$Res>;
+    _$PinVerifiedImpl value,
+    $Res Function(_$PinVerifiedImpl) then,
+  ) = __$$PinVerifiedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -1119,20 +1124,21 @@ class __$$PinVerifiedImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$PinVerifiedImpl>
     implements _$$PinVerifiedImplCopyWith<$Res> {
   __$$PinVerifiedImplCopyWithImpl(
-      _$PinVerifiedImpl _value, $Res Function(_$PinVerifiedImpl) _then)
-      : super(_value, _then);
+    _$PinVerifiedImpl _value,
+    $Res Function(_$PinVerifiedImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? device = null,
-  }) {
-    return _then(_$PinVerifiedImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-    ));
+  $Res call({Object? device = null}) {
+    return _then(
+      _$PinVerifiedImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+      ),
+    );
   }
 
   @override
@@ -1182,16 +1188,16 @@ class _$PinVerifiedImpl implements PinVerified {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return pinVerified(device);
   }
@@ -1211,7 +1217,7 @@ class _$PinVerifiedImpl implements PinVerified {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return pinVerified?.call(device);
   }
@@ -1231,7 +1237,7 @@ class _$PinVerifiedImpl implements PinVerified {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (pinVerified != null) {
@@ -1314,8 +1320,9 @@ abstract class PinVerified implements PairingStatus {
 /// @nodoc
 abstract class _$$PairedImplCopyWith<$Res> {
   factory _$$PairedImplCopyWith(
-          _$PairedImpl value, $Res Function(_$PairedImpl) then) =
-      __$$PairedImplCopyWithImpl<$Res>;
+    _$PairedImpl value,
+    $Res Function(_$PairedImpl) then,
+  ) = __$$PairedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -1327,20 +1334,21 @@ class __$$PairedImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$PairedImpl>
     implements _$$PairedImplCopyWith<$Res> {
   __$$PairedImplCopyWithImpl(
-      _$PairedImpl _value, $Res Function(_$PairedImpl) _then)
-      : super(_value, _then);
+    _$PairedImpl _value,
+    $Res Function(_$PairedImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? device = null,
-  }) {
-    return _then(_$PairedImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-    ));
+  $Res call({Object? device = null}) {
+    return _then(
+      _$PairedImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+      ),
+    );
   }
 
   @override
@@ -1390,16 +1398,16 @@ class _$PairedImpl implements Paired {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return paired(device);
   }
@@ -1419,7 +1427,7 @@ class _$PairedImpl implements Paired {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return paired?.call(device);
   }
@@ -1439,7 +1447,7 @@ class _$PairedImpl implements Paired {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (paired != null) {
@@ -1522,8 +1530,9 @@ abstract class Paired implements PairingStatus {
 /// @nodoc
 abstract class _$$ConnectedImplCopyWith<$Res> {
   factory _$$ConnectedImplCopyWith(
-          _$ConnectedImpl value, $Res Function(_$ConnectedImpl) then) =
-      __$$ConnectedImplCopyWithImpl<$Res>;
+    _$ConnectedImpl value,
+    $Res Function(_$ConnectedImpl) then,
+  ) = __$$ConnectedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -1535,20 +1544,21 @@ class __$$ConnectedImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$ConnectedImpl>
     implements _$$ConnectedImplCopyWith<$Res> {
   __$$ConnectedImplCopyWithImpl(
-      _$ConnectedImpl _value, $Res Function(_$ConnectedImpl) _then)
-      : super(_value, _then);
+    _$ConnectedImpl _value,
+    $Res Function(_$ConnectedImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? device = null,
-  }) {
-    return _then(_$ConnectedImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-    ));
+  $Res call({Object? device = null}) {
+    return _then(
+      _$ConnectedImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+      ),
+    );
   }
 
   @override
@@ -1598,16 +1608,16 @@ class _$ConnectedImpl implements Connected {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return connected(device);
   }
@@ -1627,7 +1637,7 @@ class _$ConnectedImpl implements Connected {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return connected?.call(device);
   }
@@ -1647,7 +1657,7 @@ class _$ConnectedImpl implements Connected {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (connected != null) {
@@ -1730,8 +1740,9 @@ abstract class Connected implements PairingStatus {
 /// @nodoc
 abstract class _$$ReconnectingImplCopyWith<$Res> {
   factory _$$ReconnectingImplCopyWith(
-          _$ReconnectingImpl value, $Res Function(_$ReconnectingImpl) then) =
-      __$$ReconnectingImplCopyWithImpl<$Res>;
+    _$ReconnectingImpl value,
+    $Res Function(_$ReconnectingImpl) then,
+  ) = __$$ReconnectingImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device, int attempt});
 
@@ -1743,25 +1754,25 @@ class __$$ReconnectingImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$ReconnectingImpl>
     implements _$$ReconnectingImplCopyWith<$Res> {
   __$$ReconnectingImplCopyWithImpl(
-      _$ReconnectingImpl _value, $Res Function(_$ReconnectingImpl) _then)
-      : super(_value, _then);
+    _$ReconnectingImpl _value,
+    $Res Function(_$ReconnectingImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? device = null,
-    Object? attempt = null,
-  }) {
-    return _then(_$ReconnectingImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-      null == attempt
-          ? _value.attempt
-          : attempt // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+  $Res call({Object? device = null, Object? attempt = null}) {
+    return _then(
+      _$ReconnectingImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+        null == attempt
+            ? _value.attempt
+            : attempt // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
   }
 
   @override
@@ -1814,16 +1825,16 @@ class _$ReconnectingImpl implements Reconnecting {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return reconnecting(device, attempt);
   }
@@ -1843,7 +1854,7 @@ class _$ReconnectingImpl implements Reconnecting {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return reconnecting?.call(device, attempt);
   }
@@ -1863,7 +1874,7 @@ class _$ReconnectingImpl implements Reconnecting {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (reconnecting != null) {
@@ -1948,8 +1959,9 @@ abstract class Reconnecting implements PairingStatus {
 /// @nodoc
 abstract class _$$DisconnectedImplCopyWith<$Res> {
   factory _$$DisconnectedImplCopyWith(
-          _$DisconnectedImpl value, $Res Function(_$DisconnectedImpl) then) =
-      __$$DisconnectedImplCopyWithImpl<$Res>;
+    _$DisconnectedImpl value,
+    $Res Function(_$DisconnectedImpl) then,
+  ) = __$$DisconnectedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice? lastDevice, String reason});
 
@@ -1961,25 +1973,25 @@ class __$$DisconnectedImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$DisconnectedImpl>
     implements _$$DisconnectedImplCopyWith<$Res> {
   __$$DisconnectedImplCopyWithImpl(
-      _$DisconnectedImpl _value, $Res Function(_$DisconnectedImpl) _then)
-      : super(_value, _then);
+    _$DisconnectedImpl _value,
+    $Res Function(_$DisconnectedImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? lastDevice = freezed,
-    Object? reason = null,
-  }) {
-    return _then(_$DisconnectedImpl(
-      freezed == lastDevice
-          ? _value.lastDevice
-          : lastDevice // ignore: cast_nullable_to_non_nullable
-              as TvDevice?,
-      null == reason
-          ? _value.reason
-          : reason // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+  $Res call({Object? lastDevice = freezed, Object? reason = null}) {
+    return _then(
+      _$DisconnectedImpl(
+        freezed == lastDevice
+            ? _value.lastDevice
+            : lastDevice // ignore: cast_nullable_to_non_nullable
+                  as TvDevice?,
+        null == reason
+            ? _value.reason
+            : reason // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
   }
 
   @override
@@ -2037,16 +2049,16 @@ class _$DisconnectedImpl implements Disconnected {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return disconnected(lastDevice, reason);
   }
@@ -2066,7 +2078,7 @@ class _$DisconnectedImpl implements Disconnected {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return disconnected?.call(lastDevice, reason);
   }
@@ -2086,7 +2098,7 @@ class _$DisconnectedImpl implements Disconnected {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (disconnected != null) {
@@ -2170,9 +2182,10 @@ abstract class Disconnected implements PairingStatus {
 
 /// @nodoc
 abstract class _$$ConnectionFailedImplCopyWith<$Res> {
-  factory _$$ConnectionFailedImplCopyWith(_$ConnectionFailedImpl value,
-          $Res Function(_$ConnectionFailedImpl) then) =
-      __$$ConnectionFailedImplCopyWithImpl<$Res>;
+  factory _$$ConnectionFailedImplCopyWith(
+    _$ConnectionFailedImpl value,
+    $Res Function(_$ConnectionFailedImpl) then,
+  ) = __$$ConnectionFailedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device, Failure failure});
 
@@ -2183,26 +2196,26 @@ abstract class _$$ConnectionFailedImplCopyWith<$Res> {
 class __$$ConnectionFailedImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$ConnectionFailedImpl>
     implements _$$ConnectionFailedImplCopyWith<$Res> {
-  __$$ConnectionFailedImplCopyWithImpl(_$ConnectionFailedImpl _value,
-      $Res Function(_$ConnectionFailedImpl) _then)
-      : super(_value, _then);
+  __$$ConnectionFailedImplCopyWithImpl(
+    _$ConnectionFailedImpl _value,
+    $Res Function(_$ConnectionFailedImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? device = null,
-    Object? failure = null,
-  }) {
-    return _then(_$ConnectionFailedImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-      null == failure
-          ? _value.failure
-          : failure // ignore: cast_nullable_to_non_nullable
-              as Failure,
-    ));
+  $Res call({Object? device = null, Object? failure = null}) {
+    return _then(
+      _$ConnectionFailedImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+        null == failure
+            ? _value.failure
+            : failure // ignore: cast_nullable_to_non_nullable
+                  as Failure,
+      ),
+    );
   }
 
   @override
@@ -2246,7 +2259,9 @@ class _$ConnectionFailedImpl implements ConnectionFailed {
   @pragma('vm:prefer-inline')
   _$$ConnectionFailedImplCopyWith<_$ConnectionFailedImpl> get copyWith =>
       __$$ConnectionFailedImplCopyWithImpl<_$ConnectionFailedImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 
   @override
   @optionalTypeArgs
@@ -2256,16 +2271,16 @@ class _$ConnectionFailedImpl implements ConnectionFailed {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return connectionFailed(device, failure);
   }
@@ -2285,7 +2300,7 @@ class _$ConnectionFailedImpl implements ConnectionFailed {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return connectionFailed?.call(device, failure);
   }
@@ -2305,7 +2320,7 @@ class _$ConnectionFailedImpl implements ConnectionFailed {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (connectionFailed != null) {
@@ -2390,8 +2405,9 @@ abstract class ConnectionFailed implements PairingStatus {
 /// @nodoc
 abstract class _$$PinErrorImplCopyWith<$Res> {
   factory _$$PinErrorImplCopyWith(
-          _$PinErrorImpl value, $Res Function(_$PinErrorImpl) then) =
-      __$$PinErrorImplCopyWithImpl<$Res>;
+    _$PinErrorImpl value,
+    $Res Function(_$PinErrorImpl) then,
+  ) = __$$PinErrorImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device, int attemptsLeft, String message});
 
@@ -2403,8 +2419,9 @@ class __$$PinErrorImplCopyWithImpl<$Res>
     extends _$PairingStatusCopyWithImpl<$Res, _$PinErrorImpl>
     implements _$$PinErrorImplCopyWith<$Res> {
   __$$PinErrorImplCopyWithImpl(
-      _$PinErrorImpl _value, $Res Function(_$PinErrorImpl) _then)
-      : super(_value, _then);
+    _$PinErrorImpl _value,
+    $Res Function(_$PinErrorImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -2413,20 +2430,22 @@ class __$$PinErrorImplCopyWithImpl<$Res>
     Object? attemptsLeft = null,
     Object? message = null,
   }) {
-    return _then(_$PinErrorImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-      null == attemptsLeft
-          ? _value.attemptsLeft
-          : attemptsLeft // ignore: cast_nullable_to_non_nullable
-              as int,
-      null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$PinErrorImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+        null == attemptsLeft
+            ? _value.attemptsLeft
+            : attemptsLeft // ignore: cast_nullable_to_non_nullable
+                  as int,
+        null == message
+            ? _value.message
+            : message // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
   }
 
   @override
@@ -2483,16 +2502,16 @@ class _$PinErrorImpl implements PinError {
     required TResult Function(List<TvDevice> devices) devicesFound,
     required TResult Function(TvDevice device) connecting,
     required TResult Function(TvDevice device, int expiresInSeconds)
-        awaitingPin,
+    awaitingPin,
     required TResult Function(TvDevice device) pinVerified,
     required TResult Function(TvDevice device) paired,
     required TResult Function(TvDevice device) connected,
     required TResult Function(TvDevice device, int attempt) reconnecting,
     required TResult Function(TvDevice? lastDevice, String reason) disconnected,
     required TResult Function(TvDevice device, Failure failure)
-        connectionFailed,
+    connectionFailed,
     required TResult Function(TvDevice device, int attemptsLeft, String message)
-        pinError,
+    pinError,
   }) {
     return pinError(device, attemptsLeft, message);
   }
@@ -2512,7 +2531,7 @@ class _$PinErrorImpl implements PinError {
     TResult? Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult? Function(TvDevice device, Failure failure)? connectionFailed,
     TResult? Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
   }) {
     return pinError?.call(device, attemptsLeft, message);
   }
@@ -2532,7 +2551,7 @@ class _$PinErrorImpl implements PinError {
     TResult Function(TvDevice? lastDevice, String reason)? disconnected,
     TResult Function(TvDevice device, Failure failure)? connectionFailed,
     TResult Function(TvDevice device, int attemptsLeft, String message)?
-        pinError,
+    pinError,
     required TResult orElse(),
   }) {
     if (pinError != null) {
@@ -2605,8 +2624,10 @@ class _$PinErrorImpl implements PinError {
 
 abstract class PinError implements PairingStatus {
   const factory PinError(
-          final TvDevice device, final int attemptsLeft, final String message) =
-      _$PinErrorImpl;
+    final TvDevice device,
+    final int attemptsLeft,
+    final String message,
+  ) = _$PinErrorImpl;
 
   TvDevice get device;
   int get attemptsLeft;

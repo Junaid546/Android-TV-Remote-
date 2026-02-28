@@ -91,19 +91,44 @@ void main() {
         'Pair code rejected by TV',
       );
 
-      await expectLater(
-        container
-            .read(adbNotifierProvider.notifier)
-            .pair(host: '192.168.1.8', port: 37123, pairingCode: '123456'),
-        throwsA(isA<NativeChannelException>()),
-      );
+      final result = await container
+          .read(adbNotifierProvider.notifier)
+          .pair(host: '192.168.1.8', port: 37123, pairingCode: '123456');
       await Future<void>.delayed(Duration.zero);
+
+      expect(result.isFailure, isTrue);
+      expect(result.errorMessage, 'Pair code rejected by TV');
 
       final state = container.read(adbNotifierProvider);
       expect(state.connectionState, 'FAILED');
       expect(state.reason, 'Pair code rejected by TV');
       expect(state.isBusy, isFalse);
     });
+
+    test(
+      'connect failure returns failed result and keeps app stable',
+      () async {
+        native.connectError = const NativeChannelException(
+          'ADB_CONNECT_FAILED',
+          'Unable to connect to ADB on 192.168.1.8:5555.',
+        );
+
+        final result = await container
+            .read(adbNotifierProvider.notifier)
+            .connect(host: '192.168.1.8', port: 5555);
+
+        expect(result.isFailure, isTrue);
+        expect(
+          result.errorMessage,
+          'Unable to connect to ADB on 192.168.1.8:5555.',
+        );
+
+        final state = container.read(adbNotifierProvider);
+        expect(state.connectionState, 'FAILED');
+        expect(state.reason, 'Unable to connect to ADB on 192.168.1.8:5555.');
+        expect(state.isBusy, isFalse);
+      },
+    );
 
     test('busy guard prevents overlapping pair requests', () async {
       native.pairGate = Completer<void>();
@@ -114,11 +139,12 @@ void main() {
       );
       await Future<void>.delayed(Duration.zero);
 
-      await container
+      final secondAttempt = await container
           .read(adbNotifierProvider.notifier)
           .pair(host: '192.168.1.8', port: 37123, pairingCode: '123456');
 
       expect(native.pairCalls, 1);
+      expect(secondAttempt.isFailure, isTrue);
       native.pairGate!.complete();
       await Future<void>.delayed(Duration.zero);
     });

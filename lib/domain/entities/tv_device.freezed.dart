@@ -12,7 +12,8 @@ part of 'tv_device.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 TvDevice _$TvDeviceFromJson(Map<String, dynamic> json) {
   return _TvDevice.fromJson(json);
@@ -40,15 +41,16 @@ abstract class $TvDeviceCopyWith<$Res> {
   factory $TvDeviceCopyWith(TvDevice value, $Res Function(TvDevice) then) =
       _$TvDeviceCopyWithImpl<$Res, TvDevice>;
   @useResult
-  $Res call(
-      {String id,
-      String name,
-      String ipAddress,
-      int port,
-      bool isPaired,
-      DateTime? lastConnected,
-      String? certificateFingerprint,
-      int signalStrength});
+  $Res call({
+    String id,
+    String name,
+    String ipAddress,
+    int port,
+    bool isPaired,
+    DateTime? lastConnected,
+    String? certificateFingerprint,
+    int signalStrength,
+  });
 }
 
 /// @nodoc
@@ -73,40 +75,43 @@ class _$TvDeviceCopyWithImpl<$Res, $Val extends TvDevice>
     Object? certificateFingerprint = freezed,
     Object? signalStrength = null,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      ipAddress: null == ipAddress
-          ? _value.ipAddress
-          : ipAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      port: null == port
-          ? _value.port
-          : port // ignore: cast_nullable_to_non_nullable
-              as int,
-      isPaired: null == isPaired
-          ? _value.isPaired
-          : isPaired // ignore: cast_nullable_to_non_nullable
-              as bool,
-      lastConnected: freezed == lastConnected
-          ? _value.lastConnected
-          : lastConnected // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      certificateFingerprint: freezed == certificateFingerprint
-          ? _value.certificateFingerprint
-          : certificateFingerprint // ignore: cast_nullable_to_non_nullable
-              as String?,
-      signalStrength: null == signalStrength
-          ? _value.signalStrength
-          : signalStrength // ignore: cast_nullable_to_non_nullable
-              as int,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            ipAddress: null == ipAddress
+                ? _value.ipAddress
+                : ipAddress // ignore: cast_nullable_to_non_nullable
+                      as String,
+            port: null == port
+                ? _value.port
+                : port // ignore: cast_nullable_to_non_nullable
+                      as int,
+            isPaired: null == isPaired
+                ? _value.isPaired
+                : isPaired // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            lastConnected: freezed == lastConnected
+                ? _value.lastConnected
+                : lastConnected // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            certificateFingerprint: freezed == certificateFingerprint
+                ? _value.certificateFingerprint
+                : certificateFingerprint // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            signalStrength: null == signalStrength
+                ? _value.signalStrength
+                : signalStrength // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -114,19 +119,21 @@ class _$TvDeviceCopyWithImpl<$Res, $Val extends TvDevice>
 abstract class _$$TvDeviceImplCopyWith<$Res>
     implements $TvDeviceCopyWith<$Res> {
   factory _$$TvDeviceImplCopyWith(
-          _$TvDeviceImpl value, $Res Function(_$TvDeviceImpl) then) =
-      __$$TvDeviceImplCopyWithImpl<$Res>;
+    _$TvDeviceImpl value,
+    $Res Function(_$TvDeviceImpl) then,
+  ) = __$$TvDeviceImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {String id,
-      String name,
-      String ipAddress,
-      int port,
-      bool isPaired,
-      DateTime? lastConnected,
-      String? certificateFingerprint,
-      int signalStrength});
+  $Res call({
+    String id,
+    String name,
+    String ipAddress,
+    int port,
+    bool isPaired,
+    DateTime? lastConnected,
+    String? certificateFingerprint,
+    int signalStrength,
+  });
 }
 
 /// @nodoc
@@ -134,8 +141,9 @@ class __$$TvDeviceImplCopyWithImpl<$Res>
     extends _$TvDeviceCopyWithImpl<$Res, _$TvDeviceImpl>
     implements _$$TvDeviceImplCopyWith<$Res> {
   __$$TvDeviceImplCopyWithImpl(
-      _$TvDeviceImpl _value, $Res Function(_$TvDeviceImpl) _then)
-      : super(_value, _then);
+    _$TvDeviceImpl _value,
+    $Res Function(_$TvDeviceImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -149,55 +157,58 @@ class __$$TvDeviceImplCopyWithImpl<$Res>
     Object? certificateFingerprint = freezed,
     Object? signalStrength = null,
   }) {
-    return _then(_$TvDeviceImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      ipAddress: null == ipAddress
-          ? _value.ipAddress
-          : ipAddress // ignore: cast_nullable_to_non_nullable
-              as String,
-      port: null == port
-          ? _value.port
-          : port // ignore: cast_nullable_to_non_nullable
-              as int,
-      isPaired: null == isPaired
-          ? _value.isPaired
-          : isPaired // ignore: cast_nullable_to_non_nullable
-              as bool,
-      lastConnected: freezed == lastConnected
-          ? _value.lastConnected
-          : lastConnected // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      certificateFingerprint: freezed == certificateFingerprint
-          ? _value.certificateFingerprint
-          : certificateFingerprint // ignore: cast_nullable_to_non_nullable
-              as String?,
-      signalStrength: null == signalStrength
-          ? _value.signalStrength
-          : signalStrength // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+    return _then(
+      _$TvDeviceImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        ipAddress: null == ipAddress
+            ? _value.ipAddress
+            : ipAddress // ignore: cast_nullable_to_non_nullable
+                  as String,
+        port: null == port
+            ? _value.port
+            : port // ignore: cast_nullable_to_non_nullable
+                  as int,
+        isPaired: null == isPaired
+            ? _value.isPaired
+            : isPaired // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        lastConnected: freezed == lastConnected
+            ? _value.lastConnected
+            : lastConnected // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        certificateFingerprint: freezed == certificateFingerprint
+            ? _value.certificateFingerprint
+            : certificateFingerprint // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        signalStrength: null == signalStrength
+            ? _value.signalStrength
+            : signalStrength // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TvDeviceImpl implements _TvDevice {
-  const _$TvDeviceImpl(
-      {required this.id,
-      required this.name,
-      required this.ipAddress,
-      this.port = AppConstants.kRemotePort,
-      this.isPaired = false,
-      this.lastConnected,
-      this.certificateFingerprint,
-      this.signalStrength = 0});
+  const _$TvDeviceImpl({
+    required this.id,
+    required this.name,
+    required this.ipAddress,
+    this.port = AppConstants.kRemotePort,
+    this.isPaired = false,
+    this.lastConnected,
+    this.certificateFingerprint,
+    this.signalStrength = 0,
+  });
 
   factory _$TvDeviceImpl.fromJson(Map<String, dynamic> json) =>
       _$$TvDeviceImplFromJson(json);
@@ -249,8 +260,17 @@ class _$TvDeviceImpl implements _TvDevice {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, ipAddress, port,
-      isPaired, lastConnected, certificateFingerprint, signalStrength);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    name,
+    ipAddress,
+    port,
+    isPaired,
+    lastConnected,
+    certificateFingerprint,
+    signalStrength,
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -260,22 +280,21 @@ class _$TvDeviceImpl implements _TvDevice {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TvDeviceImplToJson(
-      this,
-    );
+    return _$$TvDeviceImplToJson(this);
   }
 }
 
 abstract class _TvDevice implements TvDevice {
-  const factory _TvDevice(
-      {required final String id,
-      required final String name,
-      required final String ipAddress,
-      final int port,
-      final bool isPaired,
-      final DateTime? lastConnected,
-      final String? certificateFingerprint,
-      final int signalStrength}) = _$TvDeviceImpl;
+  const factory _TvDevice({
+    required final String id,
+    required final String name,
+    required final String ipAddress,
+    final int port,
+    final bool isPaired,
+    final DateTime? lastConnected,
+    final String? certificateFingerprint,
+    final int signalStrength,
+  }) = _$TvDeviceImpl;
 
   factory _TvDevice.fromJson(Map<String, dynamic> json) =
       _$TvDeviceImpl.fromJson;

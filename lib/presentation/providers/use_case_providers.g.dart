@@ -13,14 +13,14 @@ String _$getSavedDevicesUseCaseHash() =>
 @ProviderFor(getSavedDevicesUseCase)
 final getSavedDevicesUseCaseProvider =
     Provider<GetSavedDevicesUseCase>.internal(
-  getSavedDevicesUseCase,
-  name: r'getSavedDevicesUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$getSavedDevicesUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      getSavedDevicesUseCase,
+      name: r'getSavedDevicesUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$getSavedDevicesUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef GetSavedDevicesUseCaseRef = ProviderRef<GetSavedDevicesUseCase>;
 String _$saveDeviceUseCaseHash() => r'151564e7f16f8afc23d9e1bdd9ce57e9012240e2';
@@ -61,17 +61,17 @@ String _$getLastConnectedDeviceUseCaseHash() =>
 @ProviderFor(getLastConnectedDeviceUseCase)
 final getLastConnectedDeviceUseCaseProvider =
     Provider<GetLastConnectedDeviceUseCase>.internal(
-  getLastConnectedDeviceUseCase,
-  name: r'getLastConnectedDeviceUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$getLastConnectedDeviceUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      getLastConnectedDeviceUseCase,
+      name: r'getLastConnectedDeviceUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$getLastConnectedDeviceUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
-typedef GetLastConnectedDeviceUseCaseRef
-    = ProviderRef<GetLastConnectedDeviceUseCase>;
+typedef GetLastConnectedDeviceUseCaseRef =
+    ProviderRef<GetLastConnectedDeviceUseCase>;
 String _$updateDeviceUseCaseHash() =>
     r'92a4b3f9595ca2b95796668c0b2601e935161919';
 
@@ -127,14 +127,14 @@ String _$addManualDeviceUseCaseHash() =>
 @ProviderFor(addManualDeviceUseCase)
 final addManualDeviceUseCaseProvider =
     Provider<AddManualDeviceUseCase>.internal(
-  addManualDeviceUseCase,
-  name: r'addManualDeviceUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$addManualDeviceUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      addManualDeviceUseCase,
+      name: r'addManualDeviceUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$addManualDeviceUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef AddManualDeviceUseCaseRef = ProviderRef<AddManualDeviceUseCase>;
 String _$discoveryDeviceStreamUseCaseHash() =>
@@ -144,17 +144,17 @@ String _$discoveryDeviceStreamUseCaseHash() =>
 @ProviderFor(discoveryDeviceStreamUseCase)
 final discoveryDeviceStreamUseCaseProvider =
     Provider<DiscoveryDeviceStreamUseCase>.internal(
-  discoveryDeviceStreamUseCase,
-  name: r'discoveryDeviceStreamUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$discoveryDeviceStreamUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      discoveryDeviceStreamUseCase,
+      name: r'discoveryDeviceStreamUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$discoveryDeviceStreamUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
-typedef DiscoveryDeviceStreamUseCaseRef
-    = ProviderRef<DiscoveryDeviceStreamUseCase>;
+typedef DiscoveryDeviceStreamUseCaseRef =
+    ProviderRef<DiscoveryDeviceStreamUseCase>;
 String _$connectToDeviceUseCaseHash() =>
     r'4d279a1e4a8a404b3ed13c4544e047fc8b0be0c1';
 
@@ -162,14 +162,14 @@ String _$connectToDeviceUseCaseHash() =>
 @ProviderFor(connectToDeviceUseCase)
 final connectToDeviceUseCaseProvider =
     Provider<ConnectToDeviceUseCase>.internal(
-  connectToDeviceUseCase,
-  name: r'connectToDeviceUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$connectToDeviceUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      connectToDeviceUseCase,
+      name: r'connectToDeviceUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$connectToDeviceUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef ConnectToDeviceUseCaseRef = ProviderRef<ConnectToDeviceUseCase>;
 String _$submitPinUseCaseHash() => r'f1566bdb6abaac48748fe28ee1b6358b2debc8f5';
@@ -209,14 +209,14 @@ String _$pairingStatusStreamUseCaseHash() =>
 @ProviderFor(pairingStatusStreamUseCase)
 final pairingStatusStreamUseCaseProvider =
     Provider<PairingStatusStreamUseCase>.internal(
-  pairingStatusStreamUseCase,
-  name: r'pairingStatusStreamUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$pairingStatusStreamUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      pairingStatusStreamUseCase,
+      name: r'pairingStatusStreamUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$pairingStatusStreamUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef PairingStatusStreamUseCaseRef = ProviderRef<PairingStatusStreamUseCase>;
 String _$sendCommandUseCaseHash() =>
@@ -258,14 +258,14 @@ String _$disconnectRemoteUseCaseHash() =>
 @ProviderFor(disconnectRemoteUseCase)
 final disconnectRemoteUseCaseProvider =
     Provider<DisconnectRemoteUseCase>.internal(
-  disconnectRemoteUseCase,
-  name: r'disconnectRemoteUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$disconnectRemoteUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      disconnectRemoteUseCase,
+      name: r'disconnectRemoteUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$disconnectRemoteUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef DisconnectRemoteUseCaseRef = ProviderRef<DisconnectRemoteUseCase>;
 String _$remoteConnectionAliveStreamUseCaseHash() =>
@@ -275,17 +275,17 @@ String _$remoteConnectionAliveStreamUseCaseHash() =>
 @ProviderFor(remoteConnectionAliveStreamUseCase)
 final remoteConnectionAliveStreamUseCaseProvider =
     Provider<RemoteConnectionAliveStreamUseCase>.internal(
-  remoteConnectionAliveStreamUseCase,
-  name: r'remoteConnectionAliveStreamUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$remoteConnectionAliveStreamUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      remoteConnectionAliveStreamUseCase,
+      name: r'remoteConnectionAliveStreamUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$remoteConnectionAliveStreamUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
-typedef RemoteConnectionAliveStreamUseCaseRef
-    = ProviderRef<RemoteConnectionAliveStreamUseCase>;
+typedef RemoteConnectionAliveStreamUseCaseRef =
+    ProviderRef<RemoteConnectionAliveStreamUseCase>;
 String _$remoteConnectionStateStreamUseCaseHash() =>
     r'cc7eac3bcdd2c85766403c603c742643207f0ba8';
 
@@ -293,17 +293,17 @@ String _$remoteConnectionStateStreamUseCaseHash() =>
 @ProviderFor(remoteConnectionStateStreamUseCase)
 final remoteConnectionStateStreamUseCaseProvider =
     Provider<RemoteConnectionStateStreamUseCase>.internal(
-  remoteConnectionStateStreamUseCase,
-  name: r'remoteConnectionStateStreamUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$remoteConnectionStateStreamUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      remoteConnectionStateStreamUseCase,
+      name: r'remoteConnectionStateStreamUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$remoteConnectionStateStreamUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
-typedef RemoteConnectionStateStreamUseCaseRef
-    = ProviderRef<RemoteConnectionStateStreamUseCase>;
+typedef RemoteConnectionStateStreamUseCaseRef =
+    ProviderRef<RemoteConnectionStateStreamUseCase>;
 String _$getThemeModeUseCaseHash() =>
     r'44873de7f37ec1f63da7a56da443fb944215587c';
 
@@ -343,14 +343,14 @@ String _$isHapticEnabledUseCaseHash() =>
 @ProviderFor(isHapticEnabledUseCase)
 final isHapticEnabledUseCaseProvider =
     Provider<IsHapticEnabledUseCase>.internal(
-  isHapticEnabledUseCase,
-  name: r'isHapticEnabledUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$isHapticEnabledUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      isHapticEnabledUseCase,
+      name: r'isHapticEnabledUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$isHapticEnabledUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef IsHapticEnabledUseCaseRef = ProviderRef<IsHapticEnabledUseCase>;
 String _$setHapticEnabledUseCaseHash() =>
@@ -360,14 +360,14 @@ String _$setHapticEnabledUseCaseHash() =>
 @ProviderFor(setHapticEnabledUseCase)
 final setHapticEnabledUseCaseProvider =
     Provider<SetHapticEnabledUseCase>.internal(
-  setHapticEnabledUseCase,
-  name: r'setHapticEnabledUseCaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$setHapticEnabledUseCaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      setHapticEnabledUseCase,
+      name: r'setHapticEnabledUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$setHapticEnabledUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef SetHapticEnabledUseCaseRef = ProviderRef<SetHapticEnabledUseCase>;
 // ignore_for_file: type=lint

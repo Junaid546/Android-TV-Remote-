@@ -3,7 +3,20 @@ import 'dart:async';
 import 'package:atv_remote/data/datasources/native/adb_native_datasource.dart';
 import 'package:atv_remote/core/errors/exceptions.dart';
 import 'package:atv_remote/presentation/providers/repository_providers.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class AdbResult<T> {
+  const AdbResult.success([this.data]) : errorMessage = null, isSuccess = true;
+
+  const AdbResult.failure(this.errorMessage) : data = null, isSuccess = false;
+
+  final T? data;
+  final String? errorMessage;
+  final bool isSuccess;
+
+  bool get isFailure => !isSuccess;
+}
 
 class AdbState {
   const AdbState({
@@ -67,12 +80,16 @@ class AdbNotifier extends StateNotifier<AdbState> {
 
   AdbNativeDataSource get _datasource => _ref.read(adbNativeDataSourceProvider);
 
-  Future<void> pair({
+  Future<AdbResult<void>> pair({
     required String host,
     required int port,
     required String pairingCode,
   }) async {
-    if (state.isBusy) return;
+    if (state.isBusy) {
+      return const AdbResult<void>.failure(
+        'Another ADB operation is already in progress.',
+      );
+    }
     state = state.copyWith(
       isBusy: true,
       connectionState: 'PAIRING',
@@ -84,18 +101,27 @@ class AdbNotifier extends StateNotifier<AdbState> {
     try {
       await _datasource.pair(host, port, pairingCode);
       state = state.copyWith(isBusy: false, clearReason: true);
+      return const AdbResult<void>.success();
     } catch (e) {
+      final message = _mapError(e);
       state = state.copyWith(
         isBusy: false,
         connectionState: 'FAILED',
-        reason: _mapError(e),
+        reason: message,
       );
-      rethrow;
+      return AdbResult<void>.failure(message);
     }
   }
 
-  Future<void> connect({required String host, required int port}) async {
-    if (state.isBusy) return;
+  Future<AdbResult<void>> connect({
+    required String host,
+    required int port,
+  }) async {
+    if (state.isBusy) {
+      return const AdbResult<void>.failure(
+        'Another ADB operation is already in progress.',
+      );
+    }
     state = state.copyWith(
       isBusy: true,
       connectionState: 'CONNECTING',
@@ -107,35 +133,58 @@ class AdbNotifier extends StateNotifier<AdbState> {
     try {
       await _datasource.connect(host, port);
       state = state.copyWith(isBusy: false, clearReason: true);
+      return const AdbResult<void>.success();
     } catch (e) {
+      final message = _mapError(e);
       state = state.copyWith(
         isBusy: false,
         connectionState: 'FAILED',
-        reason: _mapError(e),
+        reason: message,
       );
-      rethrow;
+      return AdbResult<void>.failure(message);
     }
   }
 
-  Future<void> disconnect() async {
-    await _datasource.disconnect();
-    state = const AdbState();
+  Future<AdbResult<void>> disconnect() async {
+    try {
+      await _datasource.disconnect();
+      state = const AdbState();
+      return const AdbResult<void>.success();
+    } catch (e) {
+      final message = _mapError(e);
+      state = state.copyWith(
+        isBusy: false,
+        connectionState: 'FAILED',
+        reason: message,
+      );
+      return AdbResult<void>.failure(message);
+    }
   }
 
-  Future<String> runShell(String command) async {
-    return _datasource.runShell(command);
+  Future<AdbResult<String>> runShell(String command) async {
+    try {
+      final output = await _datasource.runShell(command);
+      return AdbResult<String>.success(output);
+    } catch (e) {
+      return AdbResult<String>.failure(_mapError(e));
+    }
   }
 
-  Future<Map<String, dynamic>> launchApp({
+  Future<AdbResult<Map<String, dynamic>>> launchApp({
     required String packageName,
     String? activityName,
     bool playStoreFallback = true,
   }) async {
-    return _datasource.launchApp(
-      packageName,
-      activityName: activityName,
-      playStoreFallback: playStoreFallback,
-    );
+    try {
+      final result = await _datasource.launchApp(
+        packageName,
+        activityName: activityName,
+        playStoreFallback: playStoreFallback,
+      );
+      return AdbResult<Map<String, dynamic>>.success(result);
+    } catch (e) {
+      return AdbResult<Map<String, dynamic>>.failure(_mapError(e));
+    }
   }
 
   void _onStateEvent(Map<String, dynamic> event) {
@@ -158,9 +207,38 @@ class AdbNotifier extends StateNotifier<AdbState> {
 
   String _mapError(Object error) {
     if (error is NativeChannelException) {
-      return error.message;
+      return _normalizeErrorMessage(error.message, code: error.code);
     }
-    return error.toString();
+    if (error is PlatformException) {
+      return _normalizeErrorMessage(error.message, code: error.code);
+    }
+    return _normalizeErrorMessage(error.toString());
+  }
+
+  String _normalizeErrorMessage(String? message, {String? code}) {
+    final normalized = message?.trim() ?? '';
+    if (normalized.isNotEmpty && !normalized.startsWith('PlatformException(')) {
+      return normalized;
+    }
+    return _defaultMessageForCode(code);
+  }
+
+  String _defaultMessageForCode(String? code) {
+    return switch (code) {
+      'ADB_CONNECT_FAILED' =>
+        'ADB connection failed. Verify TV IP and Wireless Debugging connect port.',
+      'ADB_PAIR_FAILED' =>
+        'ADB pairing failed. Verify pairing port/code on the TV and try again.',
+      'ADB_DISCONNECT_FAILED' => 'ADB disconnect failed. Try again.',
+      'ADB_SHELL_FAILED' => 'ADB command failed. Reconnect and retry.',
+      'ADB_LAUNCH_FAILED' => 'Could not launch app over ADB.',
+      'ADB_STATE_STREAM_ERROR' =>
+        'ADB state stream failed. Try reconnecting ADB.',
+      'ADB_STATE_STREAM_FAILED' =>
+        'ADB state stream failed. Try reconnecting ADB.',
+      'INVALID_ARGS' => 'Invalid ADB request. Check host/port values.',
+      _ => 'ADB operation failed. Please try again.',
+    };
   }
 
   @override

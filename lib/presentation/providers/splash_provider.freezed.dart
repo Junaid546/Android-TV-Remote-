@@ -12,7 +12,8 @@ part of 'splash_provider.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$SplashResult {
@@ -21,52 +22,47 @@ mixin _$SplashResult {
     required TResult Function() noWifi,
     required TResult Function(TvDevice device) reconnected,
     required TResult Function() readyToDiscover,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? noWifi,
     TResult? Function(TvDevice device)? reconnected,
     TResult? Function()? readyToDiscover,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? noWifi,
     TResult Function(TvDevice device)? reconnected,
     TResult Function()? readyToDiscover,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(NoWifi value) noWifi,
     required TResult Function(Reconnected value) reconnected,
     required TResult Function(ReadyToDiscover value) readyToDiscover,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(NoWifi value)? noWifi,
     TResult? Function(Reconnected value)? reconnected,
     TResult? Function(ReadyToDiscover value)? readyToDiscover,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(NoWifi value)? noWifi,
     TResult Function(Reconnected value)? reconnected,
     TResult Function(ReadyToDiscover value)? readyToDiscover,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $SplashResultCopyWith<$Res> {
   factory $SplashResultCopyWith(
-          SplashResult value, $Res Function(SplashResult) then) =
-      _$SplashResultCopyWithImpl<$Res, SplashResult>;
+    SplashResult value,
+    $Res Function(SplashResult) then,
+  ) = _$SplashResultCopyWithImpl<$Res, SplashResult>;
 }
 
 /// @nodoc
@@ -83,8 +79,9 @@ class _$SplashResultCopyWithImpl<$Res, $Val extends SplashResult>
 /// @nodoc
 abstract class _$$NoWifiImplCopyWith<$Res> {
   factory _$$NoWifiImplCopyWith(
-          _$NoWifiImpl value, $Res Function(_$NoWifiImpl) then) =
-      __$$NoWifiImplCopyWithImpl<$Res>;
+    _$NoWifiImpl value,
+    $Res Function(_$NoWifiImpl) then,
+  ) = __$$NoWifiImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
@@ -92,8 +89,9 @@ class __$$NoWifiImplCopyWithImpl<$Res>
     extends _$SplashResultCopyWithImpl<$Res, _$NoWifiImpl>
     implements _$$NoWifiImplCopyWith<$Res> {
   __$$NoWifiImplCopyWithImpl(
-      _$NoWifiImpl _value, $Res Function(_$NoWifiImpl) _then)
-      : super(_value, _then);
+    _$NoWifiImpl _value,
+    $Res Function(_$NoWifiImpl) _then,
+  ) : super(_value, _then);
 }
 
 /// @nodoc
@@ -191,8 +189,9 @@ abstract class NoWifi implements SplashResult {
 /// @nodoc
 abstract class _$$ReconnectedImplCopyWith<$Res> {
   factory _$$ReconnectedImplCopyWith(
-          _$ReconnectedImpl value, $Res Function(_$ReconnectedImpl) then) =
-      __$$ReconnectedImplCopyWithImpl<$Res>;
+    _$ReconnectedImpl value,
+    $Res Function(_$ReconnectedImpl) then,
+  ) = __$$ReconnectedImplCopyWithImpl<$Res>;
   @useResult
   $Res call({TvDevice device});
 
@@ -204,20 +203,21 @@ class __$$ReconnectedImplCopyWithImpl<$Res>
     extends _$SplashResultCopyWithImpl<$Res, _$ReconnectedImpl>
     implements _$$ReconnectedImplCopyWith<$Res> {
   __$$ReconnectedImplCopyWithImpl(
-      _$ReconnectedImpl _value, $Res Function(_$ReconnectedImpl) _then)
-      : super(_value, _then);
+    _$ReconnectedImpl _value,
+    $Res Function(_$ReconnectedImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? device = null,
-  }) {
-    return _then(_$ReconnectedImpl(
-      null == device
-          ? _value.device
-          : device // ignore: cast_nullable_to_non_nullable
-              as TvDevice,
-    ));
+  $Res call({Object? device = null}) {
+    return _then(
+      _$ReconnectedImpl(
+        null == device
+            ? _value.device
+            : device // ignore: cast_nullable_to_non_nullable
+                  as TvDevice,
+      ),
+    );
   }
 
   @override
@@ -339,9 +339,10 @@ abstract class Reconnected implements SplashResult {
 
 /// @nodoc
 abstract class _$$ReadyToDiscoverImplCopyWith<$Res> {
-  factory _$$ReadyToDiscoverImplCopyWith(_$ReadyToDiscoverImpl value,
-          $Res Function(_$ReadyToDiscoverImpl) then) =
-      __$$ReadyToDiscoverImplCopyWithImpl<$Res>;
+  factory _$$ReadyToDiscoverImplCopyWith(
+    _$ReadyToDiscoverImpl value,
+    $Res Function(_$ReadyToDiscoverImpl) then,
+  ) = __$$ReadyToDiscoverImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
@@ -349,8 +350,9 @@ class __$$ReadyToDiscoverImplCopyWithImpl<$Res>
     extends _$SplashResultCopyWithImpl<$Res, _$ReadyToDiscoverImpl>
     implements _$$ReadyToDiscoverImplCopyWith<$Res> {
   __$$ReadyToDiscoverImplCopyWithImpl(
-      _$ReadyToDiscoverImpl _value, $Res Function(_$ReadyToDiscoverImpl) _then)
-      : super(_value, _then);
+    _$ReadyToDiscoverImpl _value,
+    $Res Function(_$ReadyToDiscoverImpl) _then,
+  ) : super(_value, _then);
 }
 
 /// @nodoc

@@ -11,16 +11,19 @@ String _$pairingScreenNotifierHash() =>
 
 /// See also [PairingScreenNotifier].
 @ProviderFor(PairingScreenNotifier)
-final pairingScreenNotifierProvider = AutoDisposeNotifierProvider<
-    PairingScreenNotifier, PairingScreenState>.internal(
-  PairingScreenNotifier.new,
-  name: r'pairingScreenNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$pairingScreenNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final pairingScreenNotifierProvider =
+    AutoDisposeNotifierProvider<
+      PairingScreenNotifier,
+      PairingScreenState
+    >.internal(
+      PairingScreenNotifier.new,
+      name: r'pairingScreenNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$pairingScreenNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$PairingScreenNotifier = AutoDisposeNotifier<PairingScreenState>;
 // ignore_for_file: type=lint
