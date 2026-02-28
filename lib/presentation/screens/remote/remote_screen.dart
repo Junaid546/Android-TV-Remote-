@@ -170,7 +170,7 @@ class _RemoteScreenState extends ConsumerState<RemoteScreen> {
   }
 }
 
-class _RemoteShell extends StatelessWidget {
+class _RemoteShell extends StatefulWidget {
   const _RemoteShell({
     required this.isConnected,
     required this.deviceName,
@@ -216,6 +216,20 @@ class _RemoteShell extends StatelessWidget {
   final PairingStatus connectionStatus;
 
   @override
+  State<_RemoteShell> createState() => _RemoteShellState();
+}
+
+class _RemoteShellState extends State<_RemoteShell> {
+  bool _isSwipePadActive = false;
+
+  void _togglePadMode(bool toSwipe) {
+    if (_isSwipePadActive == toSwipe) return;
+    setState(() {
+      _isSwipePadActive = toSwipe;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -245,14 +259,14 @@ class _RemoteShell extends StatelessWidget {
               children: [
                 _CircleActionButton(
                   icon: Icons.menu_rounded,
-                  onPressed: onMenu,
+                  onPressed: widget.onMenu,
                   size: 58,
                 ),
                 Expanded(
                   child: Column(
                     children: [
                       Text(
-                        isConnected ? 'CONNECTED TO' : 'REMOTE STATUS',
+                        widget.isConnected ? 'CONNECTED TO' : 'REMOTE STATUS',
                         style: TextStyle(
                           color: const Color(0xFF8F939A).withValues(alpha: 0.9),
                           letterSpacing: 2.3,
@@ -262,7 +276,7 @@ class _RemoteShell extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        deviceName,
+                        widget.deviceName,
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -286,39 +300,69 @@ class _RemoteShell extends StatelessWidget {
                 _CircleActionButton(
                   icon: Icons.power_settings_new_rounded,
                   iconColor: const Color(0xFFFF7A1A),
-                  onPressed: onPower,
+                  onPressed: widget.onPower,
                 ),
                 _CircleActionButton(
                   icon: Icons.home_rounded,
-                  onPressed: onHome,
+                  onPressed: widget.onHome,
                 ),
                 _CircleActionButton(
                   icon: Icons.keyboard_return_rounded,
-                  onPressed: onBack,
+                  onPressed: widget.onBack,
                 ),
               ],
             ),
             const SizedBox(height: 22),
-            _DpadRing(
-              onUp: onDpadUp,
-              onDown: onDpadDown,
-              onLeft: onDpadLeft,
-              onRight: onDpadRight,
-              onOk: onOk,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final size = constraints.maxWidth
+                    .clamp(240.0, 460.0)
+                    .toDouble();
+                return SizedBox(
+                  width: size,
+                  height: size,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
+                    child: _isSwipePadActive
+                        ? _SwipePad(
+                            key: const ValueKey('swipe_pad'),
+                            onUp: widget.onDpadUp,
+                            onDown: widget.onDpadDown,
+                            onLeft: widget.onDpadLeft,
+                            onRight: widget.onDpadRight,
+                            onTap: widget.onOk,
+                          )
+                        : _DpadRing(
+                            key: const ValueKey('dpad_ring'),
+                            onUp: widget.onDpadUp,
+                            onDown: widget.onDpadDown,
+                            onLeft: widget.onDpadLeft,
+                            onRight: widget.onDpadRight,
+                            onOk: widget.onOk,
+                          ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 18),
-            const _PagerDots(),
+            _PadModeToggle(
+              isSwipe: _isSwipePadActive,
+              onToggle: _togglePadMode,
+            ),
             const SizedBox(height: 18),
             _VolumePill(
-              level: volumePreview,
-              isMuted: volumeMuted,
-              label: volumeLabel,
-              onMinus: onVolumeDown,
-              onPlus: onVolumeUp,
+              level: widget.volumePreview,
+              isMuted: widget.volumeMuted,
+              label: widget.volumeLabel,
+              onMinus: widget.onVolumeDown,
+              onPlus: widget.onVolumeUp,
             ),
             const SizedBox(height: 22),
             _CircleActionButton(
-              onPressed: onColorMenu,
+              onPressed: widget.onColorMenu,
               size: 86,
               child: const _ColorGlyph(),
             ),
@@ -328,12 +372,15 @@ class _RemoteShell extends StatelessWidget {
               children: [
                 _CircleActionButton(
                   icon: Icons.volume_off_rounded,
-                  onPressed: onMute,
+                  onPressed: widget.onMute,
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            _StatusLine(status: connectionStatus, onReconnect: onReconnect),
+            _StatusLine(
+              status: widget.connectionStatus,
+              onReconnect: widget.onReconnect,
+            ),
           ],
         ),
       ),
@@ -343,6 +390,7 @@ class _RemoteShell extends StatelessWidget {
 
 class _DpadRing extends StatelessWidget {
   const _DpadRing({
+    super.key,
     required this.onUp,
     required this.onDown,
     required this.onLeft,
@@ -445,46 +493,6 @@ class _RingDirectionButton extends StatelessWidget {
         borderColor: Colors.transparent,
         iconColor: const Color(0xFFADB0B5),
         enableHold: true,
-      ),
-    );
-  }
-}
-
-class _PagerDots extends StatelessWidget {
-  const _PagerDots();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _Dot(active: false),
-        _Dot(active: false),
-        _Dot(active: true),
-        _Dot(active: true),
-        _Dot(active: true),
-        _Dot(active: true),
-        _Dot(active: false),
-        _Dot(active: false),
-      ],
-    );
-  }
-}
-
-class _Dot extends StatelessWidget {
-  const _Dot({required this.active});
-
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 8,
-      height: 8,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: active ? const Color(0xFFFF7A1A) : const Color(0xFF3A3D42),
       ),
     );
   }
@@ -742,7 +750,13 @@ class _CircleActionButtonState extends State<_CircleActionButton> {
             height: widget.size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: fill,
+              color: _pressed
+                  ? (widget.fillColor != null
+                        ? widget.fillColor!.withValues(alpha: 0.7)
+                        : const Color(
+                            0xFF20232A,
+                          )) // Lighter grey for default D-pad press
+                  : fill,
               border: Border.all(color: border, width: 1),
               boxShadow: [
                 BoxShadow(
@@ -750,6 +764,13 @@ class _CircleActionButtonState extends State<_CircleActionButton> {
                   blurRadius: _pressed ? 8 : 14,
                   offset: const Offset(0, 7),
                 ),
+                if (_pressed)
+                  // Inner glow effect
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
               ],
             ),
             child: Center(
@@ -758,15 +779,23 @@ class _CircleActionButtonState extends State<_CircleActionButton> {
                   (widget.icon != null
                       ? Icon(
                           widget.icon,
-                          color: widget.iconColor ?? const Color(0xFFA8B1C2),
-                          size: widget.size * 0.42,
+                          color: _pressed
+                              ? (widget.iconColor ?? const Color(0xFFFFFFFF))
+                              : (widget.iconColor ?? const Color(0xFFA8B1C2)),
+                          size:
+                              widget.size *
+                              (_pressed
+                                  ? 0.46
+                                  : 0.42), // Slightly increase icon size on press
                         )
                       : Text(
                           widget.label!,
                           style:
                               widget.textStyle ??
-                              const TextStyle(
-                                color: Color(0xFFA8B1C2),
+                              TextStyle(
+                                color: _pressed
+                                    ? const Color(0xFFFFFFFF)
+                                    : const Color(0xFFA8B1C2),
                                 fontWeight: FontWeight.w700,
                                 fontSize: 20,
                               ),
@@ -806,6 +835,285 @@ class _ActionTile extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       tileColor: AppColors.surfaceElevated,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+    );
+  }
+}
+
+class _SwipePad extends StatefulWidget {
+  const _SwipePad({
+    super.key,
+    required this.onUp,
+    required this.onDown,
+    required this.onLeft,
+    required this.onRight,
+    required this.onTap,
+  });
+
+  final VoidCallback? onUp;
+  final VoidCallback? onDown;
+  final VoidCallback? onLeft;
+  final VoidCallback? onRight;
+  final VoidCallback? onTap;
+
+  @override
+  State<_SwipePad> createState() => _SwipePadState();
+}
+
+class _SwipePadState extends State<_SwipePad> {
+  Offset? _touchPosition;
+  double _accumulatedDx = 0.0;
+  double _accumulatedDy = 0.0;
+
+  /// Distance (in logical pixels) the finger must travel before a DPAD event fires.
+  /// Lower = more sensitive. 18px feels natural on most phones.
+  static const double _moveThreshold = 18.0;
+
+  void _handlePanStart(DragStartDetails details) {
+    _accumulatedDx = 0.0;
+    _accumulatedDy = 0.0;
+    setState(() {
+      _touchPosition = details.localPosition;
+    });
+  }
+
+  void _handlePanUpdate(DragUpdateDetails details) {
+    setState(() {
+      _touchPosition = details.localPosition;
+    });
+
+    _accumulatedDx += details.delta.dx;
+    _accumulatedDy += details.delta.dy;
+
+    // Check if accumulated movement exceeds threshold in any axis
+    if (_accumulatedDx.abs() >= _moveThreshold ||
+        _accumulatedDy.abs() >= _moveThreshold) {
+      if (_accumulatedDx.abs() > _accumulatedDy.abs()) {
+        // Horizontal swipe wins
+        if (_accumulatedDx > 0) {
+          widget.onRight?.call();
+        } else {
+          widget.onLeft?.call();
+        }
+      } else {
+        // Vertical swipe wins
+        if (_accumulatedDy > 0) {
+          widget.onDown?.call();
+        } else {
+          widget.onUp?.call();
+        }
+      }
+      // Reset accumulators so the next segment starts fresh
+      _accumulatedDx = 0.0;
+      _accumulatedDy = 0.0;
+    }
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    _accumulatedDx = 0.0;
+    _accumulatedDy = 0.0;
+    setState(() {
+      _touchPosition = null;
+    });
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    setState(() {
+      _touchPosition = details.localPosition;
+    });
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    widget.onTap?.call();
+    // Brief visual feedback at the tap location
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted) {
+        setState(() {
+          _touchPosition = null;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.maxWidth;
+
+        return GestureDetector(
+          onPanStart: _handlePanStart,
+          onPanUpdate: _handlePanUpdate,
+          onPanEnd: _handlePanEnd,
+          onPanCancel: () => setState(() => _touchPosition = null),
+          onTapDown: _handleTapDown,
+          onTapUp: _handleTapUp,
+          onTapCancel: () => setState(() => _touchPosition = null),
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF15171B),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 34,
+                  offset: const Offset(0, 18),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                const Center(
+                  child: Icon(
+                    Icons.touch_app_rounded,
+                    color: Color(0xFF2A2D35),
+                    size: 48,
+                  ),
+                ),
+                if (_touchPosition != null)
+                  Positioned(
+                    left: _touchPosition!.dx - 24,
+                    top: _touchPosition!.dy - 24,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                // Swipe Area indicator rings
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.03),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.02),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PadModeToggle extends StatelessWidget {
+  const _PadModeToggle({required this.isSwipe, required this.onToggle});
+
+  final bool isSwipe;
+  final ValueChanged<bool> onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        color: const Color(0xFF17191E),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _TogglePillButton(
+            label: 'D-PAD',
+            icon: Icons.gamepad_rounded,
+            isActive: !isSwipe,
+            onTap: () => onToggle(false),
+          ),
+          _TogglePillButton(
+            label: 'SWIPE',
+            icon: Icons.touch_app_rounded,
+            isActive: isSwipe,
+            onTap: () => onToggle(true),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TogglePillButton extends StatelessWidget {
+  const _TogglePillButton({
+    required this.label,
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive
+              ? const Color(0xFFFF6F1F).withValues(alpha: 0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: isActive
+                  ? const Color(0xFFFF6F1F)
+                  : const Color(0xFF6C6F75),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive
+                    ? const Color(0xFFFF6F1F)
+                    : const Color(0xFF6C6F75),
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

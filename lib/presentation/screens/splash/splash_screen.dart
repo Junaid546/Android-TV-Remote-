@@ -574,7 +574,7 @@ class _VersionText extends StatelessWidget {
               ),
           const SizedBox(width: 10),
           Text(
-            'v1.0.0 - Ready',
+            'v1.0.2+1 - Ready',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: AppColors.muted.withValues(alpha: 0.7),
               letterSpacing: 1.2,

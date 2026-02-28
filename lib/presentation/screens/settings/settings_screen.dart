@@ -218,7 +218,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         future: _packageInfoFuture,
                         builder: (context, snapshot) {
                           final version = snapshot.hasData
-                              ? '${snapshot.data!.version}+${snapshot.data!.buildNumber}'
+                              ? 'v${snapshot.data!.version}+${snapshot.data!.buildNumber}'
                               : 'Loading...';
                           return _ActionRow(
                             icon: Icons.info_outline_rounded,

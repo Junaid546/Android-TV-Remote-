@@ -50,7 +50,7 @@ class RemoteSession(
 ) {
     private val tag = "TvRemote"
     private val clientPackageName = "com.example.atv_remote"
-    private val clientAppVersion = "1.0.0"
+    private val clientAppVersion = "1.0.2"
 
     companion object {
         const val REMOTE_PORT = 6466
