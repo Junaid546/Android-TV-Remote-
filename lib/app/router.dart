@@ -10,11 +10,26 @@ import 'package:atv_remote/presentation/screens/privacy/privacy_policy_screen.da
 import 'package:atv_remote/presentation/screens/remote/remote_screen.dart';
 import 'package:atv_remote/presentation/screens/settings/settings_screen.dart';
 import 'package:atv_remote/presentation/screens/splash/splash_screen.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router.g.dart';
+
+CustomTransitionPage<T> _buildPageWithDefaultTransition<T>({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 300),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  );
+}
 
 class RouterChangeNotifier extends ChangeNotifier {
   bool _hasWifi = true;
@@ -98,41 +113,80 @@ GoRouter appRouter(AppRouterRef ref) {
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (context, state) => const SplashScreen(),
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: const SplashScreen(),
+        ),
       ),
       GoRoute(
         path: '/network-error',
-        builder: (context, state) => NetworkErrorScreen(
-          returnTo: state.uri.queryParameters['returnTo'],
-          errorTypeRaw: state.uri.queryParameters['type'],
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: NetworkErrorScreen(
+            returnTo: state.uri.queryParameters['returnTo'],
+            errorTypeRaw: state.uri.queryParameters['type'],
+          ),
         ),
       ),
       GoRoute(
         path: '/discovery',
-        builder: (context, state) => const DiscoveryScreen(),
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: const DiscoveryScreen(),
+        ),
       ),
       GoRoute(
         path: '/pairing',
-        builder: (context, state) => PairingScreen(
-          deviceId: state.uri.queryParameters['deviceId'] ?? '',
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: PairingScreen(
+            deviceId: state.uri.queryParameters['deviceId'] ?? '',
+          ),
         ),
       ),
       GoRoute(
         path: '/remote',
-        builder: (context, state) => const RemoteScreen(),
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: const RemoteScreen(),
+        ),
       ),
-      GoRoute(path: '/apps', builder: (context, state) => const AppsScreen()),
+      GoRoute(
+        path: '/apps',
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: const AppsScreen(),
+        ),
+      ),
       GoRoute(
         path: '/connection-error',
-        builder: (context, state) => const ConnectionErrorScreen(),
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: const ConnectionErrorScreen(),
+        ),
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: const SettingsScreen(),
+        ),
       ),
       GoRoute(
         path: '/privacy-policy',
-        builder: (context, state) => const PrivacyPolicyScreen(),
+        pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+          context: context,
+          state: state,
+          child: const PrivacyPolicyScreen(),
+        ),
       ),
     ],
   );

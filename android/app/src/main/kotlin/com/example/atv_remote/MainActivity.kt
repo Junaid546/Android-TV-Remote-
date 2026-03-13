@@ -17,6 +17,35 @@ class MainActivity : FlutterActivity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var channelManager: com.example.atv_remote.channels.ChannelManager
 
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        // ── Anti-debug: kill app if debugger is attached ──────────────────────────
+        if (android.os.Debug.isDebuggerConnected()) {
+            android.os.Process.killProcess(android.os.Process.myPid())
+        }
+
+        // ── Anti-tamper: verify APK signature hasn't been modified ───────────────
+        try {
+            val packageInfo = packageManager.getPackageInfo(
+                packageName,
+                android.content.pm.PackageManager.GET_SIGNATURES
+            )
+            val signatureHash = packageInfo.signatures[0].toByteArray()
+                .let { java.security.MessageDigest.getInstance("SHA-256").digest(it) }
+                .joinToString("") { "%02x".format(it) }
+
+            // TODO (Junaid): Replace with your actual SHA-256 after first signed build
+            // Run: keytool -printcert -jarfile your-release.apk
+            val expectedHash = "REPLACE_WITH_YOUR_RELEASE_SIGNATURE_SHA256"
+
+            if (signatureHash != expectedHash) {
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
+        } catch (e: Exception) {
+            android.os.Process.killProcess(android.os.Process.myPid())
+        }
+        super.onCreate(savedInstanceState)
+    }
+
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 

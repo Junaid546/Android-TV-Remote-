@@ -1,45 +1,50 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# ── Sensitive pairing files — NEVER commit these ─────────────────────────────
+android/app/src/main/kotlin/com/example/atv_remote/pairing/TlsSocketFactory.kt
+android/app/src/main/kotlin/com/example/atv_remote/pairing/CertificateStore.kt
+android/app/src/main/kotlin/com/example/atv_remote/pairing/PairingSecretGenerator.kt
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# ── Android signing & keys ────────────────────────────────────────────────────
+*.keystore
+*.jks
+android/key.properties
+android/app/google-services.json
+GoogleService-Info.plist
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# ── Android build ─────────────────────────────────────────────────────────────
+android/local.properties
+android/.gradle/
+android/app/release/
+.gradle/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.hprof
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ── Flutter/Dart ──────────────────────────────────────────────────────────────
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
+.packages
+build/
 .pub-cache/
 .pub/
-/build/
-/coverage/
 
-# Symbolication related
-app.*.symbols
+# ── Environment & secrets ─────────────────────────────────────────────────────
+.env
+.env.*
+*.pem
+*.p12
+*.pfx
+secrets.json
+credentials.json
 
-# Obfuscation related
-app.*.map.json
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+captures/
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

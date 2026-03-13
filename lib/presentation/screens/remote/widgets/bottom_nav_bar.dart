@@ -1,4 +1,5 @@
 import 'package:atv_remote/core/theme/app_colors.dart';
+import 'package:atv_remote/core/utils/haptic_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -60,6 +61,7 @@ class BottomNavBar extends StatelessWidget {
 
   void _go(BuildContext context, int index) {
     if (index == currentIndex) return;
+    HapticService.light();
     switch (index) {
       case 0:
         context.go('/remote');

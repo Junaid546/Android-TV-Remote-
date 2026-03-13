@@ -1,55 +1,256 @@
-# ATV Remote (Android TV Remote App)
+# 📺 ATV Remote — Android TV Remote Control
 
-An open-source Android TV remote application built with Flutter, Riverpod, and a native Kotlin robust background system.
+> A powerful, open-source Flutter application to control your Android TV over Wi-Fi using the official Android TV Remote Control Protocol v2.
 
-## How to run project
+![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=flat&logo=flutter)
+![Kotlin](https://img.shields.io/badge/Kotlin-Native-7F52FF?style=flat&logo=kotlin)
+![Android](https://img.shields.io/badge/Android-TV-3DDC84?style=flat&logo=android)
+![License](https://img.shields.io/badge/License-Proprietary-red?style=flat)
+![Platform](https://img.shields.io/badge/Platform-Android-green?style=flat)
 
-1. **Requirements:**
-   - Flutter SDK (>=3.10.0 <4.0.0)
-   - Android Studio (or command line tools) with an emulator or physical Android device.
-   - An Android TV or Google TV on the same local network for pairing and testing.
-2. **Setup:**
-   - Run `flutter pub get` to fetch dependencies.
-   - Run `dart run build_runner build -d` to generate Riverpod and Hive files if needed.
-3. **Execution:**
-   - Run `flutter run` on an Android device to build and launch the application.
+---
 
-## Architecture explanation
+## 📱 Overview
 
-The application is built using a hybrid architecture, combining the rich UI capabilities of Flutter with the background system stability of native Android.
+ATV Remote is a Flutter-based Android TV remote control app built with **clean architecture**, **Riverpod state management**, and a **Kotlin-native networking layer**. Unlike typical Flutter remotes that rely on pure Dart networking, this app uses native Android APIs for reliable device discovery and secure TLS-based pairing — the same way Google's own remote works.
 
-### Flutter (Frontend & State)
-- **State Management:** Uses `Riverpod` for reactive, immutable state management, combined with `fpdart` for functional programming paradigms (handling eithers/options).
-- **Local Storage:** `Hive` is used for fast local storage of paired devices and settings.
-- **Routing:** `go_router` manages declarative UI navigation.
+---
 
-### Native Android (Background & Connectivity)
-- **Persistent Connection:** `AtvMediaService` is a robust Foreground Service that maintains the socket connection to the TV even when the app is minimized.
-- **Media Session Integration:** Connects to the Android `MediaSessionCompat` framework to intercept physical volume button presses and manage audio focus seamlessly.
-- **State Machine:** Uses `ConnectionSupervisor` to rigorously manage the connection lifecycle (Connecting, Idle, Connected, AuthFailed) and handles exponential backoff for reconnections.
-- **Quick Settings & Lock Screen:** Exposes `AtvTileService` to provide a Quick Settings Tile for immediate remote access without opening the app.
+## ✨ Features
 
-## TV Protocol explanation
+- 🔍 **Automatic Device Discovery** — Finds Android TVs on your local network using mDNS/NSD (no manual IP entry needed)
+- 🔐 **Secure TLS Pairing** — Full Android TV Remote Control Protocol v2 over encrypted TCP connection
+- 🎮 **Full Remote Controls** — D-Pad, volume, media playback, navigation, home, back, and more
+- ⌨️ **Keyboard Input** — Type directly into your TV from your phone keyboard
+- 📡 **ADB over Network** — Optional ADB channel support for power users
+- 💾 **Saved Devices** — Remembers your paired TVs for instant reconnection
+- 🌙 **Clean UI** — Material Design 3 interface optimized for one-handed remote use
 
-The application communicates with Android TVs using a reverse-engineered Google TV pairing and remote protocol via Protocol Buffers (`protobuf`).
+---
 
-### Pairing Protocol (Port 6467)
-1. **Discovery:** Discovers TVs via Network Service Discovery (mDNS).
-2. **Initiation:** Client starts a `PairingRequest` identifying its service name and device name.
-3. **Configuration:** Exchanges `PairingOption` and `PairingConfiguration` to agree on the input role and hexadecimal encoding for the PIN.
-4. **Authentication:** The TV displays a 6-digit PIN. The client normalizes it and uses it to derive a `PairingSecret` using the client's and TV's certificates.
-5. **Mutual TLS (mTLS):** On success, both the TV and Client certificates are saved to the `CertificateStore`.
+## 🏗️ Architecture
 
-### Remote Protocol (Port 6466)
-1. **Secure Handshake:** Establishes an SSLSocket utilizing the certificates exchanged during pairing (mTLS). It configures TLSv1.2 (falling back to TLSv1.3 if needed) with Server Name Indication (SNI).
-2. **Feature Negotiation:** Exchanges `RemoteConfigure` and `RemoteSetActive` to agree on supported remote features (e.g., volume control, D-pad).
-3. **Keep-alive:** Periodic `RemotePingRequest` / `RemotePingResponse` are sent to prevent idle timeouts.
-4. **Key Injection:** Commands are encapsulated in `RemoteKeyInject` protobuf messages specifying the key code (e.g., up, down, home, back) and direction (press/release).
+This app follows **Clean Architecture** with a strict separation of concerns across three layers:
 
-## Known Limitations
+```
+lib/
+├── data/
+│   ├── datasources/
+│   │   └── native/          # Flutter ↔ Kotlin bridge via MethodChannel
+│   ├── models/
+│   └── repositories/
+├── domain/
+│   ├── entities/            # TvDevice, RemoteCommand, PairingStatus, etc.
+│   ├── repositories/
+│   └── usecases/
+└── presentation/
+    ├── providers/           # Riverpod providers (state management)
+    └── screens/
+        ├── discovery/       # TV scanning UI
+        ├── pairing/         # PIN entry flow
+        ├── remote/          # Main remote control screen
+        ├── settings/
+        └── splash/
+```
 
-- **Android Only Background Services:** Advanced features like the Quick Settings Tile, physical volume button interception, and persistent foreground service are implemented in Kotlin and currently only available on Android.
-- **Battery Optimization:** Aggressive OEM battery optimizations (e.g., on Samsung, Xiaomi) might kill the background service. It is recommended to set the app's battery usage to "Unrestricted".
-- **Audio Focus Conflicts:** If another media application aggressively requests audio focus, the remote's media session may be suspended, disabling physical volume button routing until the app is reopened or regains focus.
-- **Protocol Variability:** Some older Android TVs or heavily modified OEM skins might implement the pairing protocol differently, leading to rejected configurations or handshake failures.
-- **Same Network Requirement:** The phone and the TV must reside on the exact same local network subnet for mDNS discovery and local socket connections to work properly.
+### Kotlin Native Layer (Android)
+
+```
+android/.../atv_remote/
+├── adb/                     # ADB session management
+├── channels/                # MethodChannel + EventChannel bridges
+│   ├── ChannelManager
+│   ├── DiscoveryChannel
+│   ├── PairingChannel
+│   ├── RemoteChannel
+│   └── NetworkChannel
+├── discovery/
+│   ├── NsdDiscoveryEngine    # Android NsdManager for mDNS
+│   └── DiscoveredDevice
+├── pairing/                 # 🔒 Proprietary — not included in public repo
+│   ├── PairingManager
+│   ├── MessageFramer
+│   └── [TLS implementation files — private]
+└── remote/
+    ├── RemoteSession
+    ├── ConnectionSupervisor
+    └── AtvMediaService
+```
+
+---
+
+## 🔧 Technical Deep Dive
+
+### Why Kotlin-Native Networking?
+
+Pure Flutter/Dart networking proved unreliable for Android TV pairing due to:
+
+- **mDNS multicast restrictions** on Android — `NsdManager` is the only reliable API
+- **TLS complexity** — custom `TrustManager` needed to accept the TV's self-signed certificate
+- **Protocol timing** — `PairingRequest` must be sent *immediately* after TLS handshake, before PIN display
+
+The solution: a full Kotlin-native networking stack exposed to Flutter via `MethodChannel` and `EventChannel`.
+
+### Protocol: Android TV Remote Control Protocol v2
+
+| Detail | Value |
+|--------|-------|
+| Transport | TCP over TLS |
+| Port | `6466` |
+| Discovery | mDNS (`_androidtvremote2._tcp`) |
+| Encoding | Manual Protobuf (proto2) |
+| Pairing | PIN-based certificate exchange |
+| Certificate | Self-signed, stored per device |
+
+### Key Protocol Insight
+
+> ⚠️ **Critical:** `PairingRequest` must be sent **immediately after the TLS handshake** — before waiting for PIN input from the user. Most open-source implementations fail here.
+
+### Flutter ↔ Kotlin Bridge
+
+```
+Flutter (Dart)          MethodChannel           Kotlin
+──────────────────────────────────────────────────────
+discovery_provider  ──→  DiscoveryChannel  ──→  NsdDiscoveryEngine
+pairing_provider    ──→  PairingChannel    ──→  PairingManager
+remote_provider     ──→  RemoteChannel     ──→  RemoteSession
+                   ←──  EventChannel       ←──  ConnectionSupervisor
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Flutter `3.x` or later
+- Android Studio / VS Code
+- Android device running **Android 5.0+**
+- Android TV on the **same Wi-Fi network**
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Junaid546/Android-TV-Remote-.git
+
+# Navigate to project
+cd Android-TV-Remote-
+
+# Install Flutter dependencies
+flutter pub get
+
+# Run on connected device
+flutter run
+```
+
+### Build Release APK
+
+```bash
+flutter build apk --release
+```
+
+> **Note:** The release build uses R8 full-mode obfuscation. Ensure your `key.properties` signing config is set up before building for release.
+
+---
+
+## 📦 Dependencies
+
+### Flutter / Dart
+
+| Package | Purpose |
+|---------|---------|
+| `flutter_riverpod` | State management |
+| `freezed` | Immutable data models |
+| `go_router` | Navigation |
+| `shared_preferences` | Persisting saved devices |
+| `flutter_animate` | UI animations |
+
+### Android / Kotlin
+
+| API / Library | Purpose |
+|--------------|---------|
+| `NsdManager` | mDNS device discovery |
+| `SSLSocket` | TLS-encrypted TCP connection |
+| Custom `TrustManager` | Accept TV's self-signed cert |
+| `MethodChannel` | Flutter ↔ Kotlin communication |
+| `EventChannel` | Kotlin → Flutter event streaming |
+
+---
+
+## 🔐 Security
+
+This app implements several layers of protection:
+
+- **TLS encryption** on all TV communication (no plaintext traffic)
+- **Certificate pinning** per paired device — certificates stored locally
+- **R8 obfuscation** on release builds — class names and logic are scrambled
+- **Anti-tamper checks** — app verifies its own APK signature at runtime
+- **Sensitive pairing implementation** excluded from public repository
+
+> ⚠️ The files `TlsSocketFactory.kt`, `CertificateStore.kt`, and `PairingSecretGenerator.kt` contain proprietary TLS pairing logic and are **not included** in this public repository.
+
+---
+
+## 📁 Project Structure
+
+```
+ATV_REMOTE/
+├── android/                  # Kotlin native layer
+├── lib/                      # Flutter/Dart source
+├── proto/
+│   ├── pairing.proto         # Pairing protocol definitions
+│   └── remote.proto          # Remote control protocol definitions
+├── pubspec.yaml
+└── README.md
+```
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] iOS support (using Network framework for mDNS)
+- [ ] Touchpad / swipe gesture control
+- [ ] App launcher shortcut grid
+- [ ] Wake-on-LAN support
+- [ ] Multi-TV switching
+- [ ] Widget / home screen quick controls
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome for the public portions of the codebase. Please open an issue before submitting a PR for significant changes.
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'feat: add your feature'`
+4. Push: `git push origin feature/your-feature`
+5. Open a Pull Request
+
+---
+
+## ⚠️ Disclaimer
+
+This app is an independent project and is **not affiliated with Google or Android**. The Android TV Remote Control Protocol is used in accordance with its publicly documented specification. Use on networks and devices you own or have permission to access.
+
+---
+
+## 👤 Author
+
+**Junaid**
+- Flutter Developer & Mobile Architect
+- LinkedIn: [linkedin.com/in/junaid](https://linkedin.com/in/junaid)
+- GitHub: [@Junaid546](https://github.com/Junaid546)
+
+---
+
+## 📄 License
+
+Copyright © 2025 Junaid. All Rights Reserved.
+
+The public portions of this project are available for reference and learning. The proprietary pairing implementation files are excluded and remain the intellectual property of the author.
+
+---
+
+<p align="center">Built with ❤️ using Flutter + Kotlin</p>
