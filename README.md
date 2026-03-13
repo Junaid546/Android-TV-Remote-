@@ -240,7 +240,7 @@ This app is an independent project and is **not affiliated with Google or Androi
 
 **Junaid**
 - Flutter Developer & Mobile Architect
-- LinkedIn: [linkedin.com/in/junaid]([https://linkedin.com/in/junaid](https://www.linkedin.com/in/junaid-tahir-2905a035a/))
+- LinkedIn: [linkedin.com/in/junaid](www.linkedin.com/in/junaid-tahir-2905a035a)
 - GitHub: [@Junaid546](https://github.com/Junaid546)
 
 ---
